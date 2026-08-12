@@ -100,7 +100,7 @@ class cls_program(QtCore.QObject):
         )
         self.controllerItems.append(i)
         i = controllerItem(
-            1, cls_pilbox, ["/dev/ttySTM32", 0, 1, 1], 0, 0, None, None, None, [4, 5, 6]
+            1, cls_pilbox, ["/dev/ttySTMG4", 0, 0, 1], 0, 0, None, None, None, [4, 5, 6]
         )
         self.controllerItems.append(i)
         i = controllerItem(
@@ -108,8 +108,7 @@ class cls_program(QtCore.QObject):
         )
         #     i= controllerItem(2,cls_pilbox,["/dev/ttySTMH7",0,1,1],0,0,None,None,None,[7,8,9])
         self.controllerItems.append(i)
-        print(self.controllerItems)
-        self.ui.createIndicator(3)
+        self.ui.createIndicator(len(self.controllerItems))
         self.controller_start()
 
     #

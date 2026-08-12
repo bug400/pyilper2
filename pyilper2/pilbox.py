@@ -69,6 +69,10 @@ class cls_pilbox(cls_IOThread):
         self.__isController__ = params[3]  # PIL-Box Controller mode
         self.__tty__ = cls_serialIO()  # serial device object
         self.__lasth__ = 0
+        if self.__isController__:
+            print("pilbox: controller on mode")
+        else:
+            print("pilbox: controller off mode")
 
     #
     #  get connection speed
@@ -80,19 +84,22 @@ class cls_pilbox(cls_IOThread):
     #  send command to PIL-Box, check return value.
     #
     def __sendCmd__(self, cmdfrm, tmout):
-        #     print("about to send command 0x{0:02x}".format(cmdfrm))
         hbyt, lbyt = disassemble_frame(cmdfrm)
-        #     print("hbyt %2x lbyt %2x" % (hbyt,lbyt))
         self.write(lbyt, hbyt)
         bytrx = self.__tty__.rcv(tmout, 1)
         if bytrx is None:
             raise SerialIOError("Timeout")
             self.__tty__.close()
-        if (ord(bytrx) & 0x3F) != (cmdfrm & 0x3F):
-            print("val err ", ord(bytrx))
+        try:
+            tst = ord(bytrx) 
+        except (ValueError,TypeError):
             self.__tty__.close()
             raise SerialIOError("illegal return value for command")
-        print("command sent and acknowledged 0x{0:02x}".format(cmdfrm))
+        if tst != lbyt: 
+            print("pilacm: return value mismatch %x %x" % (tst,lbyt))
+            self.__tty__.close()
+            raise SerialIOError("illegal return value for command")
+        print("pilbox: command sent and acknowledged 0x{0:02x}".format(cmdfrm))
 
     #
     #  Open PIL-Box device, check baudrates if not specified and issue a TDIS
@@ -255,7 +262,6 @@ class cls_pilbox(cls_IOThread):
                     if ret == b"":
                         continue
                     byt = ord(ret)
-                    print("gelesen", byt)
                     #
                     # process byte read from the PIL-Box, is not a low byte
                     #
@@ -278,7 +284,7 @@ class cls_pilbox(cls_IOThread):
                     # low byte, build frame
                     #
                     result = assemble_frame(self.__lasth__, byt)
-                    print("pilbox: main read result ", result)
+#                   print("pilbox: main read result ", result)
                     if result is None:
                         continue
                     self.__queue__.put([self.__id__, result])
@@ -320,7 +326,7 @@ class cls_pilbox(cls_IOThread):
         #
         # disassemble into low and high byte
         #
-        print("pilbox: writer sends frame")
+#       print("pilbox: writer sends frame")
         hbyt, lbyt = disassemble_frame(frame)
 
         try:
@@ -335,7 +341,6 @@ class cls_pilbox(cls_IOThread):
                 # otherwise send only low part
                 #
                 self.write(lbyt)
-            print("pilbox: frame written")
         #
         # Error handling
         #

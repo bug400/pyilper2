@@ -129,7 +129,7 @@ class cls_controller(threading.Thread):
                 # process frames
                 #
                 if item[1] >= 0:
-                    print("controller: processing ", self.controllerItems[id].devices,1/0)
+#                   print("controller: processing ", self.controllerItems[id].devices,1/0)
 
                     #
                     # call writer of next interface to send frame

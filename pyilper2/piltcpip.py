@@ -168,7 +168,7 @@ class cls_piltcpip(cls_IOThread):
                 print("tcpip: inconnected true")
             else:
                 bytrx = s.recv(2)
-                print("tcpip: bytrx ", bytrx)
+#               print("tcpip: bytrx ", bytrx)
                 if bytrx:
                     return socket.ntohs((bytrx[1] << 8) | bytrx[0])
                 else:
@@ -235,7 +235,7 @@ class cls_piltcpip(cls_IOThread):
                         self.setStatus(self.STAT_CONNECTING)
                         print("tcpip: not connected to virtual HP-IL devices")
 
-                print("tcpip: main read result ", result)
+#               print("tcpip: main read result ", result)
                 if result is None:
                     continue
                 self.__queue__.put([self.__id__, result])

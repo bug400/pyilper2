@@ -72,9 +72,7 @@ class cls_pilacm(cls_IOThread):
     #  send command to ACM device, check return value.
     #
     def __sendCmd__(self, cmdfrm, tmout):
-        print("pilacm: about to send command 0x{0:02x}".format(cmdfrm))
         hbyt, lbyt = disassemble_frame(cmdfrm)
-        print("pilacm: hbyt %2x lbyt %2x" % (hbyt, lbyt))
         self.write(lbyt, hbyt)
         bytrx = self.__tty__.rcv(tmout, 1)
         if bytrx is None:
@@ -82,11 +80,11 @@ class cls_pilacm(cls_IOThread):
             self.__tty__.close()
         try:
             tst = ord(bytrx)
-        except ValueError:
+        except (ValueError,TypeError):
             self.__tty__.close()
             raise SerialIOError("illegal return value for command")
         if tst != lbyt:
-            print("pilacm: return value mismatch %x" % tst)
+            print("pilacm: return value mismatch %x %x" % (tst,lbyt))
             self.__tty__.close()
             raise SerialIOError("illegal return value for command")
         print("pilacm: command sent and acknowledged 0x{0:02x}".format(cmdfrm))
@@ -155,7 +153,6 @@ class cls_pilacm(cls_IOThread):
     # Write frame to ACM device
     #
     def writeFrame(self, frame):
-        print("pilacm write frame %x" % frame)
         buf = bytes(frame.to_bytes(2, "little"))
         self.__tty__.snd(buf)
 
@@ -236,7 +233,7 @@ class cls_pilacm(cls_IOThread):
                     #
                     if frame is None:
                         continue
-                    print("pilacm read frame %x" % frame)
+#                   print("pilacm read frame %x" % frame)
                     self.__queue__.put([self.__id__, frame])
             #
             # normal termination
@@ -272,11 +269,10 @@ class cls_pilacm(cls_IOThread):
         if self.getStatus() != self.STAT_CONNECTED:
             return
 
-        print("pilacm: writer sends frame")
+#       print("pilacm: writer sends frame")
 
         try:
             self.writeFrame(frame)
-            print("pilacm: frame written")
         #
         # Error handling
         #
