@@ -32,22 +32,19 @@
 
 import time
 import threading
-import sys
-import os
 from .pilglobals import PILGLOBALS
 
 if PILGLOBALS.QT_Bindings == "PySide6":
     from PySide6 import QtCore, QtGui, QtWidgets
 if PILGLOBALS.QT_Bindings == "PyQt5":
     from PyQt5 import QtCore, QtGui, QtWidgets
-from .serialio import SerialIOError, cls_serialIO
+from .serialio import cls_serialIO
 from .pilcore import (
-    assemble_frame,
-    disassemble_frame,
     cls_Interface_Spec,
     checkSerialDeviceExists,
+    AppException,
 )
-from .iothread import IOThreadException, cls_IOThread
+from .iothread import cls_IOThread
 
 
 class cls_pilbox(cls_IOThread):
@@ -81,27 +78,6 @@ class cls_pilbox(cls_IOThread):
         return self.__baudrate__
 
     #
-    #  send command to PIL-Box, check return value.
-    #
-    def __sendCmd__(self, cmdfrm, tmout):
-        hbyt, lbyt = disassemble_frame(cmdfrm)
-        self.write(lbyt, hbyt)
-        bytrx = self.__tty__.rcv(tmout, 1)
-        if bytrx is None:
-            raise SerialIOError("Timeout")
-            self.__tty__.close()
-        try:
-            tst = ord(bytrx) 
-        except (ValueError,TypeError):
-            self.__tty__.close()
-            raise SerialIOError("illegal return value for command")
-        if tst != lbyt: 
-            print("pilacm: return value mismatch %x %x" % (tst,lbyt))
-            self.__tty__.close()
-            raise SerialIOError("illegal return value for command")
-        print("pilbox: command sent and acknowledged 0x{0:02x}".format(cmdfrm))
-
-    #
     #  Open PIL-Box device, check baudrates if not specified and issue a TDIS
     #
     def open(self):
@@ -115,8 +91,9 @@ class cls_pilbox(cls_IOThread):
             try:
                 self.__tty__.open(self.__ttydevice__, self.__baudrate__)
                 self.__sendCmd__(cmd, PILGLOBALS.Tmout_Frm)
-            except SerialIOError as e:
-                raise IOThreadException("Cannot connect to PIL-Box" + e.msg)
+            except Exception as e:
+                e.add_note("Cannot connect to PIL-Box")
+                raise e from e
         else:
             #
             # open serial device, detect baud rate, use predefined baudrates in
@@ -133,19 +110,20 @@ class cls_pilbox(cls_IOThread):
                     else:
                         self.__tty__.flushInput()
                         self.__tty__.setBaudrate(baudrate)
-                except SerialIOError as e:
-                    raise IOThreadException("Cannot connect to PIL-Box" + e.msg)
+                except Exception as e:
+                    e.add_note("Cannot connect to PIL-Box")
+                    raise e from e
                 try:
                     self.__sendCmd__(cmd, PILGLOBALS.Tmout_Frm)
                     self.__baudrate__ = baudrate
                     break
-                except SerialIOError as e:
+                except Exception as e:
                     pass
 
         print("pilbox: connected at ", self.__baudrate__, "baud")
         if self.__baudrate__ == 0:
             self.__tty__.close()
-            raise IOThreadException("Cannot connect to PIL-Box baudrate mismatch")
+            raise AppException("Cannot connect to PIL-Box: baudrate mismatch")
 
     #
     #  Disconnect PIL-Box, issue a TDIS
@@ -170,28 +148,9 @@ class cls_pilbox(cls_IOThread):
                 cmd = self.COFF
         try:
             self.__sendCmd__(cmd, PILGLOBALS.Tmout_Frm)
-        except SerialIOError as e:
-            raise IOThreadException("Cannot initialize PIL-Box" + e.msg)
-
-    #
-    #  Read byte from PIL-Box
-    #
-    def read(self):
-        bytrx = self.__tty__.rcv(PILGLOBALS.Tmout_Frm, 1)
-        return bytrx
-
-    #
-    # Send one or two bytes to the PIL-Box
-    #
-    def write(self, lbyt, hbyt=None):
-        if hbyt is None:
-            buf = bytearray([lbyt])
-        else:
-            buf = bytearray([hbyt, lbyt])
-        try:
-            self.__tty__.snd(buf)
-        except SerialIOError as e:
-            raise IOThreadException("PIL-Box send frame error" + e.msg)
+        except Exception as e:
+            e.add_note("Cannot initialize PIL-Box")
+            raise e from e
 
     #
     #  PIL-Box reader thread
@@ -247,12 +206,12 @@ class cls_pilbox(cls_IOThread):
                     # read byte from PIL-Box. On error wait and check if device was unplugged
                     #
                     try:
-                        ret = self.read()
-                    except SerialIOError as e:
+                        ret = self.readByte()
+                    except Exception as e:
                         time.sleep(PILGLOBALS.SerialDevicePlugDelay)
                         if checkSerialDeviceExists(self.__ttydevice__):
-                            print("pilbox reader error")
-                            raise IOThreadException(e.msg)
+                            e.add_note("pilbox reader error")
+                            raise e from e
                         deviceRemoved = True
                         self.setStatus(self.STAT_CONNECTING)
                         break
@@ -278,13 +237,13 @@ class cls_pilbox(cls_IOThread):
                             # send acknowledge only at 9600 baud connection
                             #
                             if self.__baudrate__ == 9600:
-                                self.write(0x0D)
+                                self.boxWrite(0x0D)
                         continue
                     #
                     # low byte, build frame
                     #
-                    result = assemble_frame(self.__lasth__, byt)
-#                   print("pilbox: main read result ", result)
+                    result = self.assemble_frame(self.__lasth__, byt)
+                    #                   print("pilbox: main read result ", result)
                     if result is None:
                         continue
                     self.__queue__.put([self.__id__, result])
@@ -298,16 +257,11 @@ class cls_pilbox(cls_IOThread):
         #
         # error exit
         #
-        except IOThreadException as e:
-            exc_type, exc_obj, exc_tb = sys.exc_info()
-            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            print(exc_type, fname, exc_tb.tb_lineno)
-            print("pilbox: IOThreadException ", e.msg)
-            print("pilbox: reader error exit")
+        except Exception as e:
             #
             # put error status and message to queue
             #
-            self.__queue__.put([self.__id__, -1, e.msg])
+            self.__queue__.put([self.__id__, -1, e])
         finally:
             self.setStatus(self.STAT_DISCONNECTED)
             return
@@ -326,8 +280,8 @@ class cls_pilbox(cls_IOThread):
         #
         # disassemble into low and high byte
         #
-#       print("pilbox: writer sends frame")
-        hbyt, lbyt = disassemble_frame(frame)
+        #       print("pilbox: writer sends frame")
+        hbyt, lbyt = self.disassemble_frame(frame)
 
         try:
             if hbyt != self.__lasth__:
@@ -335,20 +289,20 @@ class cls_pilbox(cls_IOThread):
                 # send high part if different from last one and low part
                 #
                 self.__lasth__ = hbyt
-                self.write(lbyt, hbyt)
+                self.writeOneOrTwoBytes(lbyt, hbyt)
             else:
                 #
                 # otherwise send only low part
                 #
-                self.write(lbyt)
+                self.writeOneOrTwoBytes(lbyt)
         #
         # Error handling
         #
-        except SerialIOError as e:
+        except Exception as e:
             time.sleep(PILGLOBALS.SerialDevicePlugDelay)
             if checkSerialDeviceExists(self.__ttydevice__):
-                print("pilbox writer error")
-                raise IOThreadException(e.msg)
+                e.add_note("pilbox write error")
+                raise e from e
             else:
                 self.__lasth__ = 0
         return

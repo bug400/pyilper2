@@ -29,6 +29,7 @@ import time
 import threading
 import queue
 import os
+import traceback
 from dataclasses import dataclass
 from .pilglobals import PILGLOBALS
 
@@ -37,7 +38,7 @@ if PILGLOBALS.QT_Bindings == "PySide6":
 if PILGLOBALS.QT_Bindings == "PyQt5":
     from PyQt5 import QtCore, QtGui, QtWidgets
 
-from .iothread import cls_IOThread, IOThreadException
+from .iothread import cls_IOThread
 
 
 @dataclass
@@ -95,6 +96,7 @@ class cls_controller(threading.Thread):
     def run(self):
 
         self.status = self.STAT_RUN
+        self.e= None
         connected = False
         print("controller: start run")
         self.status = self.STAT_RUN
@@ -103,6 +105,7 @@ class cls_controller(threading.Thread):
             i.readerThread.start()
         self.updateMessage("")
         exitError=False
+        errMsgPrefix=""
         try:
 
             while True:
@@ -136,10 +139,9 @@ class cls_controller(threading.Thread):
                     #
                     try:
                         self.controllerItems[id].writer(item[1])
-                    except IOThreadException:
-                        print("iothread", id, "writer failed")
-                        self.controllerItems[id].readerThread = None
-                        break
+                    except Exception as e:
+                        e.add_note("Write Error for interface: "+str(id))
+                        raise e from e
                 #
                 # got error message from an io thread
                 #
@@ -147,6 +149,7 @@ class cls_controller(threading.Thread):
                     self.controllerItems[id].readerThread = None
                     self.updateMessage(item[2])
                     exitError=True
+                    errMsgPrefix="Error in IOThread "+str(id)
                     break
                 #
                 #               got status change message
@@ -158,11 +161,10 @@ class cls_controller(threading.Thread):
         # Exception error exit
         #
         except Exception as e:
-            print("controller error ", e)
+            self.e=e
             exitError=True
-            exc_type, exc_obj, exc_tb = sys.exc_info()
-            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            print(exc_type, fname, exc_tb.tb_lineno)
+            if errMsgPrefix=="":
+                errMsgPrefix="Controlthread Error"
         finally:
             pass
         #
@@ -182,7 +184,7 @@ class cls_controller(threading.Thread):
         # signal terminate on error
         #
         if exitError:
-            self.sig_ControllerTerminated.emit()
+            self.sig_ControllerTerminated.emit(errMsgPrefix,self.e)
         return
 
     def pause(self):

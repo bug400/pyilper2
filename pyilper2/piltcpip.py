@@ -48,7 +48,8 @@ if PILGLOBALS.QT_Bindings == "PySide6":
 if PILGLOBALS.QT_Bindings == "PyQt5":
     from PyQt5 import QtCore, QtGui, QtWidgets
 
-from .iothread import IOThreadException, cls_IOThread
+from .iothread import cls_IOThread
+from .pilcore import AppException
 
 
 class cls_piltcpip(cls_IOThread):
@@ -96,7 +97,7 @@ class cls_piltcpip(cls_IOThread):
                 s.close()
                 continue
         if len(self.serverlist) == 0:
-            raise IOThreadError("cannot bind to port")
+            raise AppException("cannot bind to port")
 
     def openclient(self):
         #
@@ -248,16 +249,11 @@ class cls_piltcpip(cls_IOThread):
         #
         # error exit
         #
-        except IOThreadException as e:
-            exc_type, exc_obj, exc_tb = sys.exc_info()
-            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            print(exc_type, fname, exc_tb.tb_lineno)
-            print("tcpip: IOThreadException ", e.msg)
-            print("tcpip: reader error exit")
+        except ExceptionGroup as e:
             #
             #        put error status and message to queue
             #
-            self.__queue__.put([self.__id__, -1, e.msg])
+            self.__queue__.put([self.__id__, -1, e])
             
         finally:
             self.setStatus(self.STAT_DISCONNECTED)

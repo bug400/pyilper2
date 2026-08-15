@@ -47,9 +47,16 @@ if PILGLOBALS.QT_Bindings == "PySide6":
     def getEventPosition(ev):
         return ev.position().toPoint()
 
-
 #
-# utility functions --------------------------------------------------------------
+# Application error class
+#
+class AppException(Exception):
+
+   def __init__(self,msg):
+        self.msg=msg
+
+
+
 #
 # decode version number of lifutils or emu7470
 #
@@ -87,32 +94,7 @@ def decode_pyILPERVersion(version_string):
         return 0
 
 
-#
-#  assemble frame from low and high byte according to 7- oder 8-bit format
-#
-def assemble_frame(hbyt, lbyt):
-    global USE_8BITS
-    if lbyt & 0x80:
-        USE_8BITS = True
-        return ((hbyt & 0x1E) << 6) + (lbyt & 0x7F)
-    else:
-        USE_8BITS = False
-        return ((hbyt & 0x1F) << 6) + (lbyt & 0x3F)
 
-
-#
-#  disassemble frame from low and high byte according to 7- oder 8-bit format
-#
-
-
-def disassemble_frame(frame):
-    if not USE_8BITS:
-        hbyt = ((frame >> 6) & 0x1F) | 0x20
-        lbyt = (frame & 0x3F) | 0x40
-    else:
-        hbyt = ((frame >> 6) & 0x1E) | 0x20
-        lbyt = (frame & 0x7F) | 0x80
-    return (hbyt, lbyt)
 
 
 #

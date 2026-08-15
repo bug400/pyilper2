@@ -32,23 +32,19 @@
 
 import time
 import threading
-import sys
-import os
 
-from .serialio import SerialIOError, cls_serialIO
+from .serialio import cls_serialIO
 from .pilglobals import PILGLOBALS
 from .pilcore import (
     cls_Interface_Spec,
     checkSerialDeviceExists,
-    assemble_frame,
-    disassemble_frame,
 )
 
 if PILGLOBALS.QT_Bindings == "PySide6":
     from PySide6 import QtCore, QtGui, QtWidgets
 if PILGLOBALS.QT_Bindings == "PyQt5":
     from PyQt5 import QtCore, QtGui, QtWidgets
-from .iothread import IOThreadException, cls_IOThread
+from .iothread import cls_IOThread
 
 
 class cls_pilacm(cls_IOThread):
@@ -68,39 +64,7 @@ class cls_pilacm(cls_IOThread):
     def getBaudRate(self):
         return self.__baudrate__
 
-    #
-    #  send command to ACM device, check return value.
-    #
-    def __sendCmd__(self, cmdfrm, tmout):
-        hbyt, lbyt = disassemble_frame(cmdfrm)
-        self.write(lbyt, hbyt)
-        bytrx = self.__tty__.rcv(tmout, 1)
-        if bytrx is None:
-            raise SerialIOError("Timeout")
-            self.__tty__.close()
-        try:
-            tst = ord(bytrx)
-        except (ValueError,TypeError):
-            self.__tty__.close()
-            raise SerialIOError("illegal return value for command")
-        if tst != lbyt:
-            print("pilacm: return value mismatch %x %x" % (tst,lbyt))
-            self.__tty__.close()
-            raise SerialIOError("illegal return value for command")
-        print("pilacm: command sent and acknowledged 0x{0:02x}".format(cmdfrm))
-
-    #
-    # Send one or two bytes to the PIL-Box
-    #
-    def write(self, lbyt, hbyt=None):
-        if hbyt is None:
-            buf = bytearray([lbyt])
-        else:
-            buf = bytearray([hbyt, lbyt])
-        try:
-            self.__tty__.snd(buf)
-        except SerialIOError as e:
-            raise IOThreadException("pilacm: send frame error" + e.msg)
+ 
 
     #
     #  Connect to ACM device and put it to TDIS mode.
@@ -113,17 +77,18 @@ class cls_pilacm(cls_IOThread):
         self.__baudrate__ = PILGLOBALS.Baudrates[len(PILGLOBALS.Baudrates) - 1][1]
         try:
             self.__tty__.open(self.__ttydevice__, self.__baudrate__)
-        except SerialIOError as e:
-            raise IOThreadException("Cannot connect to ACM device: " + e.msg)
+        except Exception as e:
+            e.add_note("Cannot connect to ACM device") 
+            raise e from e
 
         #
         # Send disconnect
         #
         try:
             self.__sendCmd__(self.TDIS, PILGLOBALS.Tmout_Cmd)
-        except SerialIOError as e:
-            errmsg = e.msg
-            raise IOThreadException("Cannot connect to ACM device: " + errmsg)
+        except Exception as e:
+            e.add_note("Cannot connect to ACM device")
+            raise e from e
         return
 
     #
@@ -140,10 +105,7 @@ class cls_pilacm(cls_IOThread):
     # Read frame from ACM device
     #
     def readFrame(self):
-        try:
-            frmrx = self.__tty__.rcv(PILGLOBALS.Tmout_Frm, 2)
-        except SerialIOError as e:
-            raise IOThreadException("ACM read frame error" + e.msg)
+        frmrx = self.__tty__.rcv(PILGLOBALS.Tmout_Frm, 2)
         if frmrx != b"":
             return int.from_bytes(frmrx, "little")
         else:
@@ -162,8 +124,9 @@ class cls_pilacm(cls_IOThread):
     def initBox(self):
         try:
             self.__sendCmd__(self.PASSTHRU, PILGLOBALS.Tmout_Cmd)
-        except SerialIOError as e:
-            raise IOThreadException("Cannot initialize PIL-Box" + e.msg)
+        except Exception as e:
+            e.add_note("Cannot initialize PIL-Box")
+            raise e from e
 
     #
     #  PIL-Box reader thread
@@ -220,11 +183,11 @@ class cls_pilacm(cls_IOThread):
                     #
                     try:
                         frame = self.readFrame()
-                    except SerialIOError as e:
+                    except Exception as e:
                         time.sleep(PILGLOBALS.SerialDevicePlugDelay)
                         if checkSerialDeviceExists(self.__ttydevice__):
-                            print("pilacm reader error")
-                            raise IOThreadException(e.msg)
+                            e.add_note("pilacm reader error")
+                            raise e from e
                         deviceRemoved = True
                         self.setStatus(self.STAT_CONNECTING)
                         break
@@ -245,16 +208,11 @@ class cls_pilacm(cls_IOThread):
         #
         # error exit
         #
-        except IOThreadException as e:
-            exc_type, exc_obj, exc_tb = sys.exc_info()
-            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            print(exc_type, fname, exc_tb.tb_lineno)
-            print("pilacm: IOThreadException ", e.msg)
-            print("pilacm: reader error exit")
+        except Exception as e:
             #
             # put error status and message to queue
             #
-            self.__queue__.put([self.__id__, -1, e.msg])
+            self.__queue__.put([self.__id__, -1, e])
         finally:
             self.setStatus(self.STAT_DISCONNECTED)
         return
@@ -276,9 +234,9 @@ class cls_pilacm(cls_IOThread):
         #
         # Error handling
         #
-        except SerialIOError as e:
+        except Exception as e:
             time.sleep(PILGLOBALS.SerialDevicePlugDelay)
             if checkSerialDeviceExists(self.__ttydevice__):
-                print("pilacm writer error")
-                raise IOThreadException(e.msg)
+                e.add_note("pilacm writer error")
+                raise e from e
         return

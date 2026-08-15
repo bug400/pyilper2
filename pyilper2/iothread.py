@@ -30,11 +30,9 @@
 # - first version
 
 import threading
+from .pilglobals import PILGLOBALS
+from .pilcore import AppException
 
-
-class IOThreadException(Exception):
-    def __init__(self, msg):
-        self.msg = msg
 
 
 class cls_IOThread(threading.Thread):
@@ -53,12 +51,80 @@ class cls_IOThread(threading.Thread):
         self.__id__ = id
         self.__status__ = self.STAT_DISCONNECTED
         self.__statLock__ = threading.Lock()
+        self.USE_8BITS=True
+        self.__tty__=None
 
     def setStatus(self, stat):
         with self.__statLock__:
             self.__status__ = stat
         self.__queue__.put([self.__id__, self.MSG_STATUS, stat])
 
+#
+#  assemble frame from low and high byte according to 7- oder 8-bit format
+#
+    def assemble_frame(self,hbyt, lbyt):
+        
+        if lbyt & 0x80:
+            self.USE_8BITS = True
+            return ((hbyt & 0x1E) << 6) + (lbyt & 0x7F)
+        else:
+            self.USE_8BITS = False
+            return ((hbyt & 0x1F) << 6) + (lbyt & 0x3F)
+
+#
+#  disassemble frame from low and high byte according to 7- oder 8-bit format
+#
+    def disassemble_frame(self,frame):
+        if not self.USE_8BITS:
+            hbyt = ((frame >> 6) & 0x1F) | 0x20
+            lbyt = (frame & 0x3F) | 0x40
+        else:
+            hbyt = ((frame >> 6) & 0x1E) | 0x20
+            lbyt = (frame & 0x7F) | 0x80
+        return (hbyt, lbyt)
+
     def getStatus(self):
         with self.__statLock__:
             return self.__status__
+    #
+    #  send command to PIL-Box, check return value.
+    #
+    def __sendCmd__(self, cmdfrm, tmout):
+        hbyt, lbyt = self.disassemble_frame(cmdfrm)
+        try:
+            self.writeOneOrTwoBytes(lbyt, hbyt)
+            bytrx = self.__tty__.rcv(tmout, 1)
+        except Exception as e:
+            e.add_node("i/o error in sendCMD")
+            raise e from e
+        if bytrx is None:
+            raise AppException("timeout getting response of command")
+            self.__tty__.close()
+        try:
+            tst = ord(bytrx) 
+        except (ValueError,TypeError):
+            self.__tty__.close()
+            raise AppException("illegal return value for command")
+        if tst != lbyt: 
+            print("pilacm: return value mismatch %x %x" % (tst,lbyt))
+            self.__tty__.close()
+            raise AppException("illegal return value for command")
+        print("sendCmd: command sent and acknowledged 0x{0:02x}".format(cmdfrm))
+
+    #
+    #  Read byte from PIL-Box
+    #
+    def readByte(self):
+        bytrx = self.__tty__.rcv(PILGLOBALS.Tmout_Frm, 1)
+        return bytrx
+
+    #
+    # Send one or two bytes to the PIL-Box
+    #
+    def writeOneOrTwoBytes(self, lbyt, hbyt=None):
+        if hbyt is None:
+            buf = bytearray([lbyt])
+        else:
+            buf = bytearray([hbyt, lbyt])
+        self.__tty__.snd(buf)
+
