@@ -289,12 +289,12 @@ class cls_pilbox(cls_IOThread):
                 # send high part if different from last one and low part
                 #
                 self.__lasth__ = hbyt
-                self.writeOneOrTwoBytes(lbyt, hbyt)
+                self.writePilBoxFrame(lbyt, hbyt)
             else:
                 #
                 # otherwise send only low part
                 #
-                self.writeOneOrTwoBytes(lbyt)
+                self.writePilBoxFrame(lbyt)
         #
         # Error handling
         #

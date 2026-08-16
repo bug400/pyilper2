@@ -9,25 +9,30 @@ from .controlthread import cls_controller, controllerItem, cls_IndicatorWidget
 from .pilbox import cls_pilbox
 from .piltcpip import cls_piltcpip
 from .pilacm import cls_pilacm
+from .pilusb import cls_pilusb
 from .pilcore import AppException
+
 
 class cls_RuntimeMessageBox(QtWidgets.QMessageBox):
 
-    def __init__(self,width,height):
+    def __init__(self, width, height):
         super().__init__()
-        self.width=width
-        self.height=height
+        self.width = width
+        self.height = height
 
-    def showEvent(self,e):
+    def showEvent(self, e):
         super().showEvent(e)
-        self.setFixedWidth(self.width)
-        self.setFixedHeight(self.height)
+        if self.width is not None:
+            self.setFixedWidth(self.width)
+        if self.height is not None:
+            self.setFixedHeight(self.height)
 
-    def resizeEvent(self,e):
+    def resizeEvent(self, e):
         super().resizeEvent(e)
-        self.setFixedWidth(self.width)
-        self.setFixedHeight(self.height)
-        
+        if self.width is not None:
+            self.setFixedWidth(self.width)
+        if self.height is not None:
+            self.setFixedHeight(self.height)
 
 
 class cls_ui(QtWidgets.QMainWindow):
@@ -93,7 +98,7 @@ class cls_ui(QtWidgets.QMainWindow):
 class cls_program(QtCore.QObject):
 
     sig_UpdateStatus = QtCore.Signal(list, str)  # must be class variable!!
-    sig_ControllerTerminated = QtCore.Signal(str,Exception)  # must be class variable!!
+    sig_ControllerTerminated = QtCore.Signal(str, Exception)  # must be class variable!!
 
     def __init__(self):
         super().__init__()
@@ -110,6 +115,8 @@ class cls_program(QtCore.QObject):
         i = controllerItem(
             0,
             cls_piltcpip,
+            "TCP/IP",
+            False,
             [60001, "localhost", 60000],
             0,
             0,
@@ -120,14 +127,61 @@ class cls_program(QtCore.QObject):
         )
         self.controllerItems.append(i)
         i = controllerItem(
-            1, cls_pilbox, ["/dev/ttySTMG4", 0, 0, 1], 0, 0, None, None, None, [4, 5, 6]
+            1,
+            cls_pilbox,
+            "PIL-Box 1",
+            False,
+            ["/dev/ttySTMG4", 0, 0, 1],
+            0,
+            0,
+            None,
+            None,
+            None,
+            [4, 5, 6],
         )
         self.controllerItems.append(i)
         i = controllerItem(
-            2, cls_pilacm, ["/dev/ttySTMH7"], 0, 0, None, None, None, [7, 8, 9]
+            2,
+            cls_pilacm,
+            "ACM-Box",
+            False,
+            ["/dev/ttySTM32"],
+            0,
+            0,
+            None,
+            None,
+            None,
+            [7, 8, 9],
         )
-        i= controllerItem(2,cls_pilbox,["/dev/ttySTMH7",0,1,1],0,0,None,None,None,[7,8,9])
         self.controllerItems.append(i)
+        i = controllerItem(
+            2,
+            cls_pilbox,
+            "Fast ACM-Box",
+            False,
+            ["/dev/ttySTMH7", 0, 1, 1],
+            0,
+            0,
+            None,
+            None,
+            None,
+            [7, 8, 9],
+        )
+        # self.controllerItems.append(i)
+        i = controllerItem(
+            2,
+            cls_pilusb,
+            "Fast USB-Box",
+            False,
+            [0x0483, 0x5740],
+            0,
+            0,
+            None,
+            None,
+            None,
+            [7, 8, 9],
+        )
+        # self.controllerItems.append(i)
         self.ui.createIndicator(len(self.controllerItems))
         self.controller_start()
 
@@ -140,27 +194,27 @@ class cls_program(QtCore.QObject):
     #
     #  controller terminated signal handler
     #
-    def controllerTerminated(self,errMsgPrefix, ex):
-        txt=""
-        if hasattr(ex,"__notes__"):
+    def controllerTerminated(self, errMsgPrefix, ex):
+        txt = ""
+        if hasattr(ex, "__notes__"):
             for line in reversed(ex.__notes__):
                 if txt != "":
-                    txt+="\ncaused by: "
-                txt+=line
-        if txt!="":
-            txt+="\ncaused by: "
+                    txt += "\ncaused by: "
+                txt += line
+        if txt != "":
+            txt += "\ncaused by: "
         if issubclass(ex.__class__, OSError):
             txt += type(ex).__name__ + ": " + ex.errno, ex.strerror
         elif ex.__class__ == AppException:
             txt += "AppError:" + ex.msg
         else:
             txt += type(ex).__name__
-        txt=errMsgPrefix+": "+txt
+        txt = errMsgPrefix + ": " + txt
         tb = ex.__traceback__
         tbTxt = ""
         for line in traceback.format_tb(tb):
             tbTxt += line
-        msgBox = cls_RuntimeMessageBox(600,250)
+        msgBox = cls_RuntimeMessageBox(600, None)
         msgBox.setIcon(QtWidgets.QMessageBox.Icon.Critical)
         msgBox.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Close)
         msgBox.setText(txt)

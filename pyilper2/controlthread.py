@@ -45,6 +45,8 @@ from .iothread import cls_IOThread
 class controllerItem:
     id: int
     interfaceClass: object
+    interfaceName: str
+    isDisabled: bool
     interfaceParams: list[int | str]
     nextId: int
     status: int
@@ -69,26 +71,37 @@ class cls_controller(threading.Thread):
         self.queue = queue.SimpleQueue()
         self.stopEvent = threading.Event()
         self.sig_UpdateStatus = sig_UpdateStatus
-        self.sig_ControllerTerminated= sig_ControllerTerminated
+        self.sig_ControllerTerminated = sig_ControllerTerminated
         self.controllerItems = controllerItems
 
         #
-        #     Create interface objects
+        #     Create interface objects, set initial interface status, populate nextId
         #
         for i, item in enumerate(self.controllerItems):
-            item.status = cls_IOThread.STAT_DISCONNECTED
-            item.commObject = item.interfaceClass(
-                self.stopEvent, self.queue, i, item.interfaceParams
-            )
+            if i == len(self.controllerItems) - 1:
+                item.nextId = self.controllerItems[0].id
+            else:
+                item.nextId = self.controllerItems[i + 1].id
+            if item.isDisabled:
+                item.status = cls_IOThread.STAT_DISABLED
+                item.commobject = None
+                item.write = None
+            else:
+                item.status = cls_IOThread.STAT_DISCONNECTED
+                item.commObject = item.interfaceClass(
+                    self.stopEvent, self.queue, i, item.interfaceParams
+                )
+                print("commobject created for", item.interfaceName)
         self.updateStatus()
+
         #
         #     store writer
         #
         for i, item in enumerate(self.controllerItems):
-            if i == len(self.controllerItems) - 1:
-                item.writer = self.controllerItems[0].commObject.writer
+            if self.controllerItems[item.nextId].commObject is not None:
+                item.writer = self.controllerItems[item.nextId].commObject.writer
             else:
-                item.writer = self.controllerItems[i + 1].commObject.writer
+                item.writer = None
 
         print("controller: init passed")
         return
@@ -96,16 +109,17 @@ class cls_controller(threading.Thread):
     def run(self):
 
         self.status = self.STAT_RUN
-        self.e= None
+        self.e = None
         connected = False
         print("controller: start run")
         self.status = self.STAT_RUN
         for i in self.controllerItems:
-            i.readerThread = threading.Thread(target=i.commObject.reader)
-            i.readerThread.start()
+            if not i.isDisabled:
+                i.readerThread = threading.Thread(target=i.commObject.reader)
+                i.readerThread.start()
         self.updateMessage("")
-        exitError=False
-        errMsgPrefix=""
+        exitError = False
+        errMsgPrefix = ""
         try:
 
             while True:
@@ -132,24 +146,34 @@ class cls_controller(threading.Thread):
                 # process frames
                 #
                 if item[1] >= 0:
-#                   print("controller: processing ", self.controllerItems[id].devices,1/0)
-
-                    #
-                    # call writer of next interface to send frame
-                    #
-                    try:
-                        self.controllerItems[id].writer(item[1])
-                    except Exception as e:
-                        e.add_note("Write Error for interface: "+str(id))
-                        raise e from e
+                    # print("controller: processing ", self.controllerItems[id].devices)
+                    if self.controllerItems[id].writer is not None:
+                        #
+                        # call writer of next interface to send frame
+                        #
+                        try:
+                            self.controllerItems[id].writer(item[1])
+                        except Exception as e:
+                            e.add_note(
+                                "Write Error for interface "
+                                + self.controllerItems[id].interfaceName
+                            )
+                            raise e from e
+                    else:
+                        #
+                        # next Interface is disabled: put data into queue with id of next interface
+                        #
+                        self.queue.put([self.controllerItems[id].nextId, item[1]])
                 #
                 # got error message from an io thread
                 #
                 elif item[1] == cls_IOThread.MSG_ERROR:
                     self.controllerItems[id].readerThread = None
-                    self.updateMessage(item[2])
-                    exitError=True
-                    errMsgPrefix="Error in IOThread "+str(id)
+                    self.e = item[2]
+                    exitError = True
+                    errMsgPrefix = (
+                        "Error in IOThread " + self.controllerItems[id].interfaceName
+                    )
                     break
                 #
                 #               got status change message
@@ -161,10 +185,10 @@ class cls_controller(threading.Thread):
         # Exception error exit
         #
         except Exception as e:
-            self.e=e
-            exitError=True
-            if errMsgPrefix=="":
-                errMsgPrefix="Controlthread Error"
+            self.e = e
+            exitError = True
+            if errMsgPrefix == "":
+                errMsgPrefix = "Controlthread Error"
         finally:
             pass
         #
@@ -172,9 +196,10 @@ class cls_controller(threading.Thread):
         #
         self.stopEvent.set()
         for s in self.controllerItems:
-            s.status = cls_IOThread.STAT_DISCONNECTED
-            if s.readerThread is not None:
-                s.readerThread.join()
+            if not s.isDisabled:
+                s.status = cls_IOThread.STAT_DISCONNECTED
+                if s.readerThread is not None:
+                    s.readerThread.join()
         self.stopEvent.clear()
         self.updateStatus()
         self.updateMessage("Loop stopped")
@@ -184,7 +209,7 @@ class cls_controller(threading.Thread):
         # signal terminate on error
         #
         if exitError:
-            self.sig_ControllerTerminated.emit(errMsgPrefix,self.e)
+            self.sig_ControllerTerminated.emit(errMsgPrefix, self.e)
         return
 
     def pause(self):
@@ -255,7 +280,7 @@ class cls_LightWidget(QtWidgets.QWidget):
         return QtCore.QSize(self.diameter + 2, self.diameter + 2)
 
     def setState(self, state):
-        if state is None:
+        if state == cls_IOThread.STAT_DISABLED:
             self.color = QtCore.Qt.GlobalColor.black
         elif state == cls_IOThread.STAT_DISCONNECTED:
             self.color = QtCore.Qt.GlobalColor.red
@@ -270,4 +295,3 @@ class cls_LightWidget(QtWidgets.QWidget):
             painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
             painter.setBrush(self.color)
             painter.drawEllipse(0, 0, self.diameter, self.diameter)
-

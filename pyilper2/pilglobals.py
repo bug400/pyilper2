@@ -60,7 +60,7 @@ class cls_pilglobals:
 #     Python minimum version
 #
       self.PythonRequiredMajor=3
-      self.PythonRequiredMinor=7
+      self.PythonRequiredMinor=11
 #
 #     pySerial minimum version
 #
@@ -305,13 +305,6 @@ class cls_pilglobals:
          self.Has_Webkit=False
          self.Has_Webengine=False  
       self.Diagnostics=args.diag
-
-#
-#  set/clear 8bit PILBox format
-#
-   def set8Bits(self,flag):
-      self.Use_8Bits= flag
-      return
 
 #
 #  create instance
