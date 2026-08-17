@@ -35,10 +35,6 @@ import threading
 
 from .serialio import cls_serialIO
 from .pilglobals import PILGLOBALS
-from .pilcore import (
-    cls_Interface_Spec,
-    checkSerialDeviceExists,
-)
 
 if PILGLOBALS.QT_Bindings == "PySide6":
     from PySide6 import QtCore, QtGui, QtWidgets
@@ -47,24 +43,16 @@ if PILGLOBALS.QT_Bindings == "PyQt5":
 from .iothread import cls_IOThread
 
 
-class cls_pilacm(cls_IOThread):
+class cls_acmbox(cls_IOThread):
 
-    #
-    # pilacm device Commands
-    #
-    TDIS = 0x494  # disconnect
-    PASSTHRU = 0x49C  # passthru
-
-    def __init__(self, stopEvent, queue, id, params):
-        super().__init__(stopEvent, queue, id)
-        self.__tty__ = cls_serialIO()  # acm device object
-        self.__ttydevice__ = params[0]  # acm device name
+    def __init__(self, stopEvent, queue, id, name, params):
+        super().__init__(stopEvent, queue, id, name)
+        self.__ttyDevice__ = params[0]
+        self.__ioDevice__ = cls_serialIO(self.__ttyDevice__)  # acm device object
         self.__baudrate__ = 0
 
     def getBaudRate(self):
         return self.__baudrate__
-
- 
 
     #
     #  Connect to ACM device and put it to TDIS mode.
@@ -76,18 +64,18 @@ class cls_pilacm(cls_IOThread):
         #
         self.__baudrate__ = PILGLOBALS.Baudrates[len(PILGLOBALS.Baudrates) - 1][1]
         try:
-            self.__tty__.open(self.__ttydevice__, self.__baudrate__)
+            self.__ioDevice__.open(self.__baudrate__)
         except Exception as e:
-            e.add_note("Cannot connect to ACM device") 
+            e.add_note(self.__name__ + ": cannot connect to ACM device")
             raise e from e
 
         #
         # Send disconnect
         #
         try:
-            self.__sendCmd__(self.TDIS, PILGLOBALS.Tmout_Cmd)
+            self.sendCmd(PILGLOBALS.Pilbox_Command_TDIS, PILGLOBALS.Tmout_Cmd)
         except Exception as e:
-            e.add_note("Cannot connect to ACM device")
+            e.add_note(self.__name__ + ": cannot connect to ACM device")
             raise e from e
         return
 
@@ -96,36 +84,19 @@ class cls_pilacm(cls_IOThread):
     #
     def close(self):
         try:
-            self.__sendCmd__(self.TDIS, PILGLOBALS.Tmout_Cmd)
+            self.sendCmd(PILGLOBALS.Pilbox_Command_TDIS, PILGLOBALS.Tmout_Cmd)
             pass
         finally:
-            self.__tty__.close()
-
-    #
-    # Read frame from ACM device
-    #
-    def readFrame(self):
-        frmrx = self.__tty__.rcv(PILGLOBALS.Tmout_Frm, 2)
-        if frmrx != b"":
-            return int.from_bytes(frmrx, "little")
-        else:
-            return None
-
-    #
-    # Write frame to ACM device
-    #
-    def writeFrame(self, frame):
-        buf = bytes(frame.to_bytes(2, "little"))
-        self.__tty__.snd(buf)
+            self.__ioDevice__.close()
 
     #
     #  Init Box, send  PASSTHRU
     #
     def initBox(self):
         try:
-            self.__sendCmd__(self.PASSTHRU, PILGLOBALS.Tmout_Cmd)
+            self.sendCmd(PILGLOBALS.Pilbox_Commands_PASSTHRU, PILGLOBALS.Tmout_Cmd)
         except Exception as e:
-            e.add_note("Cannot initialize PIL-Box")
+            e.add_note(self.__name__ + ": cannot initialize PIL-Box")
             raise e from e
 
     #
@@ -133,9 +104,8 @@ class cls_pilacm(cls_IOThread):
     #
     def reader(self):
 
-        deviceRemoved = True
         self.setStatus(self.STAT_CONNECTING)
-        print("pilacm: reader thread started")
+        print(self.__name__ + ": reader thread started")
         try:
             #
             # outer auto reconnect loop
@@ -150,15 +120,14 @@ class cls_pilacm(cls_IOThread):
                 #
                 # check for device if removed
                 #
-                if deviceRemoved:
-                    deviceExists = checkSerialDeviceExists(self.__ttydevice__)
-                    if not deviceExists:
+                if self.__deviceRemoved__:
+                    if not self.__ioDevice__.checkDeviceExists():
                         time.sleep(PILGLOBALS.AutoreconnectInterval)
                         continue
                     else:
-                        print("pilacm reconnecting device")
+                        print(self.__name__ + ": reconnecting device")
                         time.sleep(PILGLOBALS.AutoreconnectInterval)
-                        deviceRemoved = False
+                        self.__deviceRemoved__ = False
                 #
                 # open device
                 #
@@ -167,7 +136,7 @@ class cls_pilacm(cls_IOThread):
                 # init PIL-Box mode
                 #
                 self.initBox()
-                print("pilacm: open/init passed")
+                print(self.__name__ + ": open/init passed")
                 self.setStatus(self.STAT_CONNECTED)
                 #
                 # inner read loop
@@ -182,13 +151,13 @@ class cls_pilacm(cls_IOThread):
                     # read frame from box
                     #
                     try:
-                        frame = self.readFrame()
+                        frame = self.__ioDevice__.readFrame()
                     except Exception as e:
                         time.sleep(PILGLOBALS.SerialDevicePlugDelay)
-                        if checkSerialDeviceExists(self.__ttydevice__):
-                            e.add_note("pilacm reader error")
+                        if self.__ioDevice__.checkDeviceExists():
+                            e.add_note(self.__name__ + ": reader error")
                             raise e from e
-                        deviceRemoved = True
+                        self.__deviceRemoved__ = True
                         self.setStatus(self.STAT_CONNECTING)
                         break
                     #
@@ -196,7 +165,10 @@ class cls_pilacm(cls_IOThread):
                     #
                     if frame is None:
                         continue
-#                   print("pilacm read frame %x" % frame)
+                    # print(self.__name__+": read frame %x" % frame)
+                    #
+                    # put frame to queue
+                    #
                     self.__queue__.put([self.__id__, frame])
             #
             # normal termination
@@ -204,7 +176,7 @@ class cls_pilacm(cls_IOThread):
 
             if self.getStatus() == self.STAT_CONNECTED:
                 self.close()
-            print("pilacm: reader normal exit")
+            print(self.__name__ + ": reader normal exit")
         #
         # error exit
         #
@@ -227,16 +199,18 @@ class cls_pilacm(cls_IOThread):
         if self.getStatus() != self.STAT_CONNECTED:
             return
 
-#       print("pilacm: writer sends frame")
+        # print(self.__name__+": writer sends frame")
 
         try:
-            self.writeFrame(frame)
+            self.__ioDevice__.writeFrame(frame)
         #
         # Error handling
         #
         except Exception as e:
             time.sleep(PILGLOBALS.SerialDevicePlugDelay)
-            if checkSerialDeviceExists(self.__ttydevice__):
-                e.add_note("pilacm writer error")
+            if self.__ioDevice__.checkDeviceExists():
+                e.add_note(self.__name__ + ": writer error")
                 raise e from e
+            else:
+                self.__deviceRemoved__ = True
         return

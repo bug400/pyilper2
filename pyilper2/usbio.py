@@ -22,11 +22,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# usb i/o thread class class --------------------------------------------
+# usb i/o class class --------------------------------------------
 #
 # Changelog
 #
-# ILUSB device Commands
 #
 #
 import usb.core
@@ -36,32 +35,20 @@ import time
 from .pilglobals import PILGLOBALS
 from .pilcore import cls_Interface_Spec, AppException
 
-if PILGLOBALS.QT_Bindings == "PySide6":
-    from PySide6 import QtCore, QtGui, QtWidgets
-if PILGLOBALS.QT_Bindings == "PyQt5":
-    from PyQt5 import QtCore, QtGui, QtWidgets
-from .iothread import cls_IOThread
 
+class cls_usbio:
 
-class cls_pilusb(cls_IOThread):
-
-    TDIS = 0x494  # disconnect
-    PASSTHRU = 0x498  # passthru
     USB_BUFFER = usb.util.create_buffer(64)
 
-    def __init__(self, stopEvent, queue, id, params):
-        super().__init__(stopEvent, queue, id)
-        self.__vendor__ = params[0]
-        self.__product__ = params[1]
+    def __init__(self, vendor, product):
+        self.__vendor__ = vendor
+        self.__product__ = product
         self.__device__ = None
         self.__isOpen__ = False
         self.__timeout__ = 0
         self.__interfaceNumber__ = None
         self.__endpoint_in__ = None
         self.__endpoint_out__ = None
-
-    def isOpen(self):
-        return self.__isOpen__
 
     #
     #  Open the ILUSB CDC VCP USB interface
@@ -129,27 +116,12 @@ class cls_pilusb(cls_IOThread):
 
         if self.__endpoint_in__ is None or self.__endpoint_out__ is None:
             raise AppException("Could not find IN and OUT endpoints of USB device")
-
-        self.__isOpen__ = True
-        #
-        #     Set disconnect
-        #
-        try:
-            self.__sendCmd__(self.TDIS, PILGLOBALS.Tmout_Cmd)
-        except Exception as e:
-            self.close()
-            e.add_note("Cannot connect to USB device")
-            raise e from e
         return
 
     #
     #  close the PILUSB device and reattach kernel driver
     #
     def close(self):
-        try:
-            self.__sendCmd__(self.PASSTHRU, PILGLOBALS.Tmout_Cmd)
-        except Exception:
-            pass
         try:
             self.__device__.reset()
             usb.util.dispose_resources(self.__device__)
@@ -197,7 +169,7 @@ class cls_pilusb(cls_IOThread):
     #
     def readFrame(self, tmout=None):
         ret = self.receive_data(2, tmout)
-        if ret is not None:
+        if ret:
             return (ret[1] << 8) + ret[0]
         else:
             return None
@@ -210,11 +182,14 @@ class cls_pilusb(cls_IOThread):
         self.send_data(buf)
 
     #
-    #  Read byte from PIL-Box
+    #  Read byte from PIL-Box return as byte string!
     #
     def readByte(self, tmout=PILGLOBALS.Tmout_Frm):
         bytrx = self.receive_data(1, tmout)
-        return bytrx
+        if bytrx is None:
+            return b""
+        else:
+            return bytes(bytrx[0].to_bytes(1, "little"))
 
     #
     # Send one or two bytes to the PIL-Box
@@ -226,139 +201,8 @@ class cls_pilusb(cls_IOThread):
             buf = bytearray([hbyt, lbyt])
         self.send_data(buf)
 
-    #
-    #  Init Box, send  PASSTHRU
-    #
-    def initBox(self):
-        try:
-            self.__sendCmd__(self.PASSTHRU, PILGLOBALS.Tmout_Cmd)
-        except Exception as e:
-            e.add_note("Cannot initialize PIL-Box")
-            raise e from e
-
-    #
-    #  PIL-Box reader thread
-    #
-
-    def reader(self):
-
-        deviceRemoved = True
-        self.setStatus(self.STAT_CONNECTING)
-        print("pilusb: reader thread started")
-        try:
-            #
-            # outer auto reconnect loop
-            #
-
-            while True:
-                #
-                # exit if stop event
-                #
-                if self.__stopEvent__.is_set():
-                    break
-                #
-                # check for device if removed
-                #
-                if deviceRemoved:
-                    deviceExists = (
-                        usb.core.find(
-                            idVendor=self.__vendor__, idProduct=self.__product__
-                        )
-                        is not None
-                    )
-                    if not deviceExists:
-                        time.sleep(PILGLOBALS.AutoreconnectInterval)
-                        continue
-                    else:
-                        print("pilusb reconnecting device")
-                        time.sleep(PILGLOBALS.AutoreconnectInterval)
-                        deviceRemoved = False
-                #
-                # open device
-                #
-                self.open()
-                #
-                # init PIL-Box mode
-                #
-                self.initBox()
-                print("pilacm: open/init passed")
-                self.setStatus(self.STAT_CONNECTED)
-                #
-                # inner read loop
-                #
-                while True:
-                    #
-                    # check stop event
-                    #
-                    if self.__stopEvent__.is_set():
-                        break
-                    #
-                    # read frame from box
-                    #
-                    try:
-                        frame = self.readFrame()
-                    except Exception as e:
-                        time.sleep(PILGLOBALS.SerialDevicePlugDelay)
-                        if (
-                            usb.core.find(
-                                idVendor=self.__vendor__, idProduct=self.__product__
-                            )
-                            is not None
-                        ):
-                            e.add_note("pilusb reader error")
-                            raise e from e
-                        deviceRemoved = True
-                        self.setStatus(self.STAT_CONNECTING)
-                        break
-                    #
-                    # Timeout
-                    #
-                    if frame is None:
-                        continue
-                    #                   print("pilusb read frame %x" % frame)
-                    self.__queue__.put([self.__id__, frame])
-            #
-            # normal termination
-            #
-
-            if self.getStatus() == self.STAT_CONNECTED:
-                self.close()
-            print("pilusb: reader normal exit")
-        #
-        # error exit
-        #
-        except Exception as e:
-            #
-            # put error status and message to queue
-            #
-            self.__queue__.put([self.__id__, -1, e])
-        finally:
-            self.setStatus(self.STAT_DISCONNECTED)
-        return
-
-    #
-    #  frame writer. Note: this method is called from the controller thread
-    #
-    def writer(self, frame):
-        #
-        # if we are not connected, do not output frame
-        #
-        if self.getStatus() != self.STAT_CONNECTED:
-            return
-
-        # print("pilusb: writer sends frame")
-
-        try:
-            self.writeFrame(frame)
-        #
-        # Error handling
-        #
-        except Exception as e:
-            time.sleep(PILGLOBALS.SerialDevicePlugDelay)
-            if (
-                usb.core.find(idVendor=self.__vendor__, idProduct=self.__product__)
-                is not None
-            ):
-                e.add_note("pilacm writer error")
-                raise e from e
-        return
+    def deviceExists(self):
+        return (
+            usb.core.find(idVendor=self.__vendor__, idProduct=self.__product__)
+            is not None
+        )

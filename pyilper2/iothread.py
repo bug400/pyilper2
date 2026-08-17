@@ -44,15 +44,17 @@ class cls_IOThread(threading.Thread):
     MSG_ERROR = -1
     MSG_STATUS = -2
 
-    def __init__(self, stopEvent, queue, id):
+    def __init__(self, stopEvent, queue, id, name):
         super().__init__()
         self.__stopEvent__ = stopEvent
         self.__queue__ = queue
         self.__id__ = id
+        self.__name__ = name
         self.__status__ = self.STAT_DISCONNECTED
         self.__statLock__ = threading.Lock()
         self.USE_8BITS = True
-        self.__tty__ = None
+        self.__ioDevice__ = None
+        self.__deviceRemoved__ = True
 
     def setStatus(self, stat):
         with self.__statLock__:
@@ -90,41 +92,26 @@ class cls_IOThread(threading.Thread):
     #
     #  send command to PIL-Box, check return value.
     #
-    def __sendCmd__(self, cmdfrm, tmout):
+    def sendCmd(self, cmdfrm, tmout):
         hbyt, lbyt = self.disassemble_frame(cmdfrm)
         try:
-            self.writePilBoxFrame(lbyt, hbyt)
-            bytrx = self.readByte(tmout)
+            self.__ioDevice__.writePilBoxFrame(lbyt, hbyt)
+            bytrx = self.__ioDevice__.readByte(tmout)
         except Exception as e:
-            e.add_node("i/o error in sendCMD")
+            e.add_note(self.__name__ + ": i/o error in sendCMD")
             raise e from e
         if bytrx is None:
-            raise AppException("timeout getting response of command")
-            self.__tty__.close()
+            raise AppException(self.__name__ + ": timeout getting response of command")
+            self.__ioDevice__.close()
         try:
             tst = ord(bytrx)
         except (ValueError, TypeError):
-            self.__tty__.close()
-            raise AppException("illegal return value for command")
+            self.__ioDevice__.close()
+            raise AppException(self.__name__ + ": illegal return value for command")
         if tst != lbyt:
             print("pilacm: return value mismatch %x %x" % (tst, lbyt))
-            self.__tty__.close()
-            raise AppException("illegal return value for command")
-        print("sendCmd: command sent and acknowledged 0x{0:02x}".format(cmdfrm))
-
-    #
-    #  Read byte from PIL-Box
-    #
-    def readByte(self, tmout=PILGLOBALS.Tmout_Frm):
-        bytrx = self.__tty__.rcv(tmout, 1)
-        return bytrx
-
-    #
-    # Send one or two bytes to the PIL-Box
-    #
-    def writePilBoxFrame(self, lbyt, hbyt=None):
-        if hbyt is None:
-            buf = bytearray([lbyt])
-        else:
-            buf = bytearray([hbyt, lbyt])
-        self.__tty__.snd(buf)
+            self.__ioDevice__.close()
+            raise AppException(self.__name__ + ": illegal return value for command")
+        print(
+            self.__name__ + ": command sent and acknowledged 0x{0:02x}".format(cmdfrm)
+        )

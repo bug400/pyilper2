@@ -26,7 +26,6 @@
 #
 import re
 import os
-import serial.tools.list_ports
 import shutil
 
 from dataclasses import dataclass
@@ -47,14 +46,14 @@ if PILGLOBALS.QT_Bindings == "PySide6":
     def getEventPosition(ev):
         return ev.position().toPoint()
 
+
 #
 # Application error class
 #
 class AppException(Exception):
 
-   def __init__(self,msg):
-        self.msg=msg
-
+    def __init__(self, msg):
+        self.msg = msg
 
 
 #
@@ -92,9 +91,6 @@ def decode_pyILPERVersion(version_string):
         return 0
     except IndexError:
         return 0
-
-
-
 
 
 #
@@ -181,34 +177,6 @@ def moveWindowsConfig(silent):
         return
     if not silent:
         print("pyILPER config files copied from AppData to ", newConfigPath)
-
-
-#
-#
-#  check existence of a serial device
-#
-def checkSerialDeviceExists(device):
-    if PILGLOBALS.Diagnostics:
-        print("check for ", device)
-        for p in serial.tools.list_ports.comports():
-            print(
-                "Device found: ",
-                p.device,
-                " ",
-                p.description,
-                " ",
-                p.manufacturer,
-                " ",
-                p.product,
-                " ",
-                p.location,
-                " ",
-                p.interface,
-            )
-    for p in serial.tools.list_ports.grep(device):
-        if p.device == device:
-            return True
-    return False
 
 
 #

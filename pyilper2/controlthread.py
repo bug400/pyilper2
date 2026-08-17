@@ -89,7 +89,11 @@ class cls_controller(threading.Thread):
             else:
                 item.status = cls_IOThread.STAT_DISCONNECTED
                 item.commObject = item.interfaceClass(
-                    self.stopEvent, self.queue, i, item.interfaceParams
+                    self.stopEvent,
+                    self.queue,
+                    item.id,
+                    item.interfaceName,
+                    item.interfaceParams,
                 )
                 print("commobject created for", item.interfaceName)
         self.updateStatus()
@@ -155,7 +159,7 @@ class cls_controller(threading.Thread):
                             self.controllerItems[id].writer(item[1])
                         except Exception as e:
                             e.add_note(
-                                "Write Error for interface "
+                                "controlthread: write Error for interface "
                                 + self.controllerItems[id].interfaceName
                             )
                             raise e from e

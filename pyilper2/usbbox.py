@@ -1,0 +1,216 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+# pyILPER 2.0
+#
+# An emulator for virtual HP-IL devices for the PIL-Box
+# derived from ILPER 1.4.5 for Windows
+# Copyright (c) 2008-2013   Jean-Francois Garnier
+# C++ version (c) 2013 Christoph Gießelink
+# Python Version (c) 2015 Joachim Siebold
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# usb box class --------------------------------------------
+#
+# Changelog
+#
+# ILUSB device Commands
+#
+#
+import usb.core
+import usb.util
+import time
+
+from .pilglobals import PILGLOBALS
+from .usbio import cls_usbio
+
+if PILGLOBALS.QT_Bindings == "PySide6":
+    from PySide6 import QtCore, QtGui, QtWidgets
+if PILGLOBALS.QT_Bindings == "PyQt5":
+    from PyQt5 import QtCore, QtGui, QtWidgets
+from .iothread import cls_IOThread
+
+
+class cls_usbbox(cls_IOThread):
+
+    USB_BUFFER = usb.util.create_buffer(64)
+
+    def __init__(self, stopEvent, queue, id, name, params):
+        super().__init__(stopEvent, queue, id, name)
+        self.__vendor__ = params[0]
+        self.__product__ = params[1]
+        self.__ioDevice__ = cls_usbio(self.__vendor__, self.__product__)
+        self.__isOpen__ = False
+        self.__timeout__ = 0
+
+    def isOpen(self):
+        return self.__isOpen__
+
+    #
+    #  Open the ILUSB CDC VCP USB interface
+    #
+    def open(self):
+
+        #
+        #     Open USB device and send TDIS
+        #
+        try:
+            self.__ioDevice__.open()
+        except Exception as e:
+            e.add_note(self.__name__ + ": cannot connect to USB device")
+            raise e from e
+        try:
+            self.sendCmd(PILGLOBALS.Pilbox_Command_TDIS, PILGLOBALS.Tmout_Cmd)
+        except Exception as e:
+            e.add_note(self.__name__ + ": cannot connect to USB device")
+            raise e from e
+        return
+
+    #
+    #  close the PILUSB device and reattach kernel driver
+    #
+    def close(self):
+        try:
+            self.sendCmd(PILGLOBALS.Pilbox_Commands_TDIS, PILGLOBALS.Tmout_Cmd)
+            self.__ioDevice__.close()
+        except Exception:
+            pass
+
+    #
+    #  Init Box, send  PASSTHRU
+    #
+    def initBox(self):
+        try:
+            self.sendCmd(PILGLOBALS.Pilbox_Commands_PASSTHRU, PILGLOBALS.Tmout_Cmd)
+        except Exception as e:
+            e.add_note(self.__name__ + ": cannot initialize PIL-Box")
+            raise e from e
+
+    #
+    #  PIL-Box reader thread
+    #
+
+    def reader(self):
+
+        self.setStatus(self.STAT_CONNECTING)
+        print(self.__name__ + ": reader thread started")
+        try:
+            #
+            # outer auto reconnect loop
+            #
+
+            while True:
+                #
+                # exit if stop event
+                #
+                if self.__stopEvent__.is_set():
+                    break
+                #
+                # check for device if removed
+                #
+                if self.__deviceRemoved__:
+                    if not self.__ioDevice__.deviceExists():
+                        time.sleep(PILGLOBALS.AutoreconnectInterval)
+                        continue
+                    else:
+                        print(self.__name__ + ": reconnecting device")
+                        time.sleep(PILGLOBALS.AutoreconnectInterval)
+                        self.__deviceRemoved__ = False
+                #
+                # open device
+                #
+                self.open()
+                #
+                # init PIL-Box mode
+                #
+                self.initBox()
+                print(self.__name__ + ": open/init passed")
+                self.setStatus(self.STAT_CONNECTED)
+                #
+                # inner read loop
+                #
+                while True:
+                    #
+                    # check stop event
+                    #
+                    if self.__stopEvent__.is_set():
+                        break
+                    #
+                    # read frame from box
+                    #
+                    try:
+                        frame = self.__ioDevice__.readFrame()
+                    except Exception as e:
+                        time.sleep(PILGLOBALS.SerialDevicePlugDelay)
+                        if self.__ioDevice__.deviceExists():
+                            e.add_note(self.__name__ + ": reader error")
+                            raise e from e
+                        self.__deviceRemoved__ = True
+                        self.setStatus(self.STAT_CONNECTING)
+                        break
+                    #
+                    # Timeout
+                    #
+                    if frame is None:
+                        continue
+                    # print(self.__name__+": read frame %x" % frame)
+                    #
+                    # put frame to queue
+                    #
+                    self.__queue__.put([self.__id__, frame])
+            #
+            # normal termination
+            #
+
+            if self.getStatus() == self.STAT_CONNECTED:
+                self.close()
+            print(self.__name__ + ": reader normal exit")
+        #
+        # error exit
+        #
+        except Exception as e:
+            #
+            # put error status and message to queue
+            #
+            self.__queue__.put([self.__id__, -1, e])
+        finally:
+            self.setStatus(self.STAT_DISCONNECTED)
+        return
+
+    #
+    #  frame writer. Note: this method is called from the controller thread
+    #
+    def writer(self, frame):
+        #
+        # if we are not connected, do not output frame
+        #
+        if self.getStatus() != self.STAT_CONNECTED:
+            return
+
+        # print(self.__name__+": writer sends frame")
+
+        try:
+            self.__ioDevice__.writeFrame(frame)
+        #
+        # Error handling
+        #
+        except Exception as e:
+            time.sleep(PILGLOBALS.SerialDevicePlugDelay)
+            if self.__ioDevice__.deviceExists():
+                e.add_note(self.__name__ + ": writer error")
+                raise e from e
+            else:
+                self.__deviceRemoved__ = True
+        return

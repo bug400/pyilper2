@@ -8,8 +8,8 @@ from PySide6 import QtCore, QtWidgets
 from .controlthread import cls_controller, controllerItem, cls_IndicatorWidget
 from .pilbox import cls_pilbox
 from .piltcpip import cls_piltcpip
-from .pilacm import cls_pilacm
-from .pilusb import cls_pilusb
+from .acmbox import cls_acmbox
+from .usbbox import cls_usbbox
 from .pilcore import AppException
 
 
@@ -130,7 +130,7 @@ class cls_program(QtCore.QObject):
             1,
             cls_pilbox,
             "PIL-Box 1",
-            False,
+            True,
             ["/dev/ttySTMG4", 0, 0, 1],
             0,
             0,
@@ -142,7 +142,7 @@ class cls_program(QtCore.QObject):
         self.controllerItems.append(i)
         i = controllerItem(
             2,
-            cls_pilacm,
+            cls_acmbox,
             "ACM-Box",
             False,
             ["/dev/ttySTM32"],
@@ -153,10 +153,24 @@ class cls_program(QtCore.QObject):
             None,
             [7, 8, 9],
         )
-        self.controllerItems.append(i)
+        # self.controllerItems.append(i)
         i = controllerItem(
             2,
             cls_pilbox,
+            "Pil-Box",
+            False,
+            ["/dev/ttySTM32", 0, 0, 1],
+            0,
+            0,
+            None,
+            None,
+            None,
+            [7, 8, 9],
+        )
+        # self.controllerItems.append(i)
+        i = controllerItem(
+            2,
+            cls_acmbox,
             "Fast ACM-Box",
             False,
             ["/dev/ttySTMH7", 0, 1, 1],
@@ -170,7 +184,7 @@ class cls_program(QtCore.QObject):
         # self.controllerItems.append(i)
         i = controllerItem(
             2,
-            cls_pilusb,
+            cls_usbbox,
             "Fast USB-Box",
             False,
             [0x0483, 0x5740],
@@ -181,7 +195,7 @@ class cls_program(QtCore.QObject):
             None,
             [7, 8, 9],
         )
-        # self.controllerItems.append(i)
+        self.controllerItems.append(i)
         self.ui.createIndicator(len(self.controllerItems))
         self.controller_start()
 
@@ -204,7 +218,10 @@ class cls_program(QtCore.QObject):
         if txt != "":
             txt += "\ncaused by: "
         if issubclass(ex.__class__, OSError):
-            txt += type(ex).__name__ + ": " + ex.errno, ex.strerror
+            if ex.strerror is not None:
+                txt += type(ex).__name__ + ": " + ex.strerror
+            else:
+                txt += type(ex).__name__
         elif ex.__class__ == AppException:
             txt += "AppError:" + ex.msg
         else:

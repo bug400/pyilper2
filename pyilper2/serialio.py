@@ -31,16 +31,23 @@
 #
 import serial, time
 from .pilglobals import PILGLOBALS
-from .pilcore import AppException
 
 
 class cls_serialIO:
 
-    def __init__(self, parent=None):
-        self.__device__ = None
+    def __init__(self, device):
+        #
+        #     use Windows device naming (hint by cg)
+        #
+        self.__device__ = device
+        """TODO: check: DO WE NEED THIS
+        if PILGLOBALS.isWindows:
+            self.__device__ = "\\\\.\\" + device
+        else:
+            self.__device__ = device
+        """
         self.__isOpen__ = False
         self.__timeout__ = 0
-        self.__module__ = "serialIO"
 
     #
     #  Windows needs much time to reconfigure the timeout value of the serial
@@ -60,29 +67,15 @@ class cls_serialIO:
     def isOpen(self):
         return self.__isOpen__
 
-    def open(self, device, baudrate):
-        #
-        #     use Windows device naming (hint by cg)
-        #
-        if PILGLOBALS.Diagnostics:
-            print("open device ", device)
-        if PILGLOBALS.isWindows:
-            self.__device__ = "\\\\.\\" + device
-        else:
-            self.__device__ = device
-
-        self.__device__ = device
+    def open(self, baudrate):
         try:
-            self.__ser__ = serial.Serial(port=device, baudrate=baudrate, timeout=0.10)
+            self.__ser__ = serial.Serial(
+                port=self.__device__, baudrate=baudrate, timeout=0.10
+            )
             self.__isOpen__ = True
             time.sleep(0.5)
         except Exception as e:
-            self.__device__ = ""
-            if PILGLOBALS.Diagnostics:
-                if hasattr(e, "message"):
-                    print(e.message)
-                else:
-                    print(e)
+            self.__ser__ = None
             e.add_note("cannot open serial device")
             raise e from e
 
@@ -93,13 +86,11 @@ class cls_serialIO:
         if not self.__isOpen__:
             return
         try:
-            if PILGLOBALS.Diagnostics:
-                print("close device ", self.__device__)
             self.__ser__.close()
+            self.__ser__ = None
             self.__isOpen__ = False
         except:
             pass
-        self.__device__ = ""
 
     def snd(self, buf):
         try:
@@ -134,3 +125,67 @@ class cls_serialIO:
             self.close()
             e.add_note("cannot read from serial device")
             raise e from e
+
+    #
+    #  Read byte from Box
+    #
+    def readByte(self, tmout=PILGLOBALS.Tmout_Frm):
+        bytrx = self.rcv(tmout, 1)
+        return bytrx
+
+    #
+    # Send frame to Box in PIL-Box protocol
+    #
+    def writePilBoxFrame(self, lbyt, hbyt=None):
+        if hbyt is None:
+            buf = bytearray([lbyt])
+        else:
+            buf = bytearray([hbyt, lbyt])
+        self.snd(buf)
+
+    #
+    # Read frame from ACM device
+    #
+    def readFrame(self):
+        frmrx = self.rcv(PILGLOBALS.Tmout_Frm, 2)
+        if frmrx != b"":
+            return int.from_bytes(frmrx, "little")
+        else:
+            return None
+
+    #
+    # Write frame to ACM device
+    #
+    def writeFrame(self, frame):
+        buf = bytes(frame.to_bytes(2, "little"))
+        self.snd(buf)
+
+    #
+    # check if serial device exists
+    #
+    #
+    #
+    #  check existence of a serial device
+    #
+    def checkDeviceExists(self):
+        if PILGLOBALS.Diagnostics:
+            print("check for ", self.__device__)
+            for p in serial.tools.list_ports.comports():
+                print(
+                    "Device found: ",
+                    p.device,
+                    " ",
+                    p.description,
+                    " ",
+                    p.manufacturer,
+                    " ",
+                    p.product,
+                    " ",
+                    p.location,
+                    " ",
+                    p.interface,
+                )
+        for p in serial.tools.list_ports.grep(self.__device__):
+            if p.device == self.__device__:
+                return True
+        return False

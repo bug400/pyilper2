@@ -56,8 +56,8 @@ class cls_piltcpip(cls_IOThread):
 
     RET_TIMEOUT = -1
 
-    def __init__(self, stopEvent, queue, id, params):
-        super().__init__(stopEvent, queue, id)
+    def __init__(self, stopEvent, queue, id, name, params):
+        super().__init__(stopEvent, queue, id, name)
 
         self.port = params[0]
         self.remotehost = params[1]
@@ -97,7 +97,7 @@ class cls_piltcpip(cls_IOThread):
                 s.close()
                 continue
         if len(self.serverlist) == 0:
-            raise AppException("cannot bind to port")
+            raise AppException(self.__name__+": cannot bind to port")
 
     def openclient(self):
         #
@@ -166,17 +166,17 @@ class cls_piltcpip(cls_IOThread):
                 cs, addr = s.accept()
                 self.clientlist.append(cs)
                 self.inconnected = True
-                print("tcpip: inconnected true")
+                print(self.__name__+": inconnected true")
             else:
                 bytrx = s.recv(2)
-#               print("tcpip: bytrx ", bytrx)
+                # print(self.__name__+": bytrx ", bytrx)
                 if bytrx:
                     return socket.ntohs((bytrx[1] << 8) | bytrx[0])
                 else:
                     self.clientlist.remove(s)
                     s.close()
                     self.inconnected = False
-                    print("tcpip: inconnected false")
+                    print(self.__name__+": inconnected false")
         return None
 
     #
@@ -213,7 +213,7 @@ class cls_piltcpip(cls_IOThread):
             #
             self.open()
             connected = False
-            print("tcpip: reader thread started")
+            print(self.__name__+": reader thread started")
 
             #
             # read frame from Network
@@ -228,23 +228,23 @@ class cls_piltcpip(cls_IOThread):
                     if not connected:
                         connected = True
                         self.setStatus(self.STAT_CONNECTED)
-                        print("tcpip: connected to virtual HP-IL devices")
+                        print(self.__name__+": connected to virtual HP-IL devices")
                 else:
                     if connected:
                         connected = False
                         self.close_outsocket()
                         self.setStatus(self.STAT_CONNECTING)
-                        print("tcpip: not connected to virtual HP-IL devices")
+                        print(self.__name__+": not connected to virtual HP-IL devices")
 
-#               print("tcpip: main read result ", result)
+                # print(self.__name__+": main read result ", result)
                 if result is None:
                     continue
                 self.__queue__.put([self.__id__, result])
             #
             #     normal termination
             #
-            print("tcpip: reader normal exit")
-            
+            print(self.__name__+": reader normal exit")
+
             self.close()
         #
         # error exit
@@ -254,8 +254,7 @@ class cls_piltcpip(cls_IOThread):
             #        put error status and message to queue
             #
             self.__queue__.put([self.__id__, -1, e])
-            
+
         finally:
             self.setStatus(self.STAT_DISCONNECTED)
         return
-        
