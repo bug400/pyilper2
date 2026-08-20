@@ -153,7 +153,7 @@ class cls_program(QtCore.QObject):
             None,
             [7, 8, 9],
         )
-        # self.controllerItems.append(i)
+        self.controllerItems.append(i)
         i = controllerItem(
             2,
             cls_pilbox,
@@ -195,7 +195,7 @@ class cls_program(QtCore.QObject):
             None,
             [7, 8, 9],
         )
-        self.controllerItems.append(i)
+        # self.controllerItems.append(i)
         self.ui.createIndicator(len(self.controllerItems))
         self.controller_start()
 

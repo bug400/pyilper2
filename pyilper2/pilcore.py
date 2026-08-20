@@ -45,10 +45,32 @@ if PILGLOBALS.QT_Bindings == "PySide6":
 
     def getEventPosition(ev):
         return ev.position().toPoint()
+#
+# A note on pyILPER error handling in the thread code.
+# - All exceptions are bubbled up to the topmost thread code and handled there
+# - If appropriate, exceptions are caught on a higher level. In this case
+#  the required clean up actions are taken, a note is added to the exception
+#  that describes the error on that level, and the exception is re-raised:
+#
+# try:
+#    code where an arbitrary exception might occur
+# except Exception as e:
+#    do necessary cleanup
+#    e.add_note("Message that describes the error at this application level")
+#    raise e from e
+#
+# On the topmost level the exception object has a complete traceback and
+# a stack of error messages. Then, the exception is  sent to the GUI 
+# application to show an error message and the thread and its descendants 
+# are terminated gracefully.
+#
 
 
 #
 # Application error class
+# This class is used to raise an application exception in the case
+# of a malfunction detected by Python user code and not by the
+# Python runtime system.
 #
 class AppException(Exception):
 

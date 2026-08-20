@@ -120,8 +120,8 @@ class cls_pilglobals:
         #
         #     PIL-Box communication
         #
-        self.Tmout_Cmd = 1  # time out for PIL-Box commands
-        self.Tmout_Frm = 1  # time out for HP-IL frames
+        self.Tmout_Cmd = 1     # time out for PIL-Box commands
+        self.Tmout_Frm = 1     # time out for HP-IL frames
         #
         #     PIL-Box commands
         #

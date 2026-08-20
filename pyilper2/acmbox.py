@@ -165,7 +165,7 @@ class cls_acmbox(cls_IOThread):
                     #
                     if frame is None:
                         continue
-                    # print(self.__name__+": read frame %x" % frame)
+                    # print(self.__name__ + ": read frame %x" % frame)
                     #
                     # put frame to queue
                     #
@@ -199,7 +199,7 @@ class cls_acmbox(cls_IOThread):
         if self.getStatus() != self.STAT_CONNECTED:
             return
 
-        # print(self.__name__+": writer sends frame")
+        # print(self.__name__ + ": writer sends frame")
 
         try:
             self.__ioDevice__.writeFrame(frame)

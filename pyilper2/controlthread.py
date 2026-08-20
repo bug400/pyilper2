@@ -66,6 +66,8 @@ class cls_controller(threading.Thread):
     CMD_RESUME = -2
     CMD_STOP = -3
 
+    CONTROLLER_ID = -1
+
     def __init__(self, sig_UpdateStatus, sig_ControllerTerminated, controllerItems):
         super().__init__()
         self.queue = queue.SimpleQueue()
@@ -131,23 +133,9 @@ class cls_controller(threading.Thread):
                 # process commands issued from main
                 #
                 item = self.queue.get()
-                if type(item) is not list:
-                    if item == self.CMD_STOP:
-                        self.status = self.STAT_STOP
-                        break
-                    if item == self.CMD_PAUSE:
-                        self.status = self.STAT_PAUSE
-                        self.updateMessage("Loop paused")
-                        print("controller: pause")
-                        continue
-                    if item == self.CMD_RESUME:
-                        self.status = self.STAT_RUN
-                        print("controller: resume")
-                        self.updateMessage("")
-                        continue
                 id = item[0]
                 #
-                # process frames
+                # process frames, item[1] is data and always >=0
                 #
                 if item[1] >= 0:
                     # print("controller: processing ", self.controllerItems[id].devices)
@@ -180,11 +168,27 @@ class cls_controller(threading.Thread):
                     )
                     break
                 #
-                #               got status change message
+                # got status change message
                 #
                 elif item[1] == cls_IOThread.MSG_STATUS:
                     self.controllerItems[id].status = item[2]
                     self.updateStatus()
+                #
+                # Commands sent from main applications
+                #
+                elif item[1] == self.CMD_STOP:
+                    self.status = self.STAT_STOP
+                    break
+                elif item[1] == self.CMD_PAUSE:
+                    self.status = self.STAT_PAUSE
+                    self.updateMessage("Loop paused")
+                    print("controller: pause")
+                    continue
+                elif item[1] == self.CMD_RESUME:
+                    self.status = self.STAT_RUN
+                    print("controller: resume")
+                    self.updateMessage("")
+                    continue
         #
         # Exception error exit
         #
@@ -220,21 +224,21 @@ class cls_controller(threading.Thread):
         if self.status != self.STAT_RUN:
             print("Illegal status")
             return
-        self.queue.put(self.CMD_PAUSE)
+        self.queue.put([self.CONTROLLER_ID, self.CMD_PAUSE])
         print("controller pause")
 
     def stop(self):
         if self.status != self.STAT_RUN:
             print("Illegal status", self.status)
             return
-        self.queue.put(self.CMD_STOP)
+        self.queue.put([self.CONTROLLER_ID, self.CMD_STOP])
         print("controller stop")
 
     def resume(self):
         if self.status != self.STAT_PAUSE:
             print("Illegal status")
             return
-        self.queue.put(self.CMD_RESUME)
+        self.queue.put([self.CONTROLLER_ID, self.CMD_RESUME])
         print("controller resume")
 
     def updateStatus(self):
