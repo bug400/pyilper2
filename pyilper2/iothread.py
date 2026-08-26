@@ -41,8 +41,8 @@ class cls_IOThread(threading.Thread):
     STAT_CONNECTING = 1
     STAT_CONNECTED = 0
 
-    MSG_ERROR = -1
-    MSG_STATUS = -2
+    MSG_ERROR = -10
+    MSG_STATUS = -11
 
     def __init__(self, stopEvent, queue, id, name):
         super().__init__()

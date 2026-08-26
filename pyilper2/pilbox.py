@@ -33,6 +33,7 @@
 import time
 import threading
 from .pilglobals import PILGLOBALS
+from .pilcore import cls_Interface_Spec
 
 if PILGLOBALS.QT_Bindings == "PySide6":
     from PySide6 import QtCore, QtGui, QtWidgets
@@ -300,3 +301,7 @@ class cls_pilbox(cls_IOThread):
                 self.__deviceRemoved__ = True
                 self.__lasth__ = 0
         return
+
+def pilbox_spec():
+   return(cls_Interface_Spec(ILGLOBALS.Interface_PilBox,"if_pilbox",cls_pilbox,"reader","writer",None,"PIL-Box"))
+

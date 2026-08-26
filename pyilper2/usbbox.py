@@ -35,6 +35,7 @@ import time
 
 from .pilglobals import PILGLOBALS
 from .usbio import cls_usbio
+from .pilcore import cls_Interface_Spec
 
 if PILGLOBALS.QT_Bindings == "PySide6":
     from PySide6 import QtCore, QtGui, QtWidgets
@@ -95,11 +96,11 @@ class cls_usbbox(cls_IOThread):
         try:
             self.sendCmd(PILGLOBALS.Pilbox_Commands_PASSTHRU, PILGLOBALS.Tmout_Cmd)
         except Exception as e:
-            e.add_note(self.__name__ + ": cannot initialize PIL-Box")
+            e.add_note(self.__name__ + ": cannot initialize USB-Box")
             raise e from e
 
     #
-    #  PIL-Box reader thread
+    #  USB-Box reader thread
     #
 
     def reader(self):
@@ -121,7 +122,7 @@ class cls_usbbox(cls_IOThread):
                 # check for device if removed
                 #
                 if self.__deviceRemoved__:
-                    if not self.__ioDevice__.deviceExists():
+                    if not self.__ioDevice__.checkDeviceExists():
                         time.sleep(PILGLOBALS.AutoreconnectInterval)
                         continue
                     else:
@@ -154,7 +155,7 @@ class cls_usbbox(cls_IOThread):
                         frame = self.__ioDevice__.readFrame()
                     except Exception as e:
                         time.sleep(PILGLOBALS.SerialDevicePlugDelay)
-                        if self.__ioDevice__.deviceExists():
+                        if self.__ioDevice__.checkDeviceExists():
                             e.add_note(self.__name__ + ": reader error")
                             raise e from e
                         self.__deviceRemoved__ = True
@@ -208,9 +209,13 @@ class cls_usbbox(cls_IOThread):
         #
         except Exception as e:
             time.sleep(PILGLOBALS.SerialDevicePlugDelay)
-            if self.__ioDevice__.deviceExists():
+            if self.__ioDevice__.checkDeviceExists():
                 e.add_note(self.__name__ + ": writer error")
                 raise e from e
             else:
                 self.__deviceRemoved__ = True
         return
+
+def usbbox_spec():
+   return(cls_Interface_Spec(ILGLOBALS.Interface_UsbBox,"if_usbbox",cls_usbbox,"reader","writer",None,"USB-Box"))
+

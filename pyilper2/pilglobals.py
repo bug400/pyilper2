@@ -51,7 +51,7 @@ class cls_pilglobals:
         self.Production = __isProduction__  # Production/Development Version
         self.FullVersion = __version__  # pyILPER full package version
         self.ConfigVersion = (
-            "2"  # Version number of pyILPER config file, must be string
+            "3"  # Version number of pyILPER config file, must be string
         )
         #
         # The following constants are initialized from program arguments
@@ -92,9 +92,11 @@ class cls_pilglobals:
         #
         #     Interface ids, default is Pil-Box (id=0)
         #
-        self.Interface_Pilbox = 0
+        self.Interface_PilBox = 0
         self.Interface_Tcpip = 1
         self.Interface_Socket = 2
+        self.Interface_AcmBox = 3
+        self.Interface_UsbBox = 4
         #
         #     Interface hardware classes
         #
@@ -104,8 +106,8 @@ class cls_pilglobals:
         #
         #     Interface Modules
         #
-        self.InterfaceModules = ["pilbox", "piltcpip", "pilsocket"]
-        self.ModeDefault = self.Interface_Pilbox
+        self.InterfaceModules = ["pilbox", "piltcpip","acmbox", "usbbox"]
+        self.DefaultInterface = self.Interface_PilBox
         self.AutoreconnectInterval = 1
         #
         #     Device check return values
@@ -120,8 +122,8 @@ class cls_pilglobals:
         #
         #     PIL-Box communication
         #
-        self.Tmout_Cmd = 1     # time out for PIL-Box commands
-        self.Tmout_Frm = 1     # time out for HP-IL frames
+        self.Tmout_Cmd = 1  # time out for PIL-Box commands
+        self.Tmout_Frm = 1  # time out for HP-IL frames
         #
         #     PIL-Box commands
         #
@@ -154,13 +156,22 @@ class cls_pilglobals:
         #     Tab ids
         #
         self.Tab_Scope = 0
-        self.Tab_Printer = 1
-        self.Tab_Drive = 2
-        self.Tab_Terminal = 3
-        self.Tab_Plotter = 4
-        self.Tab_HP82162A = 5
-        self.Tab_HP2225B = 6
-        self.Tab_Rawdrive = 7
+        self.Tab_Interface = 1
+        self.Tab_Printer = 2
+        self.Tab_Drive = 3
+        self.Tab_Terminal = 4
+        self.Tab_Plotter = 5
+        self.Tab_HP82162A = 6
+        self.Tab_HP2225B = 7
+        self.Tab_Rawdrive = 8
+        self.Tab_Dummy = 9
+        #
+        #     Tab types
+        #
+        self.Tab_Type_Scope = 0
+        self.Tab_Type_Device = 1
+        self.Tab_Type_Interface = 2
+        self.Tab_Type_Probe = 3
         #
         #     self.Tab_Names={self.Tab_Scope:'Scope',self.Tab_Printer:'Generic Printer',self.Tab_Drive:'Drive',self.Tab_Terminal:'Terminal',self.Tab_Plotter:'HP7470A',self.Tab_HP82162A:'HP82162A', self.Tab_HP2225B: 'HP2225B', self.Tab_Rawdrive: 'Raw Drive'}
         #
@@ -168,12 +179,14 @@ class cls_pilglobals:
         #
         self.TabModules = [
             "pilscope",
-            "pilprinter",
-            "pilterminal",
-            "pildrive",
-            "pilplotter",
-            "pilhp82162a",
-            "pilhp2225b",
+            "pilinterface",
+            #   "pilprinter",
+            #   "pilterminal",
+            #   "pildrive",
+            #   "pilplotter",
+            #   "pilhp82162a",
+            #   "pilhp2225b",
+            "pildummy",
         ]
 
         #
@@ -280,9 +293,9 @@ class cls_pilglobals:
         #     Standard configuration directory
         #
         if self.isWindows:
-            self.StandardConfigDir = "pyilper_config"
+            self.StandardConfigDir = "pyilper2_config"
         else:
-            self.StandardConfigDir = "pyilper"
+            self.StandardConfigDir = "pyilper2"
         #
         #     Check Python interpreter version
         #

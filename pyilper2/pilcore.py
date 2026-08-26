@@ -207,17 +207,18 @@ def moveWindowsConfig(silent):
 @dataclass
 class cls_Interface_Spec:
     id: int
-    name: str
-    thread_class: object
-    config_class: object
-    hardware_class: int
-    title: str
-    hasAutoreconnect: bool = False
+    configPrefix: str
+    interfaceClass: object
+    readerMethod: object
+    writeMethod: object
+    configClass: object
+    interfaceName: str
 
 
 @dataclass
 class cls_Tab_Spec:
     id: int
+    type: int
     mod: object
     tab_class: object
     name: str

@@ -75,6 +75,7 @@ class cls_controller(threading.Thread):
         self.sig_UpdateStatus = sig_UpdateStatus
         self.sig_ControllerTerminated = sig_ControllerTerminated
         self.controllerItems = controllerItems
+        self.status = self.STAT_STOP
 
         #
         #     Create interface objects, set initial interface status, populate nextId
@@ -98,7 +99,6 @@ class cls_controller(threading.Thread):
                     item.interfaceParams,
                 )
                 print("commobject created for", item.interfaceName)
-        self.updateStatus()
 
         #
         #     store writer
@@ -123,8 +123,8 @@ class cls_controller(threading.Thread):
             if not i.isDisabled:
                 i.readerThread = threading.Thread(target=i.commObject.reader)
                 i.readerThread.start()
-        self.updateMessage("")
         exitError = False
+        self.updateStatus(exitError)
         errMsgPrefix = ""
         try:
 
@@ -172,22 +172,22 @@ class cls_controller(threading.Thread):
                 #
                 elif item[1] == cls_IOThread.MSG_STATUS:
                     self.controllerItems[id].status = item[2]
-                    self.updateStatus()
+                    self.updateStatus(exitError)
                 #
                 # Commands sent from main applications
                 #
-                elif item[1] == self.CMD_STOP:
+                elif id == self.CONTROLLER_ID and item[1] == self.CMD_STOP:
                     self.status = self.STAT_STOP
                     break
-                elif item[1] == self.CMD_PAUSE:
+                elif id == self.CONTROLLER_ID and item[1] == self.CMD_PAUSE:
                     self.status = self.STAT_PAUSE
-                    self.updateMessage("Loop paused")
+                    self.updateStatus(exitError)
                     print("controller: pause")
                     continue
-                elif item[1] == self.CMD_RESUME:
+                elif id == self.CONTROLLER_ID and item[1] == self.CMD_RESUME:
                     self.status = self.STAT_RUN
                     print("controller: resume")
-                    self.updateMessage("")
+                    self.updateStatus(exitError)
                     continue
         #
         # Exception error exit
@@ -202,6 +202,7 @@ class cls_controller(threading.Thread):
         #
         # stop all remaining io threads
         #
+
         self.stopEvent.set()
         for s in self.controllerItems:
             if not s.isDisabled:
@@ -209,10 +210,10 @@ class cls_controller(threading.Thread):
                 if s.readerThread is not None:
                     s.readerThread.join()
         self.stopEvent.clear()
-        self.updateStatus()
-        self.updateMessage("Loop stopped")
-        print("controller: reader threads joined")
         self.status = self.STAT_STOP
+        self.updateStatus(exitError)
+        print("controller: reader threads joined")
+
         #
         # signal terminate on error
         #
@@ -241,26 +242,45 @@ class cls_controller(threading.Thread):
         self.queue.put([self.CONTROLLER_ID, self.CMD_RESUME])
         print("controller resume")
 
-    def updateStatus(self):
+    #
+    #   Update status information in the status bar of the GUI
+    #
+    def updateStatus(self, exitError):
+        #
+        #       update status of interfaces
+        #
         lst = []
-        t = 0
+        allConnected = True
         for s in self.controllerItems:
             lst.append(s.status)
-            t += s.status
-        if t:
-            msg = "Waiting for connection(s) ..."
+            if (
+                s.status != cls_IOThread.STAT_DISABLED
+                and s.status != cls_IOThread.STAT_CONNECTED
+            ):
+                allConnected = False
+        #
+        #       create status message
+        #
+        if self.status == self.STAT_RUN:
+            if allConnected:
+                msg = "Loop running ..."
+            else:
+                msg = "Waiting for connection(s) ..."
+        elif self.status == self.STAT_PAUSE:
+            msg = "Loop suspended ..."
         else:
-            msg = "Loop running ..."
+            if exitError:
+                msg = "Loop stopped after error"
+            else:
+                msg = "Loop stopped"
         self.sig_UpdateStatus.emit(lst, msg)
-
-    def updateMessage(self, msg):
-        self.sig_UpdateStatus.emit(None, msg)
 
 
 class cls_IndicatorWidget(QtWidgets.QWidget):
 
     def __init__(self, diameter, num):
         super().__init__()
+        self.hide()
         self.diameter = diameter
         self.lights = []
         self.hbox = QtWidgets.QHBoxLayout(self)
@@ -299,6 +319,8 @@ class cls_LightWidget(QtWidgets.QWidget):
         self.update()
 
     def paintEvent(self, e):
+        if self.color is None:
+            return
         with QtGui.QPainter(self) as painter:
             painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
             painter.setBrush(self.color)

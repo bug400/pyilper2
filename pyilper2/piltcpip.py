@@ -42,6 +42,7 @@ import socket
 
 
 from .pilglobals import PILGLOBALS
+from .pilcore import cls_Interface_Spec
 
 if PILGLOBALS.QT_Bindings == "PySide6":
     from PySide6 import QtCore, QtGui, QtWidgets
@@ -258,3 +259,7 @@ class cls_piltcpip(cls_IOThread):
         finally:
             self.setStatus(self.STAT_DISCONNECTED)
         return
+
+def piltcpip_spec():
+   return(cls_Interface_Spec(ILGLOBALS.Interface_Tcpip,"if_tcpip",cls_tcpip,"reader","writer",None,"TCP/IP"))
+

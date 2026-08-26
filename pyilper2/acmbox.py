@@ -35,6 +35,7 @@ import threading
 
 from .serialio import cls_serialIO
 from .pilglobals import PILGLOBALS
+from .pilcore import cls_Interface_Spec
 
 if PILGLOBALS.QT_Bindings == "PySide6":
     from PySide6 import QtCore, QtGui, QtWidgets
@@ -96,11 +97,11 @@ class cls_acmbox(cls_IOThread):
         try:
             self.sendCmd(PILGLOBALS.Pilbox_Commands_PASSTHRU, PILGLOBALS.Tmout_Cmd)
         except Exception as e:
-            e.add_note(self.__name__ + ": cannot initialize PIL-Box")
+            e.add_note(self.__name__ + ": cannot initialize ACM-Box")
             raise e from e
 
     #
-    #  PIL-Box reader thread
+    #  ACM-Box reader thread
     #
     def reader(self):
 
@@ -214,3 +215,6 @@ class cls_acmbox(cls_IOThread):
             else:
                 self.__deviceRemoved__ = True
         return
+
+def acmbox_spec():
+   return(cls_Interface_Spec(ILGLOBALS.Interface_AcmBox,"if_acmbox",cls_acmbox,"reader","writer",None,"ACM-Box"))

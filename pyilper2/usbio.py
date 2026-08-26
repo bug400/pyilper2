@@ -201,7 +201,7 @@ class cls_usbio:
             buf = bytearray([hbyt, lbyt])
         self.send_data(buf)
 
-    def deviceExists(self):
+    def checkDeviceExists(self):
         return (
             usb.core.find(idVendor=self.__vendor__, idProduct=self.__product__)
             is not None

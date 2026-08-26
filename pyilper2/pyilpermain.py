@@ -2,9 +2,12 @@ import sys
 import time
 import threading
 import traceback
+import importlib
 from PySide6 import QtCore, QtWidgets
+from .pilwidgets import cls_RuntimeMessageBox
 
-
+from .pilconfig import PILCONFIG
+from .pilglobals import PILGLOBALS
 from .controlthread import cls_controller, controllerItem, cls_IndicatorWidget
 from .pilbox import cls_pilbox
 from .piltcpip import cls_piltcpip
@@ -13,95 +16,22 @@ from .usbbox import cls_usbbox
 from .pilcore import AppException
 
 
-class cls_RuntimeMessageBox(QtWidgets.QMessageBox):
-
-    def __init__(self, width, height):
-        super().__init__()
-        self.width = width
-        self.height = height
-
-    def showEvent(self, e):
-        super().showEvent(e)
-        if self.width is not None:
-            self.setFixedWidth(self.width)
-        if self.height is not None:
-            self.setFixedHeight(self.height)
-
-    def resizeEvent(self, e):
-        super().resizeEvent(e)
-        if self.width is not None:
-            self.setFixedWidth(self.width)
-        if self.height is not None:
-            self.setFixedHeight(self.height)
+from .pildummy import cls_tabdummy
 
 
 class cls_ui(QtWidgets.QMainWindow):
-    """Docstring."""
-
-    def __init__(self, parent):
-        super().__init__()
-        self.parent = parent
-        widget = QtWidgets.QWidget()
-        self.setCentralWidget(widget)
-        layout = QtWidgets.QVBoxLayout(widget)
-        but_start = QtWidgets.QPushButton("Start")
-        but_start.clicked.connect(self.do_but_start)
-        layout.addWidget(but_start)
-        but_stop = QtWidgets.QPushButton("Stop")
-        but_stop.clicked.connect(self.do_but_stop)
-        layout.addWidget(but_stop)
-        but_pause = QtWidgets.QPushButton("Pause")
-        but_pause.clicked.connect(self.do_but_pause)
-        layout.addWidget(but_pause)
-        but_resume = QtWidgets.QPushButton("Resume")
-        but_resume.clicked.connect(self.do_but_resume)
-        layout.addWidget(but_resume)
-        self.statusBar = QtWidgets.QStatusBar()
-        self.statusBar.setFixedWidth(300)
-        self.indicator = None
-        layout.addWidget(self.statusBar)
-        self.setLayout(layout)
-
-    def updateStatusLine(self, stat, msg):
-        """Docstring."""
-        if msg is not None:
-            self.statusBar.showMessage(msg)
-        if stat and self.indicator is not None:
-            self.indicator.updateStatus(stat)
-
-    def do_but_start(self):
-        self.parent.controller_restart()
-
-    def do_but_stop(self):
-        self.parent.controller_stop()
-
-    def do_but_pause(self):
-        self.parent.controller_pause()
-
-    def do_but_resume(self):
-        self.parent.controller_resume()
-
-    def closeEvent(self, event):
-        event.accept()
-        self.hide()
-        self.parent.do_exit()
-
-    def createIndicator(self, num):
-        if self.indicator is not None:
-            self.statusBar.removeWidget(self.indicator)
-            self.indicator.deleteLater()
-        self.indicator = cls_IndicatorWidget(10, num)
-        self.statusBar.addPermanentWidget(self.indicator)
-        self.indicator.show()
-
-
-class cls_program(QtCore.QObject):
 
     sig_UpdateStatus = QtCore.Signal(list, str)  # must be class variable!!
     sig_ControllerTerminated = QtCore.Signal(str, Exception)  # must be class variable!!
 
-    def __init__(self):
+    def __init__(self, parent, version, instance):
         super().__init__()
+        self.controller = None
+        self.parent = parent
+        self.name = "pyilper2"
+        self.clean = PILGLOBALS.Clean
+        self.instance = PILGLOBALS.Instance
+        self.tabWidgetList = []
 
         #     absulutely needed: call super().__init__()
         self.sig_UpdateStatus.connect(self.updateStatusLine, QtCore.Qt.QueuedConnection)
@@ -109,9 +39,118 @@ class cls_program(QtCore.QObject):
             self.controllerTerminated, QtCore.Qt.QueuedConnection
         )
 
-        self.ui = cls_ui(self)
-        self.ui.show()
+        if instance == "":
+            self.setWindowTitle("pyILPER " + version)
+        else:
+            self.setWindowTitle("pyILPER " + version + " : " + instance)
+        #
+        #       Init configuration
+        #
+        PILCONFIG.open(
+            PILGLOBALS.ConfigVersion, self.instance, PILGLOBALS.Production, self.clean
+        )
+        PILCONFIG.get(self.name, "position", "")
+        PILCONFIG.get(
+            self.name,
+            "tabconfig",
+            [
+                [PILGLOBALS.Tab_Scope, "Scope"],
+                [PILGLOBALS.Tab_Interface, "Interface1"],
+                [PILGLOBALS.Tab_Dummy, "Dummy1"],
+                [PILGLOBALS.Tab_Dummy, "Dummy2"],
+                [PILGLOBALS.Tab_Interface, "Interface2"],
+                [PILGLOBALS.Tab_Dummy, "Dummy3"],
+            ],
+        )
+
+        self.tabConfig = PILCONFIG.get(self.name, "tabconfig")
+
+        #
+        #       build GUI
+        #
+        self.menubar = self.menuBar()
+        self.menubar.setNativeMenuBar(False)
+        self.menuFile = self.menubar.addMenu("File")
+        self.actionStart = self.menuFile.addAction("Start Loop")
+        self.actionStart.triggered.connect(self.controller_restart)
+        self.actionPause = self.menuFile.addAction("Pause Loop")
+        self.actionPause.triggered.connect(self.controller_pause)
+        self.actionResume = self.menuFile.addAction("Resume Loop")
+        self.actionResume.triggered.connect(self.controller_resume)
+        self.actionStop = self.menuFile.addAction("Stop Loop")
+        self.actionStop.triggered.connect(self.controller_stop)
+        self.actionExit = self.menuFile.addAction("Exit")
+        self.actionExit.triggered.connect(self.app_exit)
+        #
+        #       Get Tab Classes from modules
+        #
+        self.tabSpecifications = {}
+        self.tabModules = PILGLOBALS.TabModules
+        for m in self.tabModules:
+            try:
+                #
+                #               retrieve module object
+                #
+                mod = importlib.import_module("." + m, "pyilper2")
+                #
+                #               get tab specification
+                #
+                get_spec = getattr(mod, m + "_spec")
+                specList = get_spec()
+                for spec in specList:
+                    self.tabSpecifications[spec.id] = spec
+            except Exception as e:
+                print(e)
+                reply = QtWidgets.QMessageBox.critical(
+                    self,
+                    "Error",
+                    "Cannot load module " + m,
+                    QtWidgets.QMessageBox.Ok,
+                    QtWidgets.QMessageBox.Ok,
+                )
+        #
+        # Add device tabs
+        #
+        self.tabWidget = QtWidgets.QTabWidget()
+        self.setCentralWidget(self.tabWidget)
+        for t in self.tabConfig:
+            id = t[0]
+            tabClass = self.tabSpecifications[id].tab_class
+            tabName = t[1]
+            tab = tabClass(self, tabName)
+            self.tabWidget.addTab(tab, tabName)
+            self.tabWidgetList.append(tab)
+        #
+
+        self.statusBar = QtWidgets.QStatusBar()
+        #       self.statusBar.setFixedWidth(300)
+        self.indicator = None
+        self.setSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+        )
+        self.setStatusBar(self.statusBar)
+
+        #
+        #       controller
+
         self.controllerItems = []
+        self.setupController()
+        self.createIndicator(len(self.controllerItems))
+        #
+        #  move window to last position
+        #
+        position = PILCONFIG.get(self.name, "position")
+        if position != "":
+            self.move(QtCore.QPoint(position[0], position[1]))
+        if len(position) == 4:
+            self.resize(position[2], position[3])
+        #
+        #  show and raise gui
+        #
+        self.show()
+        self.raise_()
+
+    def setupController(self):
         i = controllerItem(
             0,
             cls_piltcpip,
@@ -196,49 +235,17 @@ class cls_program(QtCore.QObject):
             [7, 8, 9],
         )
         # self.controllerItems.append(i)
-        self.ui.createIndicator(len(self.controllerItems))
-        self.controller_start()
+        #
+        #       controller
+        #
+        # self.controller_start()
 
-    #
-    #  Update status line signal handler
-    #
     def updateStatusLine(self, stat, msg):
-        self.ui.updateStatusLine(stat, msg)
-
-    #
-    #  controller terminated signal handler
-    #
-    def controllerTerminated(self, errMsgPrefix, ex):
-        txt = ""
-        if hasattr(ex, "__notes__"):
-            for line in reversed(ex.__notes__):
-                if txt != "":
-                    txt += "\ncaused by: "
-                txt += line
-        if txt != "":
-            txt += "\ncaused by: "
-        if issubclass(ex.__class__, OSError):
-            if ex.strerror is not None:
-                txt += type(ex).__name__ + ": " + ex.strerror
-            else:
-                txt += type(ex).__name__
-        elif ex.__class__ == AppException:
-            txt += "AppError:" + ex.msg
-        else:
-            txt += type(ex).__name__
-        txt = errMsgPrefix + ": " + txt
-        tb = ex.__traceback__
-        tbTxt = ""
-        for line in traceback.format_tb(tb):
-            tbTxt += line
-        msgBox = cls_RuntimeMessageBox(600, None)
-        msgBox.setIcon(QtWidgets.QMessageBox.Icon.Critical)
-        msgBox.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Close)
-        msgBox.setText(txt)
-        msgBox.setDetailedText(tbTxt)
-        msgBox.exec()
-
-        self.controller = None
+        """Docstring."""
+        if msg is not None:
+            self.statusBar.showMessage(msg)
+        if stat and self.indicator is not None:
+            self.indicator.updateStatus(stat)
 
     #
     #  Start controller thread
@@ -273,14 +280,82 @@ class cls_program(QtCore.QObject):
             return
         self.controller_start()
 
-    def do_exit(self):
+    #
+    # Exit Application
+    #
+    def app_exit(self):
+        #
+        # Shut down controller
+        #
         self.controller_stop()
+        #
+        # Store windows position
+        #
+        pos_x = self.pos().x()
+        pos_y = self.pos().y()
+        if pos_x < 50:
+            pos_x = 50
+        if pos_y < 50:
+            pos_y = 50
+        width = self.width()
+        height = self.height()
+        position = [pos_x, pos_y, width, height]
+        PILCONFIG.put(self.name, "position", position)
+
+        PILCONFIG.save()
         QtWidgets.QApplication.quit()
+
+    def closeEvent(self, event):
+        event.accept()
+        self.hide()
+        self.app_exit()
+
+    def createIndicator(self, num):
+        if self.indicator is not None:
+            self.statusBar.removeWidget(self.indicator)
+            self.indicator.deleteLater()
+        self.indicator = cls_IndicatorWidget(10, num)
+        self.statusBar.addPermanentWidget(self.indicator)
+        self.indicator.show()
+
+    #
+    #  controller terminated signal handler
+    #
+    def controllerTerminated(self, errMsgPrefix, ex):
+        print("controller terminated signal")
+        txt = ""
+        if hasattr(ex, "__notes__"):
+            for line in reversed(ex.__notes__):
+                if txt != "":
+                    txt += "\ncaused by: "
+                txt += line
+        if txt != "":
+            txt += "\ncaused by: "
+        if issubclass(ex.__class__, OSError):
+            if ex.strerror is not None:
+                txt += type(ex).__name__ + ": " + ex.strerror
+            else:
+                txt += type(ex).__name__
+        elif ex.__class__ == AppException:
+            txt += "AppError:" + ex.msg
+        else:
+            txt += type(ex).__name__
+        txt = errMsgPrefix + ": " + txt
+        tb = ex.__traceback__
+        tbTxt = ""
+        for line in traceback.format_tb(tb):
+            tbTxt += line
+        msgBox = cls_RuntimeMessageBox(600, None)
+        msgBox.setIcon(QtWidgets.QMessageBox.Icon.Critical)
+        msgBox.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Close)
+        msgBox.setText(txt)
+        msgBox.setDetailedText(tbTxt)
+        msgBox.exec()
 
 
 def main():
     app = QtWidgets.QApplication(sys.argv)
-    prog = cls_program()
+    prog = cls_ui(app, "", "")
     app.exec()
 
 
