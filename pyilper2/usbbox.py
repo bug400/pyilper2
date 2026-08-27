@@ -216,6 +216,16 @@ class cls_usbbox(cls_IOThread):
                 self.__deviceRemoved__ = True
         return
 
-def usbbox_spec():
-   return(cls_Interface_Spec(ILGLOBALS.Interface_UsbBox,"if_usbbox",cls_usbbox,"reader","writer",None,"USB-Box"))
 
+def usbbox_spec():
+    return [
+        cls_Interface_Spec(
+            PILGLOBALS.Interface_UsbBox,
+            "if_usbbox",
+            cls_usbbox,
+            "reader",
+            "writer",
+            None,
+            "USB-Box",
+        )
+    ]

@@ -302,6 +302,16 @@ class cls_pilbox(cls_IOThread):
                 self.__lasth__ = 0
         return
 
-def pilbox_spec():
-   return(cls_Interface_Spec(ILGLOBALS.Interface_PilBox,"if_pilbox",cls_pilbox,"reader","writer",None,"PIL-Box"))
 
+def pilbox_spec():
+    return [
+        cls_Interface_Spec(
+            PILGLOBALS.Interface_PilBox,
+            "if_pilbox",
+            cls_pilbox,
+            "reader",
+            "writer",
+            None,
+            "PIL-Box",
+        )
+    ]

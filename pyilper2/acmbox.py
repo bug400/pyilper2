@@ -216,5 +216,16 @@ class cls_acmbox(cls_IOThread):
                 self.__deviceRemoved__ = True
         return
 
+
 def acmbox_spec():
-   return(cls_Interface_Spec(ILGLOBALS.Interface_AcmBox,"if_acmbox",cls_acmbox,"reader","writer",None,"ACM-Box"))
+    return [
+        cls_Interface_Spec(
+            PILGLOBALS.Interface_AcmBox,
+            "if_acmbox",
+            cls_acmbox,
+            "reader",
+            "writer",
+            None,
+            "ACM-Box",
+        )
+    ]

@@ -36,7 +36,7 @@ class cls_ui(QtWidgets.QMainWindow):
         #     absulutely needed: call super().__init__()
         self.sig_UpdateStatus.connect(self.updateStatusLine, QtCore.Qt.QueuedConnection)
         self.sig_ControllerTerminated.connect(
-            self.controllerTerminated, QtCore.Qt.QueuedConnection
+            self.showRuntimeError, QtCore.Qt.QueuedConnection
         )
 
         if instance == "":
@@ -44,111 +44,134 @@ class cls_ui(QtWidgets.QMainWindow):
         else:
             self.setWindowTitle("pyILPER " + version + " : " + instance)
         #
-        #       Init configuration
+        #       Init configuration, catch any errors in the following init code
         #
-        PILCONFIG.open(
-            PILGLOBALS.ConfigVersion, self.instance, PILGLOBALS.Production, self.clean
-        )
-        PILCONFIG.get(self.name, "position", "")
-        PILCONFIG.get(
-            self.name,
-            "tabconfig",
-            [
-                [PILGLOBALS.Tab_Scope, "Scope"],
-                [PILGLOBALS.Tab_Interface, "Interface1"],
-                [PILGLOBALS.Tab_Dummy, "Dummy1"],
-                [PILGLOBALS.Tab_Dummy, "Dummy2"],
-                [PILGLOBALS.Tab_Interface, "Interface2"],
-                [PILGLOBALS.Tab_Dummy, "Dummy3"],
-            ],
-        )
+        try:
+            PILCONFIG.open(
+                PILGLOBALS.ConfigVersion,
+                self.instance,
+                PILGLOBALS.Production,
+                self.clean,
+            )
+            PILCONFIG.get(self.name, "position", "")
+            PILCONFIG.get(
+                self.name,
+                "tabconfig",
+                [
+                    [PILGLOBALS.Tab_Scope, "Scope"],
+                    [PILGLOBALS.Tab_Interface, "Interface1"],
+                    [PILGLOBALS.Tab_Dummy, "Dummy1"],
+                    [PILGLOBALS.Tab_Dummy, "Dummy2"],
+                    [PILGLOBALS.Tab_Interface, "Interface2"],
+                    [PILGLOBALS.Tab_Dummy, "Dummy3"],
+                ],
+            )
 
-        self.tabConfig = PILCONFIG.get(self.name, "tabconfig")
+            self.tabConfig = PILCONFIG.get(self.name, "tabconfig")
 
-        #
-        #       build GUI
-        #
-        self.menubar = self.menuBar()
-        self.menubar.setNativeMenuBar(False)
-        self.menuFile = self.menubar.addMenu("File")
-        self.actionStart = self.menuFile.addAction("Start Loop")
-        self.actionStart.triggered.connect(self.controller_restart)
-        self.actionPause = self.menuFile.addAction("Pause Loop")
-        self.actionPause.triggered.connect(self.controller_pause)
-        self.actionResume = self.menuFile.addAction("Resume Loop")
-        self.actionResume.triggered.connect(self.controller_resume)
-        self.actionStop = self.menuFile.addAction("Stop Loop")
-        self.actionStop.triggered.connect(self.controller_stop)
-        self.actionExit = self.menuFile.addAction("Exit")
-        self.actionExit.triggered.connect(self.app_exit)
-        #
-        #       Get Tab Classes from modules
-        #
-        self.tabSpecifications = {}
-        self.tabModules = PILGLOBALS.TabModules
-        for m in self.tabModules:
-            try:
+            #
+            #       build GUI
+            #
+            self.menubar = self.menuBar()
+            self.menubar.setNativeMenuBar(False)
+            self.menuFile = self.menubar.addMenu("File")
+            self.actionStart = self.menuFile.addAction("Start Loop")
+            self.actionStart.triggered.connect(self.controller_restart)
+            self.actionPause = self.menuFile.addAction("Pause Loop")
+            self.actionPause.triggered.connect(self.controller_pause)
+            self.actionResume = self.menuFile.addAction("Resume Loop")
+            self.actionResume.triggered.connect(self.controller_resume)
+            self.actionStop = self.menuFile.addAction("Stop Loop")
+            self.actionStop.triggered.connect(self.controller_stop)
+            self.actionExit = self.menuFile.addAction("Exit")
+            self.actionExit.triggered.connect(self.app_exit)
+            #
+            # get tab classes and specifications from modules
+            #
+            self.tabSpecifications = {}
+            self.tabModules = PILGLOBALS.TabModules
+            for m in self.tabModules:
                 #
-                #               retrieve module object
+                # retrieve tab module object
                 #
                 mod = importlib.import_module("." + m, "pyilper2")
                 #
-                #               get tab specification
+                # get tab specification
                 #
                 get_spec = getattr(mod, m + "_spec")
                 specList = get_spec()
                 for spec in specList:
                     self.tabSpecifications[spec.id] = spec
-            except Exception as e:
-                print(e)
-                reply = QtWidgets.QMessageBox.critical(
-                    self,
-                    "Error",
-                    "Cannot load module " + m,
-                    QtWidgets.QMessageBox.Ok,
-                    QtWidgets.QMessageBox.Ok,
-                )
-        #
-        # Add device tabs
-        #
-        self.tabWidget = QtWidgets.QTabWidget()
-        self.setCentralWidget(self.tabWidget)
-        for t in self.tabConfig:
-            id = t[0]
-            tabClass = self.tabSpecifications[id].tab_class
-            tabName = t[1]
-            tab = tabClass(self, tabName)
-            self.tabWidget.addTab(tab, tabName)
-            self.tabWidgetList.append(tab)
-        #
+            #
+            # Get interface classes from modules
+            #
+            self.interfaceSpecifications = {}
+            self.interfaceModules = PILGLOBALS.InterfaceModules
+            for m in self.interfaceModules:
+                #
+                # retrieve interface module object
+                #
+                mod = importlib.import_module("." + m, "pyilper2")
+                #
+                # get interface specification
+                #
+                get_spec = getattr(mod, m + "_spec")
+                specList = get_spec()
+                print(specList)
+                for spec in specList:
+                    self.interfaceSpecifications[spec.id] = spec
+            #
+            # Add device tabs
+            #
+            self.tabWidget = QtWidgets.QTabWidget()
+            self.setCentralWidget(self.tabWidget)
+            for t in self.tabConfig:
+                id = t[0]
+                tabClass = self.tabSpecifications[id].tab_class
+                tabType = self.tabSpecifications[id].type
+                tabName = t[1]
+                if tabType == PILGLOBALS.Tab_Type_Interface:
+                    tab = tabClass(self, tabName, self.interfaceSpecifications)
+                else:
+                    tab = tabClass(self, tabName)
+                self.tabWidget.addTab(tab, tabName)
+                self.tabWidgetList.append(tab)
+            #
 
-        self.statusBar = QtWidgets.QStatusBar()
-        #       self.statusBar.setFixedWidth(300)
-        self.indicator = None
-        self.setSizePolicy(
-            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
-        )
-        self.setStatusBar(self.statusBar)
+            self.statusBar = QtWidgets.QStatusBar()
+            #       self.statusBar.setFixedWidth(300)
+            self.indicator = None
+            self.setSizePolicy(
+                QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+            )
+            self.setStatusBar(self.statusBar)
 
+            #
+            # controller configuration
+            #
+            self.controllerItems = []
+            self.setupController()
+            self.createIndicator(len(self.controllerItems))
+            #
+            #  move window to last position
+            #
+            position = PILCONFIG.get(self.name, "position")
+            if position != "":
+                self.move(QtCore.QPoint(position[0], position[1]))
+            if len(position) == 4:
+                self.resize(position[2], position[3])
+            #
+            #  show and raise gui
+            #
+            self.show()
+            self.raise_()
         #
-        #       controller
-
-        self.controllerItems = []
-        self.setupController()
-        self.createIndicator(len(self.controllerItems))
+        #   catch any exception
         #
-        #  move window to last position
-        #
-        position = PILCONFIG.get(self.name, "position")
-        if position != "":
-            self.move(QtCore.QPoint(position[0], position[1]))
-        if len(position) == 4:
-            self.resize(position[2], position[3])
-        #
-        #  show and raise gui
-        #
-        self.show()
-        self.raise_()
+        except Exception as e:
+            e.add_note("error during program initialization")
+            self.showRuntimeError(None, e)
+            QtWidgets.QApplication.quit()
 
     def setupController(self):
         i = controllerItem(
@@ -289,7 +312,7 @@ class cls_ui(QtWidgets.QMainWindow):
         #
         self.controller_stop()
         #
-        # Store windows position
+        # Store position of main window
         #
         pos_x = self.pos().x()
         pos_y = self.pos().y()
@@ -301,8 +324,16 @@ class cls_ui(QtWidgets.QMainWindow):
         height = self.height()
         position = [pos_x, pos_y, width, height]
         PILCONFIG.put(self.name, "position", position)
-
-        PILCONFIG.save()
+        #
+        # store configuration
+        #
+        try:
+            PILCONFIG.save()
+        except Exception as e:
+            e.add_note(
+                "Error during application shutdown. Configuration will not be saved."
+            )
+            self.showRuntimeError(None, e)
         QtWidgets.QApplication.quit()
 
     def closeEvent(self, event):
@@ -321,7 +352,7 @@ class cls_ui(QtWidgets.QMainWindow):
     #
     #  controller terminated signal handler
     #
-    def controllerTerminated(self, errMsgPrefix, ex):
+    def showRuntimeError(self, errMsgPrefix, ex):
         print("controller terminated signal")
         txt = ""
         if hasattr(ex, "__notes__"):
@@ -340,7 +371,8 @@ class cls_ui(QtWidgets.QMainWindow):
             txt += "AppError:" + ex.msg
         else:
             txt += type(ex).__name__
-        txt = errMsgPrefix + ": " + txt
+        if errMsgPrefix is not None:
+            txt = errMsgPrefix + ": " + txt
         tb = ex.__traceback__
         tbTxt = ""
         for line in traceback.format_tb(tb):
