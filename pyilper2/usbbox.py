@@ -34,14 +34,16 @@ import usb.util
 import time
 
 from .pilglobals import PILGLOBALS
-from .usbio import cls_usbio
-from .pilcore import cls_Interface_Spec
 
 if PILGLOBALS.QT_Bindings == "PySide6":
     from PySide6 import QtCore, QtGui, QtWidgets
 if PILGLOBALS.QT_Bindings == "PyQt5":
     from PyQt5 import QtCore, QtGui, QtWidgets
+from .pilconfig import PILCONFIG
 from .iothread import cls_IOThread
+from .usbio import cls_usbio
+from .pilcore import cls_Interface_Spec
+from .pilinterface import cls_ConfigInterfaceGeneric
 
 
 class cls_usbbox(cls_IOThread):
@@ -217,6 +219,43 @@ class cls_usbbox(cls_IOThread):
         return
 
 
+class cls_USB_validator(QtGui.QValidator):
+
+    def validate(self, string, pos):
+        self.regexp = QtCore.QRegularExpression("[A-Fa-f0-9:]*")
+        self.validator = QtGui.QRegularExpressionValidator(self.regexp)
+        result = self.validator.validate(string, pos)
+        return result[0], result[1], result[2]
+
+
+class cls_usbbox_config(cls_ConfigInterfaceGeneric):
+
+    def __init__(self, parent, name, id, interfaceSpecifications):
+        super().__init__(parent, name, id, interfaceSpecifications)
+
+        self.usbDevice = PILCONFIG.get(self.configName, "usbdevice", "0483:5740")
+
+        self.hbox = QtWidgets.QHBoxLayout()
+        self.lbl = QtWidgets.QLabel("USB Device: ")
+        self.hbox.addWidget(self.lbl)
+        self.ledtUSBDevice = QtWidgets.QLineEdit()
+        self.ledtUSBDevice.setText(self.usbDevice)
+        self.ledtUSBDevice.textChanged.connect(self.do_edit_done)
+        self.validator = cls_USB_validator()
+        self.ledtUSBDevice.setValidator(self.validator)
+        self.hbox.addWidget(self.ledtUSBDevice)
+        self.hbox.addStretch(1)
+        self.vb.addLayout(self.hbox)
+
+    def do_edit_done(self):
+        self.usbDevice = self.ledtUSBDevice.text()
+        PILCONFIG.put(self.configName, "usbdevice", self.usbDevice)
+
+    def setActive(self, flag):
+        self.radBut.setChecked(flag)
+        self.ledtUSBDevice.setEnabled(flag)
+
+
 def usbbox_spec():
     return [
         cls_Interface_Spec(
@@ -225,7 +264,7 @@ def usbbox_spec():
             cls_usbbox,
             "reader",
             "writer",
-            None,
+            cls_usbbox_config,
             "USB-Box",
         )
     ]

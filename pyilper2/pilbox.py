@@ -31,19 +31,18 @@
 
 
 import time
-import threading
+
 from .pilglobals import PILGLOBALS
-from .pilcore import cls_Interface_Spec
 
 if PILGLOBALS.QT_Bindings == "PySide6":
     from PySide6 import QtCore, QtGui, QtWidgets
 if PILGLOBALS.QT_Bindings == "PyQt5":
     from PyQt5 import QtCore, QtGui, QtWidgets
 from .serialio import cls_serialIO
-from .pilcore import (
-    AppException,
-)
+from .pilcore import cls_Interface_Spec, AppException
+from .pilconfig import PILCONFIG
 from .iothread import cls_IOThread
+from .pilinterface import cls_ConfigInterfaceGeneric, cls_TtyWindow
 
 
 class cls_pilbox(cls_IOThread):
@@ -303,6 +302,81 @@ class cls_pilbox(cls_IOThread):
         return
 
 
+class cls_pilboxConfig(cls_ConfigInterfaceGeneric):
+
+    def __init__(self, parent, name, id, interfaceSpecifications):
+
+        super().__init__(parent, name, id, interfaceSpecifications)
+        self.tty = PILCONFIG.get(self.configName, "device", "")
+        self.ttyspeed = PILCONFIG.get(self.configName, "baudrate", 0)
+        self.idyframe = PILCONFIG.get(self.configName, "idyframe", True)
+
+        #
+        #     serial device
+        #
+        self.hboxtty = QtWidgets.QHBoxLayout()
+        self.lbltxt1 = QtWidgets.QLabel("Serial Device: ")
+        self.hboxtty.addWidget(self.lbltxt1)
+        self.lblTty = QtWidgets.QLabel()
+        self.lblTty.setText(self.tty)
+        self.hboxtty.addWidget(self.lblTty)
+        self.hboxtty.addStretch(1)
+        self.butTty = QtWidgets.QPushButton()
+        self.butTty.setText("change")
+        self.butTty.pressed.connect(self.do_config_interface)
+        self.hboxtty.addWidget(self.butTty)
+        self.vb.addLayout(self.hboxtty)
+        #
+        #     tty speed combo box
+        #
+        self.hboxbaud = QtWidgets.QHBoxLayout()
+        self.lbltxt2 = QtWidgets.QLabel("Baud rate ")
+        self.hboxbaud.addWidget(self.lbltxt2)
+        self.comboBaud = QtWidgets.QComboBox()
+        i = 0
+        for baud in PILGLOBALS.Baudrates:
+            self.comboBaud.addItem(baud[0])
+            if self.ttyspeed == baud[1]:
+                self.comboBaud.setCurrentIndex(i)
+            i += 1
+
+        self.hboxbaud.addWidget(self.comboBaud)
+        self.hboxbaud.addStretch(1)
+        self.vb.addLayout(self.hboxbaud)
+
+        #
+        #     idy frames
+        #
+        self.cbIdyFrame = QtWidgets.QCheckBox("Enable IDY frames")
+        self.cbIdyFrame.setChecked(self.idyframe)
+        self.cbIdyFrame.setEnabled(True)
+        self.cbIdyFrame.stateChanged.connect(self.do_cbIdyFrame)
+        self.vb.addWidget(self.cbIdyFrame)
+
+    def do_cbIdyFrame(self):
+        self.idyframe = self.cbIdyFrame.isChecked()
+        PILCONFIG.put(self.configName, "idyframe", self.idyframe)
+
+    def do_config_interface(self):
+        interface = cls_TtyWindow.getTtyDevice(self.tty)
+        if interface == "":
+            return
+        self.tty = interface
+        self.lblTty.setText(self.tty)
+        PILCONFIG.put(self.configName, "device", self.tty)
+        PILCONFIG.put(
+            self.configName,
+            "baudrate",
+            PILGLOBALS.Baudrates[self.comboBaud.currentIndex()][1],
+        )
+
+    def setActive(self, flag):
+        self.butTty.setEnabled(flag)
+        self.cbIdyFrame.setEnabled(flag)
+        self.comboBaud.setEnabled(flag)
+        self.radBut.setChecked(flag)
+
+
 def pilbox_spec():
     return [
         cls_Interface_Spec(
@@ -311,7 +385,7 @@ def pilbox_spec():
             cls_pilbox,
             "reader",
             "writer",
-            None,
+            cls_pilboxConfig,
             "PIL-Box",
         )
     ]

@@ -31,17 +31,17 @@
 
 
 import time
-import threading
-
-from .serialio import cls_serialIO
 from .pilglobals import PILGLOBALS
-from .pilcore import cls_Interface_Spec
 
 if PILGLOBALS.QT_Bindings == "PySide6":
     from PySide6 import QtCore, QtGui, QtWidgets
 if PILGLOBALS.QT_Bindings == "PyQt5":
     from PyQt5 import QtCore, QtGui, QtWidgets
+from .serialio import cls_serialIO
+from .pilconfig import PILCONFIG
+from .pilcore import cls_Interface_Spec
 from .iothread import cls_IOThread
+from .pilinterface import cls_ConfigInterfaceGeneric, cls_TtyWindow
 
 
 class cls_acmbox(cls_IOThread):
@@ -217,6 +217,38 @@ class cls_acmbox(cls_IOThread):
         return
 
 
+class cls_acmbox_config(cls_ConfigInterfaceGeneric):
+
+    def __init__(self, parent, name, id, interfaceSpecifications):
+        super().__init__(parent, name, id, interfaceSpecifications)
+
+        self.tty = PILCONFIG.get(self.configName, "device", "")
+        self.hbox = QtWidgets.QHBoxLayout()
+        self.lbl = QtWidgets.QLabel("Serial Device: ")
+        self.hbox.addWidget(self.lbl)
+        self.lblTty = QtWidgets.QLabel()
+        self.lblTty.setText(self.tty)
+        self.hbox.addWidget(self.lblTty)
+        self.hbox.addStretch(1)
+        self.butTty = QtWidgets.QPushButton()
+        self.butTty.setText("change")
+        self.butTty.pressed.connect(self.do_config_interface)
+        self.hbox.addWidget(self.butTty)
+        self.vb.addLayout(self.hbox)
+
+    def do_config_interface(self):
+        interface = cls_TtyWindow.getTtyDevice(self.tty)
+        if interface == "":
+            return
+        self.tty = interface
+        self.lblTty.setText(self.tty)
+        PILCONFIG.put(self.configName, "device", self.tty)
+
+    def setActive(self, flag):
+        self.butTty.setEnabled(flag)
+        self.radBut.setChecked(flag)
+
+
 def acmbox_spec():
     return [
         cls_Interface_Spec(
@@ -225,7 +257,7 @@ def acmbox_spec():
             cls_acmbox,
             "reader",
             "writer",
-            None,
+            cls_acmbox_config,
             "ACM-Box",
         )
     ]

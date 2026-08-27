@@ -77,10 +77,11 @@ class cls_tabgeneric(QtWidgets.QWidget):
         self.hbox2.insertStretch(self.widget_index, 1)
 
     #
-    #    action: toogle active checkbox
+    #    action: toogle active checkbox, note: interfaces have not pildevice object
     #
     def do_cbActive(self):
         self.active = self.cbActive.isChecked()
         PILCONFIG.put(self.name, "active", self.active)
-        self.pildevice.setactive(self.active)
+        if self.pildevice is not None:
+            self.pildevice.setactive(self.active)
         self.toggle_active()

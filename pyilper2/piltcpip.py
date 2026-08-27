@@ -40,17 +40,16 @@ import os
 import select
 import socket
 
-
 from .pilglobals import PILGLOBALS
-from .pilcore import cls_Interface_Spec
 
 if PILGLOBALS.QT_Bindings == "PySide6":
     from PySide6 import QtCore, QtGui, QtWidgets
 if PILGLOBALS.QT_Bindings == "PyQt5":
     from PyQt5 import QtCore, QtGui, QtWidgets
-
+from .pilconfig import PILCONFIG
+from .pilcore import cls_Interface_Spec, AppException
 from .iothread import cls_IOThread
-from .pilcore import AppException
+from .pilinterface import cls_ConfigInterfaceGeneric
 
 
 class cls_piltcpip(cls_IOThread):
@@ -263,6 +262,57 @@ class cls_piltcpip(cls_IOThread):
         return
 
 
+class cls_piltcpip_config(cls_ConfigInterfaceGeneric):
+
+    def __init__(self, parent, name, id, interfacespecifications):
+
+        super().__init__(parent, name, id, interfacespecifications)
+
+        self.port = PILCONFIG.get(self.configName, "port", 60001)
+        self.remoteport = PILCONFIG.get(self.configName, "remoteport", 60000)
+        self.remotehost = PILCONFIG.get(self.configName, "remotehost", "localhost")
+
+        self.intvalidator = QtGui.QIntValidator()
+        self.glayout = QtWidgets.QGridLayout()
+        self.lbltxt3 = QtWidgets.QLabel("Port:")
+        self.glayout.addWidget(self.lbltxt3, 0, 0)
+        self.lbltxt4 = QtWidgets.QLabel("Remote host:")
+        self.glayout.addWidget(self.lbltxt4, 1, 0)
+        self.lbltxt5 = QtWidgets.QLabel("Remote port:")
+        self.glayout.addWidget(self.lbltxt5, 2, 0)
+        self.edtPort = QtWidgets.QLineEdit()
+        self.glayout.addWidget(self.edtPort, 0, 1)
+        self.edtPort.setText(str(self.port))
+        self.edtPort.setValidator(self.intvalidator)
+        self.edtRemoteHost = QtWidgets.QLineEdit()
+        self.glayout.addWidget(self.edtRemoteHost, 1, 1)
+        self.edtRemoteHost.setText(self.remotehost)
+        self.edtRemotePort = QtWidgets.QLineEdit()
+        self.glayout.addWidget(self.edtRemotePort, 2, 1)
+        self.edtRemotePort.setText(str(self.remoteport))
+        self.edtRemotePort.setValidator(self.intvalidator)
+        self.vb.addLayout(self.glayout)
+
+        self.edtPort.editingFinished.connect(self.do_storePort)
+        self.edtRemoteHost.editingFinished.connect(self.do_storeRemoteHost)
+        self.edtRemotePort.editingFinished.connect(self.do_storeRemotePort)
+
+    def setActive(self, flag):
+        self.edtPort.setEnabled(flag)
+        self.edtRemoteHost.setEnabled(flag)
+        self.edtRemotePort.setEnabled(flag)
+        self.radBut.setChecked(flag)
+
+    def do_storePort(self):
+        PILCONFIG.put(self.configName, "port", int(self.edtPort.text()))
+
+    def do_storeRemoteHost(self):
+        PILCONFIG.put(self.configName, "remotehost", self.edtRemoteHost.text())
+
+    def do_storeRemotePort(self):
+        PILCONFIG.put(self.configName, "remoteport", int(self.edtRemotePort.text()))
+
+
 def piltcpip_spec():
     return [
         cls_Interface_Spec(
@@ -271,7 +321,7 @@ def piltcpip_spec():
             cls_piltcpip,
             "reader",
             "writer",
-            None,
+            cls_piltcpip_config,
             "TCP/IP",
         )
     ]
