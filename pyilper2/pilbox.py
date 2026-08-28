@@ -47,13 +47,28 @@ from .pilinterface import cls_ConfigInterfaceGeneric, cls_TtyWindow
 
 class cls_pilbox(cls_IOThread):
 
-    def __init__(self, stopEvent, queue, id, name, params):
+    def __init__(
+        self,
+        parent,
+        stopEvent,
+        queue,
+        interfaceIndex,
+        interfaceConfigName,
+        interfaceName,
+    ):
 
-        super().__init__(stopEvent, queue, id, name)
-        self.__ttyDevice__ = params[0]  # serial port name
-        self.__baudrate__ = params[1]  # baudrate of connection or 0 for autodetect
-        self.__idyframe__ = params[2]  # enable idy frames
-        self.__isController__ = params[3]  # PIL-Box Controller mode
+        super().__init__(
+            parent,
+            stopEvent,
+            queue,
+            interfaceIndex,
+            interfaceConfigName,
+            interfaceName,
+        )
+        self.__ttyDevice__ = PILCONFIG.get(self.__configName__, "device")
+        self.__baudrate__ = PILCONFIG.get(self.__configName__, "baudrate")
+        self.__idyframe__ = PILCONFIG.get(self.__configName__, "idyframes")
+        self.__isController__ = PILCONFIG.get(self.__configName__, "controllermode")
         self.__ioDevice__ = cls_serialIO(self.__ttyDevice__)  # serial device object
         self.__lasth__ = 0
         if self.__isController__:
@@ -310,6 +325,7 @@ class cls_pilboxConfig(cls_ConfigInterfaceGeneric):
         self.tty = PILCONFIG.get(self.configName, "device", "")
         self.ttyspeed = PILCONFIG.get(self.configName, "baudrate", 0)
         self.idyframe = PILCONFIG.get(self.configName, "idyframe", True)
+        self.controllermode = PILCONFIG.get(self.configName, "controllermode", 0)
 
         #
         #     serial device

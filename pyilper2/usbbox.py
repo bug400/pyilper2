@@ -50,10 +50,28 @@ class cls_usbbox(cls_IOThread):
 
     USB_BUFFER = usb.util.create_buffer(64)
 
-    def __init__(self, stopEvent, queue, id, name, params):
-        super().__init__(stopEvent, queue, id, name)
-        self.__vendor__ = params[0]
-        self.__product__ = params[1]
+    def __init__(
+        self,
+        parent,
+        stopEvent,
+        queue,
+        interfaceIndex,
+        interfaceConfigName,
+        interfaceName,
+    ):
+
+        super().__init__(
+            parent,
+            stopEvent,
+            queue,
+            interfaceIndex,
+            interfaceConfigName,
+            interfaceName,
+        )
+        usbdevice = PILCONFIG.get(self.__configName__, "usbdevice")
+        temp = usbdevice.split(":")
+        self.__vendor__ = int(temp[0], 16)
+        self.__product__ = int(temp[1], 16)
         self.__ioDevice__ = cls_usbio(self.__vendor__, self.__product__)
         self.__isOpen__ = False
         self.__timeout__ = 0

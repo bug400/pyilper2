@@ -147,12 +147,6 @@ class cls_ui(QtWidgets.QMainWindow):
             self.setStatusBar(self.statusBar)
 
             #
-            # controller configuration
-            #
-            self.controllerItems = []
-            self.setupController()
-            self.createIndicator(len(self.controllerItems))
-            #
             #  move window to last position
             #
             position = PILCONFIG.get(self.name, "position")
@@ -173,96 +167,6 @@ class cls_ui(QtWidgets.QMainWindow):
             self.showRuntimeError(None, e)
             QtWidgets.QApplication.quit()
 
-    def setupController(self):
-        i = controllerItem(
-            0,
-            cls_piltcpip,
-            "TCP/IP",
-            False,
-            [60001, "localhost", 60000],
-            0,
-            0,
-            None,
-            None,
-            None,
-            [1, 2, 3],
-        )
-        self.controllerItems.append(i)
-        i = controllerItem(
-            1,
-            cls_pilbox,
-            "PIL-Box 1",
-            True,
-            ["/dev/ttySTMG4", 0, 0, 1],
-            0,
-            0,
-            None,
-            None,
-            None,
-            [4, 5, 6],
-        )
-        self.controllerItems.append(i)
-        i = controllerItem(
-            2,
-            cls_acmbox,
-            "ACM-Box",
-            False,
-            ["/dev/ttySTM32"],
-            0,
-            0,
-            None,
-            None,
-            None,
-            [7, 8, 9],
-        )
-        self.controllerItems.append(i)
-        i = controllerItem(
-            2,
-            cls_pilbox,
-            "Pil-Box",
-            False,
-            ["/dev/ttySTM32", 0, 0, 1],
-            0,
-            0,
-            None,
-            None,
-            None,
-            [7, 8, 9],
-        )
-        # self.controllerItems.append(i)
-        i = controllerItem(
-            2,
-            cls_acmbox,
-            "Fast ACM-Box",
-            False,
-            ["/dev/ttySTMH7", 0, 1, 1],
-            0,
-            0,
-            None,
-            None,
-            None,
-            [7, 8, 9],
-        )
-        # self.controllerItems.append(i)
-        i = controllerItem(
-            2,
-            cls_usbbox,
-            "Fast USB-Box",
-            False,
-            [0x0483, 0x5740],
-            0,
-            0,
-            None,
-            None,
-            None,
-            [7, 8, 9],
-        )
-        # self.controllerItems.append(i)
-        #
-        #       controller
-        #
-        # self.controller_start()
-
     def updateStatusLine(self, stat, msg):
         """Docstring."""
         if msg is not None:
@@ -275,8 +179,20 @@ class cls_ui(QtWidgets.QMainWindow):
     #
     def controller_start(self):
         self.controller = cls_controller(
-            self.sig_UpdateStatus, self.sig_ControllerTerminated, self.controllerItems
+            self, self.sig_UpdateStatus, self.sig_ControllerTerminated
         )
+        ret = self.controller.setup(
+            self.tabConfig,
+            self.tabWidgetList,
+            self.tabSpecifications,
+            self.interfaceSpecifications,
+        )
+        #
+        # No active interface found
+        #
+        if ret == 0:
+            self.controller = None
+            return
         self.t = threading.Thread(target=self.controller.run)
         self.t.start()
 

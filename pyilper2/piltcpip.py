@@ -56,12 +56,28 @@ class cls_piltcpip(cls_IOThread):
 
     RET_TIMEOUT = -1
 
-    def __init__(self, stopEvent, queue, id, name, params):
-        super().__init__(stopEvent, queue, id, name)
+    def __init__(
+        self,
+        parent,
+        stopEvent,
+        queue,
+        interfaceIndex,
+        interfaceConfigName,
+        interfaceName,
+    ):
 
-        self.port = params[0]
-        self.remotehost = params[1]
-        self.remoteport = params[2]
+        super().__init__(
+            parent,
+            stopEvent,
+            queue,
+            interfaceIndex,
+            interfaceConfigName,
+            interfaceName,
+        )
+
+        self.port = PILCONFIG.get(self.__configName__, "port")
+        self.remotehost = PILCONFIG.get(self.__configName__, "remotehost")
+        self.remoteport = PILCONFIG.get(self.__configName__, "remoteport")
         self.outsocket = None
         self.outconnected = False
         self.inconnected = False

@@ -45,10 +45,25 @@ from .pilinterface import cls_ConfigInterfaceGeneric, cls_TtyWindow
 
 
 class cls_acmbox(cls_IOThread):
+    def __init__(
+        self,
+        parent,
+        stopEvent,
+        queue,
+        interfaceIndex,
+        interfaceConfigName,
+        interfaceName,
+    ):
 
-    def __init__(self, stopEvent, queue, id, name, params):
-        super().__init__(stopEvent, queue, id, name)
-        self.__ttyDevice__ = params[0]
+        super().__init__(
+            parent,
+            stopEvent,
+            queue,
+            interfaceIndex,
+            interfaceConfigName,
+            interfaceName,
+        )
+        self.__ttyDevice__ = PILCONFIG.get(self.__configName__, "device")
         self.__ioDevice__ = cls_serialIO(self.__ttyDevice__)  # acm device object
         self.__baudrate__ = 0
 

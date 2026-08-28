@@ -3,6 +3,7 @@ from PySide6 import QtCore, QtWidgets
 from .pilwidgets import cls_tabgeneric
 from .pilcore import cls_Tab_Spec
 from .pilglobals import PILGLOBALS
+from .pilconfig import PILCONFIG
 
 
 class cls_tabscope(cls_tabgeneric):
@@ -22,6 +23,7 @@ class cls_ScopeWidget(QtWidgets.QWidget):
     def __init__(self, parent, name):
         super().__init__()
         self.pildevice = None
+        self.name = name
 
         self.vbox = QtWidgets.QVBoxLayout()
         self.vbox.addWidget(QtWidgets.QLabel("Scope"))
@@ -39,6 +41,7 @@ class cls_pilscope:
         self.guiobject = guiobject
 
     def process(self, frame):
+        print("process", self.guiobject.name)
         return frame
 
 

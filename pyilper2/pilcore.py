@@ -45,6 +45,8 @@ if PILGLOBALS.QT_Bindings == "PySide6":
 
     def getEventPosition(ev):
         return ev.position().toPoint()
+
+
 #
 # A note on pyILPER error handling in the thread code.
 # - All exceptions are bubbled up to the topmost thread code and handled there
@@ -60,8 +62,8 @@ if PILGLOBALS.QT_Bindings == "PySide6":
 #    raise e from e
 #
 # On the topmost level the exception object has a complete traceback and
-# a stack of error messages. Then, the exception is  sent to the GUI 
-# application to show an error message and the thread and its descendants 
+# a stack of error messages. Then, the exception is  sent to the GUI
+# application to show an error message and the thread and its descendants
 # are terminated gracefully.
 #
 
@@ -209,8 +211,8 @@ class cls_Interface_Spec:
     id: int
     configPrefix: str
     interfaceClass: object
-    readerMethod: object
-    writeMethod: object
+    readerMethodName: str
+    writerMethodName: str
     configClass: object
     interfaceName: str
 

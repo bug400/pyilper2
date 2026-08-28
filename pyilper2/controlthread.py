@@ -37,23 +37,22 @@ if PILGLOBALS.QT_Bindings == "PySide6":
     from PySide6 import QtCore, QtGui, QtWidgets
 if PILGLOBALS.QT_Bindings == "PyQt5":
     from PyQt5 import QtCore, QtGui, QtWidgets
-
+from .pilconfig import PILCONFIG
 from .iothread import cls_IOThread
 
 
 @dataclass
 class controllerItem:
-    id: int
-    interfaceClass: object
-    interfaceName: str
     isDisabled: bool
-    interfaceParams: list[int | str]
-    nextId: int
+    interfaceItemId: int
+    nextInterfaceItemId: int
+    tabIndex: int
+    name: str
     status: int
     commObject: object
     readerThread: object
     writer: object
-    devices: list[int]
+    deviceProcessors: list[object]
 
 
 class cls_controller(threading.Thread):
@@ -68,49 +67,141 @@ class cls_controller(threading.Thread):
 
     CONTROLLER_ID = -1
 
-    def __init__(self, sig_UpdateStatus, sig_ControllerTerminated, controllerItems):
+    def __init__(self, parent, sig_UpdateStatus, sig_ControllerTerminated):
         super().__init__()
+        self.parent = parent
+        self.controllerItems = {}
         self.queue = queue.SimpleQueue()
         self.stopEvent = threading.Event()
         self.sig_UpdateStatus = sig_UpdateStatus
         self.sig_ControllerTerminated = sig_ControllerTerminated
-        self.controllerItems = controllerItems
         self.status = self.STAT_STOP
 
+    #
+    #   create the controllerItems data structure to control interface and device processing
+    #
+    def setup(
+        self, tabConfig, tabWidgetList, tabSpecifications, interfaceSpecifications
+    ):
+        self.tabWidgetList = tabWidgetList
         #
-        #     Create interface objects, set initial interface status, populate nextId
+        # First pass, create Item list
         #
-        for i, item in enumerate(self.controllerItems):
-            if i == len(self.controllerItems) - 1:
-                item.nextId = self.controllerItems[0].id
-            else:
-                item.nextId = self.controllerItems[i + 1].id
-            if item.isDisabled:
-                item.status = cls_IOThread.STAT_DISABLED
-                item.commobject = None
-                item.write = None
-            else:
-                item.status = cls_IOThread.STAT_DISCONNECTED
-                item.commObject = item.interfaceClass(
-                    self.stopEvent,
-                    self.queue,
-                    item.id,
-                    item.interfaceName,
-                    item.interfaceParams,
+        firstInterfaceIndex = -1
+        interfaceIndex = -1
+        activeInterfaces = 0
+        deviceProcessors = []
+        tabIndex = 0
+        for t in tabConfig:
+            id = t[0]
+            tabType = tabSpecifications[id].type
+            tabName = t[1]
+            if tabType == PILGLOBALS.Tab_Type_Interface:
+                interfaceIndex += 1
+                isDisabled = not PILCONFIG.get(tabName, "active")
+                interfaceTypeId = PILCONFIG.get(tabName, "interface_id")
+                interfaceName = interfaceSpecifications[interfaceTypeId].interfaceName
+                interfaceConfigName = (
+                    tabName
+                    + "_"
+                    + interfaceSpecifications[interfaceTypeId].configPrefix
                 )
-                print("commobject created for", item.interfaceName)
+
+                if not isDisabled:
+                    if interfaceIndex == 0:
+                        firstInterfaceIndex = tabIndex
+                    activeInterfaces += 1
+
+                    interfaceClass = interfaceSpecifications[
+                        interfaceTypeId
+                    ].interfaceClass
+
+                    commObject = interfaceClass(
+                        self,
+                        self.stopEvent,
+                        self.queue,
+                        interfaceIndex,
+                        interfaceConfigName,
+                        interfaceName,
+                    )
+                    readerThread = getattr(
+                        commObject,
+                        interfaceSpecifications[interfaceTypeId].readerMethodName,
+                    )
+                    writer = getattr(
+                        commObject,
+                        interfaceSpecifications[interfaceTypeId].writerMethodName,
+                    )
+                    item = controllerItem(
+                        isDisabled,
+                        interfaceIndex,
+                        0,
+                        tabIndex,
+                        interfaceName,
+                        cls_IOThread.STAT_DISCONNECTED,
+                        commObject,
+                        readerThread,
+                        writer,
+                        deviceProcessors,
+                    )
+
+                else:
+                    item = controllerItem(
+                        isDisabled,
+                        interfaceIndex,
+                        0,
+                        tabIndex,
+                        interfaceName,
+                        cls_IOThread.STAT_DISABLED,
+                        None,
+                        None,
+                        None,
+                        deviceProcessors,
+                    )
+                self.controllerItems[interfaceIndex] = item
+            tabIndex += 1
+        #
+        # return, if we have no active interfaces
+        #
+        self.parent.createIndicator(interfaceIndex + 1)
 
         #
-        #     store writer
+        # Pass 2, add pildevice process methods and add index of writer interface
         #
-        for i, item in enumerate(self.controllerItems):
-            if self.controllerItems[item.nextId].commObject is not None:
-                item.writer = self.controllerItems[item.nextId].commObject.writer
-            else:
-                item.writer = None
+        for i in self.controllerItems.keys():
+            if self.controllerItems[i].isDisabled:
+                continue
+            tidx = self.controllerItems[i].tabIndex + 1
+            nextInterfaceItemId = i + 1
+            while True:
+                if tidx >= len(tabConfig):
+                    tidx = 0
+                if nextInterfaceItemId >= len(self.controllerItems.keys()):
+                    nextInterfaceItemId = 0
+                id = tabConfig[tidx][0]
+                tabType = tabSpecifications[id].type
+                tabName = tabConfig[tidx][1]
+                isActive = PILCONFIG.get(tabName, "active")
+                if tabType == PILGLOBALS.Tab_Type_Device and isActive:
+                    self.controllerItems[i].deviceProcessors.append(
+                        tabWidgetList[tidx].pildevice.process
+                    )
+                if tabType == PILGLOBALS.Tab_Type_Scope:
+                    pass
+                if tabType == PILGLOBALS.Tab_Type_Probe:
+                    pass
+                if tabType == PILGLOBALS.Tab_Type_Interface:
+                    if isActive:
+                        self.controllerItems[i].nextInterfaceItemId = (
+                            nextInterfaceItemId
+                        )
+                        break
+                    else:
+                        nextInterfaceItemId += 1
+                tidx += 1
+        print(self.controllerItems)
 
-        print("controller: init passed")
-        return
+        return activeInterfaces
 
     def run(self):
 
@@ -119,10 +210,12 @@ class cls_controller(threading.Thread):
         connected = False
         print("controller: start run")
         self.status = self.STAT_RUN
-        for i in self.controllerItems:
-            if not i.isDisabled:
-                i.readerThread = threading.Thread(target=i.commObject.reader)
-                i.readerThread.start()
+        for i in self.controllerItems.keys():
+            if not self.controllerItems[i].isDisabled:
+                self.controllerItems[i].readerThread = threading.Thread(
+                    target=self.controllerItems[i].commObject.reader
+                )
+                self.controllerItems[i].readerThread.start()
         exitError = False
         self.updateStatus(exitError)
         errMsgPrefix = ""
@@ -138,24 +231,23 @@ class cls_controller(threading.Thread):
                 # process frames, item[1] is data and always >=0
                 #
                 if item[1] >= 0:
-                    # print("controller: processing ", self.controllerItems[id].devices)
-                    if self.controllerItems[id].writer is not None:
-                        #
-                        # call writer of next interface to send frame
-                        #
-                        try:
-                            self.controllerItems[id].writer(item[1])
-                        except Exception as e:
-                            e.add_note(
-                                "controlthread: write Error for interface "
-                                + self.controllerItems[id].interfaceName
-                            )
-                            raise e from e
-                    else:
-                        #
-                        # next Interface is disabled: put data into queue with id of next interface
-                        #
-                        self.queue.put([self.controllerItems[id].nextId, item[1]])
+                    frame = item[1]
+                    for processMethod in self.controllerItems[id].deviceProcessors:
+                        frame = processMethod(frame)
+                    writerId = self.controllerItems[id].nextInterfaceItemId
+
+                    #
+                    # call writer of next interface to send frame
+                    #
+                    try:
+                        self.controllerItems[writerId].writer(frame)
+                    except Exception as e:
+                        e.add_note(
+                            "controlthread: write Error for interface "
+                            + self.controllerItems[writerId].interfaceName
+                        )
+                        raise e from e
+
                 #
                 # got error message from an io thread
                 #
@@ -204,11 +296,11 @@ class cls_controller(threading.Thread):
         #
 
         self.stopEvent.set()
-        for s in self.controllerItems:
-            if not s.isDisabled:
-                s.status = cls_IOThread.STAT_DISCONNECTED
-                if s.readerThread is not None:
-                    s.readerThread.join()
+        for i in self.controllerItems.keys():
+            if not self.controllerItems[i].isDisabled:
+                self.controllerItems[i].status = cls_IOThread.STAT_DISCONNECTED
+                if self.controllerItems[i].readerThread is not None:
+                    self.controllerItems[i].readerThread.join()
         self.stopEvent.clear()
         self.status = self.STAT_STOP
         self.updateStatus(exitError)
@@ -251,11 +343,12 @@ class cls_controller(threading.Thread):
         #
         lst = []
         allConnected = True
-        for s in self.controllerItems:
-            lst.append(s.status)
+        for i in self.controllerItems.keys():
+            interfaceStatus = self.controllerItems[i].status
+            lst.append(interfaceStatus)
             if (
-                s.status != cls_IOThread.STAT_DISABLED
-                and s.status != cls_IOThread.STAT_CONNECTED
+                interfaceStatus != cls_IOThread.STAT_DISABLED
+                and interfaceStatus != cls_IOThread.STAT_CONNECTED
             ):
                 allConnected = False
         #

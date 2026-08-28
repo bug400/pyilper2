@@ -44,12 +44,16 @@ class cls_IOThread(threading.Thread):
     MSG_ERROR = -10
     MSG_STATUS = -11
 
-    def __init__(self, stopEvent, queue, id, name):
+    def __init__(
+        self, parent, stopEvent, queue, id, interfaceConfigName, interfaceName
+    ):
         super().__init__()
+        self.__parent__ = parent
         self.__stopEvent__ = stopEvent
         self.__queue__ = queue
         self.__id__ = id
-        self.__name__ = name
+        self.__name__ = interfaceName
+        self.__configName__ = interfaceConfigName
         self.__status__ = self.STAT_DISCONNECTED
         self.__statLock__ = threading.Lock()
         self.USE_8BITS = True

@@ -36,6 +36,7 @@ class cls_tabgeneric(QtWidgets.QWidget):
         self.pildevice = None
         self.widget_index = 1
         self.active = True
+        PILCONFIG.get(self.name, "active", True)
         #
         #       Build basic layout
         #
