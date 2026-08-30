@@ -33,10 +33,7 @@ import traceback
 from dataclasses import dataclass
 from .pilglobals import PILGLOBALS
 
-if PILGLOBALS.QT_Bindings == "PySide6":
-    from PySide6 import QtCore, QtGui, QtWidgets
-if PILGLOBALS.QT_Bindings == "PyQt5":
-    from PyQt5 import QtCore, QtGui, QtWidgets
+from PySide6 import QtCore, QtGui, QtWidgets
 from .pilconfig import PILCONFIG
 from .iothread import cls_IOThread
 
@@ -182,7 +179,7 @@ class cls_controller(threading.Thread):
                 tabType = tabSpecifications[id].type
                 tabName = tabConfig[tidx][1]
                 isActive = PILCONFIG.get(tabName, "active")
-                if tabType == PILGLOBALS.Tab_Type_Device and isActive:
+                if tabType == PILGLOBALS.Tab_Type_Device:
                     self.controllerItems[i].deviceProcessors.append(
                         tabWidgetList[tidx].pildevice.process
                     )

@@ -17,6 +17,12 @@ class cls_tabdummy(cls_tabgeneric):
         self.pildevice = cls_pildummy(self, self.guiobject)
         self.guiobject.set_pildevice(self.pildevice)
 
+    def becomes_visible(self):
+        return
+
+    def becomes_invisible(self):
+        return
+
 
 class cls_DummyWidget(QtWidgets.QWidget):
 

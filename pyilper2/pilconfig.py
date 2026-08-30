@@ -24,6 +24,7 @@
 # XX.XX.XXXX jsi:
 #
 from .userconfig import cls_userconfig
+from .pilglobals import PILGLOBALS
 
 
 class cls_pilconfig:
@@ -73,7 +74,7 @@ class cls_pilconfig:
     def get_dual(self, name, param):
         p = self.get(name, param)
         if p == -1:
-            p = self.get("pyilper", param)
+            p = self.get(PILGLOBALS.PackageName, param)
         return p
 
     #

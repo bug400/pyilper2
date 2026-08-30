@@ -20,12 +20,12 @@
 # pilglobals class -------------------------------------------
 #
 # Changelog
-# XX.XX2026 jsi
-# - derived from version 1.9
+# XX.XX.XXXX jsi
 #
 import os
 import platform
 import sys
+from PySide6 import QtGui, QtCore
 
 from pyilper import __version__, __isProduction__
 
@@ -48,6 +48,7 @@ class cls_pilglobals:
     #  initialize: create instance
     #
     def __init__(self):
+        self.PackageName = __import__(__name__.split(".")[0]).__name__
         self.Production = __isProduction__  # Production/Development Version
         self.FullVersion = __version__  # pyILPER full package version
         self.ConfigVersion = (
@@ -75,11 +76,6 @@ class cls_pilglobals:
         self.PyserialRequiredMajor = 3
         self.PyserialRequiredMinor = 2
         #
-        #     pyQt5 minimum version
-        #
-        self.Pyqt5RequiredMajor = 5
-        self.Pyqt5RequiredMinor = 15
-        #
         #     PySide6 minimum version
         #
         self.PysideRequiredMajor = 6
@@ -106,7 +102,7 @@ class cls_pilglobals:
         #
         #     Interface Modules
         #
-        self.InterfaceModules = ["pilbox", "piltcpip","acmbox", "usbbox"]
+        self.InterfaceModules = ["pilbox", "piltcpip", "acmbox", "usbbox"]
         self.DefaultInterface = self.Interface_PilBox
         self.AutoreconnectInterval = 1
         #
@@ -293,9 +289,9 @@ class cls_pilglobals:
         #     Standard configuration directory
         #
         if self.isWindows:
-            self.StandardConfigDir = "pyilper2_config"
+            self.StandardConfigDir = self.PackageName + "_config"
         else:
-            self.StandardConfigDir = "pyilper2"
+            self.StandardConfigDir = self.PackageName
         #
         #     Check Python interpreter version
         #
@@ -313,79 +309,25 @@ class cls_pilglobals:
             self.PythonRequiredMinor,
         )
         #
-        #     Check PyQt5, PySide6 availability and version
+        # check PySide6 availability and version
         #
-        self.QT_Bindings = "None"
+        self.QtVersion = QtCore.__version__
+        checkVersion(
+            "PySide6",
+            self.QtVersion,
+            self.PysideRequiredMajor,
+            self.PysideRequiredMinor,
+        )
+
         self.Has_Webengine = False
-        self.Has_Webkit = False
-        # already loaded
-        for _b in ("PyQt5", "PySide6"):
-            if _b + ".QtCore" in sys.modules:
-                self.QT_Bindings = _b
-                break
-        else:
-            try:
-                if "PYILPER_FORCE_QT5" in os.environ:
-                    import xyz
-                import PySide6.QtCore
+        self.QT_Form_A4 = QtGui.QPageSize.A4
+        self.QT_Form_Letter = QtGui.QPageSize.Letter
+        try:
+            from PySide6 import QtWebEngineWidgets
 
-                self.QtVersion = PySide6.QtCore.__version__
-                checkVersion(
-                    "PySide6",
-                    self.QtVersion,
-                    self.PysideRequiredMajor,
-                    self.PysideRequiredMinor,
-                )
-            except ImportError:
-                if "PySide6" in sys.modules:
-                    del sys.modules["Pyside6"]
-                try:
-                    import PyQt5.QtCore
-
-                    self.QtVersion = PyQt5.QtCore.QT_VERSION_STR
-                    checkVersion(
-                        "pyQt5",
-                        self.QtVersion,
-                        self.Pyqt5RequiredMajor,
-                        self.Pyqt5RequiredMinor,
-                    )
-                except ImportError:
-                    if "PyQt5" in sys.modules:
-                        del sys.modules["PyQt5"]
-                    print("No Qt bindings found, exit program")
-                    sys.exit(1)
-                else:
-                    self.QT_Bindings = "PyQt5"
-                    from PyQt5 import QtPrintSupport
-
-                    self.QT_Form_A4 = QtPrintSupport.QPrinter.A4
-                    self.QT_Form_Letter = QtPrintSupport.QPrinter.Letter
-                    try:
-                        from PyQt5 import QtWebKitWidgets
-
-                        self.Has_Webkit = True
-                    except:
-                        pass
-                    try:
-                        from PyQt5 import QtWebEngineWidgets
-
-                        self.Has_Webengine = True
-                    except:
-                        pass
-                    if self.Has_Webkit and self.Has_Webengine:
-                        self.Has_Webengine = False
-            else:
-                self.QT_Bindings = "PySide6"
-                from PySide6 import QtGui
-
-                self.QT_Form_A4 = QtGui.QPageSize.A4
-                self.QT_Form_Letter = QtGui.QPageSize.Letter
-                try:
-                    from PySide6 import QtWebEngineWidgets
-
-                    self.Has_Webengine = True
-                except:
-                    pass
+            self.Has_Webengine = True
+        except:
+            pass
 
         #
         #     check pySerial

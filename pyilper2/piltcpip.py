@@ -42,10 +42,7 @@ import socket
 
 from .pilglobals import PILGLOBALS
 
-if PILGLOBALS.QT_Bindings == "PySide6":
-    from PySide6 import QtCore, QtGui, QtWidgets
-if PILGLOBALS.QT_Bindings == "PyQt5":
-    from PyQt5 import QtCore, QtGui, QtWidgets
+from PySide6 import QtCore, QtGui, QtWidgets
 from .pilconfig import PILCONFIG
 from .pilcore import cls_Interface_Spec, AppException
 from .iothread import cls_IOThread

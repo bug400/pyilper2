@@ -12,10 +12,7 @@ from .pilconfig import PILCONFIG
 #
 class cls_ConfigInterfaceGeneric(QtWidgets.QFrame):
 
-    if PILGLOBALS.QT_Bindings == "PySide6":
-        buttonCheckedSignal = QtCore.Signal()
-    if PILGLOBALS.QT_Bindings == "PyQt5":
-        buttonCheckedSignal = QtCore.pyqtSignal()
+    buttonCheckedSignal = QtCore.Signal()
 
     def __init__(self, parent, name, id, interfaceSpecifications):
         super().__init__()
@@ -205,6 +202,12 @@ class cls_tabinterface(cls_tabgeneric):
     def toggle_active(self):
         return
 
+    def becomes_visible(self):
+        return
+
+    def becomes_invisible(self):
+        return
+
 
 #
 # Interface GUI object, inserted into the GUI Tab object
@@ -221,6 +224,9 @@ class cls_InterfaceWidget(QtWidgets.QWidget):
         self.selectedInterfaceId = PILCONFIG.get(
             self.name, "interface_id", PILGLOBALS.DefaultInterface
         )
+        if self.selectedInterfaceId not in interfaceSpecifications.keys():
+            self.selectedInterfaceId = PILGLOBALS.DefaultInterface
+            # TODO output warning message
         self.vbox = QtWidgets.QVBoxLayout()
         self.hbox = QtWidgets.QHBoxLayout()
         self.gbox = QtWidgets.QGroupBox()

@@ -26,18 +26,14 @@
 #
 # Changelog
 #
-# XX.XX.2026 jsi
-# - code taken from pyILPER 1.9 and modified for pyILPER 2.0
+# XX.XX.XXXX jsi
 
 
 import time
 
 from .pilglobals import PILGLOBALS
 
-if PILGLOBALS.QT_Bindings == "PySide6":
-    from PySide6 import QtCore, QtGui, QtWidgets
-if PILGLOBALS.QT_Bindings == "PyQt5":
-    from PyQt5 import QtCore, QtGui, QtWidgets
+from PySide6 import QtCore, QtGui, QtWidgets
 from .serialio import cls_serialIO
 from .pilcore import cls_Interface_Spec, AppException
 from .pilconfig import PILCONFIG

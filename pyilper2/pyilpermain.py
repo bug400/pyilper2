@@ -1,22 +1,19 @@
 import sys
 import time
+import os
 import threading
 import traceback
 import importlib
+from json import JSONDecodeError
 from PySide6 import QtCore, QtWidgets
-from .pilwidgets import cls_RuntimeMessageBox
 
-from .pilconfig import PILCONFIG
+from .pilwidgets import cls_RuntimeMessageBox, cls_Tabs
 from .pilglobals import PILGLOBALS
+from .pilconfig import PILCONFIG
+from .shortcutconfig import SHORTCUTCONFIG
+from .penconfig import PENCONFIG
 from .controlthread import cls_controller, controllerItem, cls_IndicatorWidget
-from .pilbox import cls_pilbox
-from .piltcpip import cls_piltcpip
-from .acmbox import cls_acmbox
-from .usbbox import cls_usbbox
-from .pilcore import AppException
-
-
-from .pildummy import cls_tabdummy
+from .pilcore import AppException, decode_pyILPERVersion
 
 
 class cls_ui(QtWidgets.QMainWindow):
@@ -28,9 +25,13 @@ class cls_ui(QtWidgets.QMainWindow):
         super().__init__()
         self.controller = None
         self.parent = parent
-        self.name = "pyilper2"
+        self.name = PILGLOBALS.PackageName
         self.clean = PILGLOBALS.Clean
         self.instance = PILGLOBALS.Instance
+        self.helpwin = None
+        self.aboutwin = None
+        self.devstatuswin = None
+        self.lifutils_installed = False
         self.tabWidgetList = []
 
         #     absulutely needed: call super().__init__()
@@ -53,7 +54,21 @@ class cls_ui(QtWidgets.QMainWindow):
                 PILGLOBALS.Production,
                 self.clean,
             )
+            PILCONFIG.get(self.name, "active_tab", 0)
+            PILCONFIG.get(self.name, "tabconfigchanged", False)
+            PILCONFIG.get(self.name, "workdir", os.path.expanduser("~"))
             PILCONFIG.get(self.name, "position", "")
+            PILCONFIG.get(self.name, "version", "0.0.0")
+            PILCONFIG.get(self.name, "helpposition", "")
+            PILCONFIG.get(self.name, "papersize", 0)
+            PILCONFIG.get(self.name, "lifutilspath", "")
+            PILCONFIG.get(self.name, "terminalcharsize", 15)
+            PILCONFIG.get(self.name, "directorycharsize", 13)
+            PILCONFIG.get(self.name, "hp82162a_pixelsize", 1)
+            PILCONFIG.get(self.name, "hp2225b_screenwidth", 640)
+            PILCONFIG.get(self.name, "usebom", False)
+            PILCONFIG.get(self.name, "qtstyle", "Default")
+            PILCONFIG.get(self.name, "autostart", False)
             PILCONFIG.get(
                 self.name,
                 "tabconfig",
@@ -66,15 +81,86 @@ class cls_ui(QtWidgets.QMainWindow):
                     [PILGLOBALS.Tab_Dummy, "Dummy3"],
                 ],
             )
+            lastTab = PILCONFIG.get(self.name, "active_tab")
 
             self.tabConfig = PILCONFIG.get(self.name, "tabconfig")
+            tabConfigChanged = False
+            #
+            # version check, warn user if the configuration files are of a newer
+            # version
+            #
+            oldversion = decode_pyILPERVersion(PILCONFIG.get(self.name, "version"))
+            thisversion = decode_pyILPERVersion(PILGLOBALS.Version)
+            if thisversion < oldversion:
+                reply = QtWidgets.QMessageBox.warning(
+                    self.ui,
+                    "Warning",
+                    "Your configuration files are of pyILPER version "
+                    + PILCONFIG.get(self.name, "version")
+                    + " which is newer than the version you are running. The program might crash or mishehave. Do you want to continue?",
+                    QtWidgets.QMessageBox.Ok,
+                    QtWidgets.QMessageBox.Cancel,
+                )
+                if reply == QtWidgets.QMessageBox.Cancel:
+                    sys.exit(1)
+
+            #
+            # Init pen configuration
+            #
+            PENCONFIG.open(
+                PILGLOBALS.ConfigVersion,
+                self.instance,
+                PILGLOBALS.Production,
+                self.clean,
+            )
+
+            #
+            # Initterminal keyboard shortcuts
+            #
+            SHORTCUTCONFIG.open(
+                PILGLOBALS.ConfigVersion,
+                self.instance,
+                PILGLOBALS.Production,
+                self.clean,
+            )
+            #
+            # check Qt Style, if available, otherwise reset to "Default"
+            #
+            qtstyle = PILCONFIG.get(self.name, "qtstyle")
+            if qtstyle != "Default":
+                styleFound = False
+                for availableStyle in QtWidgets.QStyleFactory.keys():
+                    if qtstyle == availableStyle:
+                        QtWidgets.QApplication.setStyle(qtstyle)
+                        styleFound = True
+                        break
+                if not styleFound:
+                    PILCONFIG.put(self.name, "qtstyle", "Default")
+                    reply = QtWidgets.QMessageBox.critical(
+                        self.ui,
+                        "Error",
+                        "Style "
+                        + qtstyle
+                        + " not available. Resetting to system default",
+                        QtWidgets.QMessageBox.Ok,
+                        QtWidgets.QMessageBox.Ok,
+                    )
 
             #
             #       build GUI
             #
             self.menubar = self.menuBar()
             self.menubar.setNativeMenuBar(False)
+
             self.menuFile = self.menubar.addMenu("File")
+            self.actionConfig = self.menuFile.addAction("pyILPER configuration")
+            self.actionDevConfig = self.menuFile.addAction(
+                "Virtual HP-IL device configuration"
+            )
+            self.actionPenConfig = self.menuFile.addAction("Plotter pen configuration")
+            self.actionShortcutConfig = self.menuFile.addAction(
+                "Terminal keyboard shortcut configuration"
+            )
             self.actionStart = self.menuFile.addAction("Start Loop")
             self.actionStart.triggered.connect(self.controller_restart)
             self.actionPause = self.menuFile.addAction("Pause Loop")
@@ -85,6 +171,32 @@ class cls_ui(QtWidgets.QMainWindow):
             self.actionStop.triggered.connect(self.controller_stop)
             self.actionExit = self.menuFile.addAction("Exit")
             self.actionExit.triggered.connect(self.app_exit)
+
+            self.menuUtil = self.menubar.addMenu("Utilities")
+            self.actionInit = self.menuUtil.addAction("Initialize LIF image file")
+            self.actionFix = self.menuUtil.addAction("Fix Header of LIF image file")
+            self.actionDevStatus = self.menuUtil.addAction(
+                "Virtual HP-IL device status"
+            )
+            self.actionCopyPilimage = self.menuUtil.addAction(
+                "Copy PILIMAGE.DAT to workdir"
+            )
+            self.actionInstallCheck = self.menuUtil.addAction(
+                "Check LIFUTILS installation"
+            )
+            self.actionInit.setEnabled(False)
+            self.actionFix.setEnabled(False)
+
+            self.menuHelp = self.menubar.addMenu("Help")
+            self.actionAbout = self.menuHelp.addAction("About")
+            self.actionHelp = self.menuHelp.addAction("Manual")
+            #
+            # TODO: check lifutils, do we need that variable
+            #
+            # self.lifutils_installed= check_lifutils()[0]
+            # if self.lifutils_installed:
+            #    self.self.actionInit.setEnabled(False)
+            #    self.actionFix.setEnabled(False)
             #
             # get tab classes and specifications from modules
             #
@@ -117,16 +229,22 @@ class cls_ui(QtWidgets.QMainWindow):
                 #
                 get_spec = getattr(mod, m + "_spec")
                 specList = get_spec()
-                print(specList)
                 for spec in specList:
                     self.interfaceSpecifications[spec.id] = spec
             #
-            # Add device tabs
+            # Add device tabs, Scope is fixed the first tab, remove unknown tab types
+            # TODO: set scope fixed as first tab
             #
-            self.tabWidget = QtWidgets.QTabWidget()
+            self.tabWidget = cls_Tabs()
             self.setCentralWidget(self.tabWidget)
             for t in self.tabConfig:
                 id = t[0]
+                if id not in self.tabSpecifications.keys():
+                    del self.tabConfig[id]
+                    # TODO: remove config params of this entry
+                    # pattern= t[1]+""_"
+                    # PILCONFIG.delAll(pattern)
+                    tabConfigChanged = True
                 tabClass = self.tabSpecifications[id].tab_class
                 tabType = self.tabSpecifications[id].type
                 tabName = t[1]
@@ -137,7 +255,18 @@ class cls_ui(QtWidgets.QMainWindow):
                 self.tabWidget.addTab(tab, tabName)
                 self.tabWidgetList.append(tab)
             #
+            # store changed tabconfig, if unknown tab types were removed
+            #
+            if tabConfigChanged:
+                lastTab = 0
+                PILCONFIG.put(self.name, "tabconfigchanged", True)
+                PILCONFIG.put(self.name, "tabconfig", self.tabConfig)
+                # TODO output warning message
+                PILCONFIG.put(self.name, "active_tab", 0)
 
+            #
+            # status bar and idicator widget
+            #
             self.statusBar = QtWidgets.QStatusBar()
             #       self.statusBar.setFixedWidth(300)
             self.indicator = None
@@ -155,17 +284,25 @@ class cls_ui(QtWidgets.QMainWindow):
             if len(position) == 4:
                 self.resize(position[2], position[3])
             #
+            # go to last active tab (if tabconfig did not change)
+            #
+            self.tabWidget.setCurrentIndex(lastTab)
+            #
             #  show and raise gui
             #
             self.show()
             self.raise_()
+            #
+            # TODO: do autostart of loop if configured
+            # TODO: show starter info if pyilper is run for the first time
+            # TODO: show release notes if a new version of pyilper is run for the first time
         #
-        #   catch any exception
+        #   catch any exception during initialization
         #
         except Exception as e:
             e.add_note("error during program initialization")
             self.showRuntimeError(None, e)
-            QtWidgets.QApplication.quit()
+            sys.exit(1)
 
     def updateStatusLine(self, stat, msg):
         """Docstring."""
@@ -178,6 +315,10 @@ class cls_ui(QtWidgets.QMainWindow):
     #  Start controller thread
     #
     def controller_start(self):
+        #
+        # TODO: change to working directory
+        # TODO: error handling
+        #
         self.controller = cls_controller(
             self, self.sig_UpdateStatus, self.sig_ControllerTerminated
         )
@@ -193,8 +334,16 @@ class cls_ui(QtWidgets.QMainWindow):
         if ret == 0:
             self.controller = None
             return
+        #
+        # TODO: enable the tab objects
+        #
         self.t = threading.Thread(target=self.controller.run)
         self.t.start()
+        #
+        # trigger visible virtual device widget to enable refreshs
+        #
+        pilwidget = self.tabWidgetList[PILCONFIG.get(self.name, "active_tab")]
+        pilwidget.becomes_visible()
 
     def controller_stop(self):
         if self.controller is None:
@@ -204,6 +353,9 @@ class cls_ui(QtWidgets.QMainWindow):
         while self.t.is_alive():
             time.sleep(0.1)
         self.t = None
+        #
+        # TODO: disable registered tab objects
+        #
         print("main: controller thread joined")
         self.controller = None
 
@@ -285,6 +437,8 @@ class cls_ui(QtWidgets.QMainWindow):
                 txt += type(ex).__name__
         elif ex.__class__ == AppException:
             txt += "AppError:" + ex.msg
+        elif ex.__class__ == JSONDecodeError:
+            txt += f"JSON decode error: {ex.msg} at {ex.lineno}:{ex.colno}"
         else:
             txt += type(ex).__name__
         if errMsgPrefix is not None:
