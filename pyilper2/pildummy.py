@@ -47,7 +47,7 @@ class cls_pildummy:
         self.guiobject = guiobject
 
     def process(self, frame):
-        print("processing", self.guiobject.name)
+        # print("processing", self.guiobject.name)
         return frame
 
 

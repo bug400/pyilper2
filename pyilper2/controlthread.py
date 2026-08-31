@@ -36,6 +36,7 @@ from .pilglobals import PILGLOBALS
 from PySide6 import QtCore, QtGui, QtWidgets
 from .pilconfig import PILCONFIG
 from .iothread import cls_IOThread
+from .pildevbase import cls_pildevbase
 
 
 @dataclass
@@ -139,7 +140,7 @@ class cls_controller(threading.Thread):
                         commObject,
                         readerThread,
                         writer,
-                        deviceProcessors,
+                        [],
                     )
 
                 else:
@@ -153,7 +154,7 @@ class cls_controller(threading.Thread):
                         None,
                         None,
                         None,
-                        deviceProcessors,
+                        [],
                     )
                 self.controllerItems[interfaceIndex] = item
             tabIndex += 1
@@ -179,10 +180,14 @@ class cls_controller(threading.Thread):
                 tabType = tabSpecifications[id].type
                 tabName = tabConfig[tidx][1]
                 isActive = PILCONFIG.get(tabName, "active")
+                #
+                # type is device, append its process method to the list
+                #
                 if tabType == PILGLOBALS.Tab_Type_Device:
                     self.controllerItems[i].deviceProcessors.append(
                         tabWidgetList[tidx].pildevice.process
                     )
+                    # print(self.controllerItems[i].deviceProcessors)
                 if tabType == PILGLOBALS.Tab_Type_Scope:
                     pass
                 if tabType == PILGLOBALS.Tab_Type_Probe:
@@ -196,7 +201,11 @@ class cls_controller(threading.Thread):
                     else:
                         nextInterfaceItemId += 1
                 tidx += 1
-        print(self.controllerItems)
+        # print(self.controllerItems)
+        #
+        # reset pildevbase global frame counter
+        #
+        cls_pildevbase.resetGlobalCounter()
 
         return activeInterfaces
 

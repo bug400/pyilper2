@@ -195,9 +195,13 @@ class cls_tabinterface(cls_tabgeneric):
         self.guiobject = cls_InterfaceWidget(self, self.name, interfaceSpecifications)
         self.add_guiobject(self.guiobject)
         self.pildevice = None
-        active = PILCONFIG.get(self.name, "active", False)
-        self.cbActive.setChecked(active)
         self.cbActive.setEnabled(True)
+
+    def enable(self):
+        self.setEnabled(False)
+
+    def disable(self):
+        self.setEnabled(True)
 
     def toggle_active(self):
         return

@@ -7,7 +7,7 @@ import importlib
 from json import JSONDecodeError
 from PySide6 import QtCore, QtWidgets
 
-from .pilwidgets import cls_RuntimeMessageBox, cls_Tabs
+from .pilwidgets import cls_RuntimeMessageBox, cls_Tabs, cls_PilConfigWindow
 from .pilglobals import PILGLOBALS
 from .pilconfig import PILCONFIG
 from .shortcutconfig import SHORTCUTCONFIG
@@ -154,6 +154,7 @@ class cls_ui(QtWidgets.QMainWindow):
 
             self.menuFile = self.menubar.addMenu("File")
             self.actionConfig = self.menuFile.addAction("pyILPER configuration")
+            self.actionConfig.triggered.connect(self.pyilperConfig)
             self.actionDevConfig = self.menuFile.addAction(
                 "Virtual HP-IL device configuration"
             )
@@ -316,8 +317,8 @@ class cls_ui(QtWidgets.QMainWindow):
     #
     def controller_start(self):
         #
-        # TODO: change to working directory
         # TODO: error handling
+        os.chdir(PILCONFIG.get(self.name, "workdir"))
         #
         self.controller = cls_controller(
             self, self.sig_UpdateStatus, self.sig_ControllerTerminated
@@ -337,6 +338,8 @@ class cls_ui(QtWidgets.QMainWindow):
         #
         # TODO: enable the tab objects
         #
+        for t in self.tabWidgetList:
+            t.enable()
         self.t = threading.Thread(target=self.controller.run)
         self.t.start()
         #
@@ -356,20 +359,45 @@ class cls_ui(QtWidgets.QMainWindow):
         #
         # TODO: disable registered tab objects
         #
+        for t in self.tabWidgetList:
+            t.disable()
         print("main: controller thread joined")
         self.controller = None
 
     def controller_pause(self):
-        self.controller.pause()
+        if self.controller is not None:
+            self.controller.pause()
 
     def controller_resume(self):
-        self.controller.resume()
+        if self.controller is not None:
+            self.controller.resume()
 
     def controller_restart(self):
         if self.controller is not None:
             print("illegal status")
             return
         self.controller_start()
+
+    def pyilperConfig(self):
+        (accept, needs_reconnect, needs_reconfigure) = cls_PilConfigWindow.getPilConfig(
+            self, self.name
+        )
+        # print(f"return from config {accept} {needs_reconnect} {needs_reconfigure}")
+        if accept:
+            if needs_reconnect:  # TODO check if needed
+                self.controller_stop()
+                # TODO error handling
+                PILCONFIG.save()
+                return
+
+            #
+            # reconfigure the tabs while the thread is stopped
+            #
+            if needs_reconfigure:
+                self.controller_pause()
+                for obj in self.tabWidgetList:
+                    obj.reconfigure()
+                self.controller_resume()
 
     #
     # Exit Application
@@ -392,6 +420,7 @@ class cls_ui(QtWidgets.QMainWindow):
         height = self.height()
         position = [pos_x, pos_y, width, height]
         PILCONFIG.put(self.name, "position", position)
+        self.tabWidget.closeFloatingWindows()
         #
         # store configuration
         #

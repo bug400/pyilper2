@@ -1,59 +1,360 @@
-from PySide6 import QtCore, QtWidgets
+﻿#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+# pyILPER 2.0
+#
+# An emulator for virtual HP-IL devices for the PIL-Box
+# derived from ILPER 1.4.5 for Windows
+# Copyright (c) 2008-2013   Jean-Francois Garnier
+# C++ version (c) 2013 Christoph Gießelink
+# Python Version (c) 2015 Joachim Siebold
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+#
+# Scope tab object classes ----------------------------------------------------
+#
+# Changelog
+#
+# XX.XX.XXXX jsi
 
-from .pilwidgets import cls_tabgeneric
-from .pilcore import cls_Tab_Spec
+import datetime
+
+from PySide6 import QtWidgets
 from .pilglobals import PILGLOBALS
 from .pilconfig import PILCONFIG
+from .pilwidgets import cls_tabtermgeneric, T_BOOLEAN, T_STRING, O_DEFAULT
+from .pildevbase import cls_pildevbase
+from .pilcore import cls_Tab_Spec
 
 
-class cls_tabscope(cls_tabgeneric):
+LOG_INBOUND = 0
+LOG_OUTBOUND = 1
+LOG_BOTH = 2
+DISPLAY_MNEMONIC = 0
+DISPLAY_HEX = 1
+DISPLAY_BOTH = 2
+log_mode = ["Inbound", "Outbound", "Both"]
+display_mode = ["Mnemonic", "Hex", "Both"]
+
+
+class cls_tabscope(cls_tabtermgeneric):
 
     def __init__(self, parent, name):
         super().__init__(parent, name)
-
-        self.guiobject = cls_ScopeWidget(self, self.name)
-        self.add_guiobject(self.guiobject)
-
-        self.pildevice = cls_pilscope(self, self.guiobject)
+        self.scope_charpos = 0
+        #
+        #     init local config parameters
+        #
+        self.showIdy = PILCONFIG.get(self.name, "showidy", False)
+        self.displayMode = PILCONFIG.get(self.name, "displaymode", DISPLAY_MNEMONIC)
+        self.logMode = PILCONFIG.get(self.name, "logmode", LOG_INBOUND)
+        #
+        #     add logging
+        #
+        self.add_logging()
+        #
+        #     add tag button
+        #
+        self.tagButton = QtWidgets.QPushButton("Tag Logfile")
+        self.add_controlwidget(self.tagButton)
+        self.tagButton.setEnabled(False)
+        self.tagButton.clicked.connect(self.do_tagbutton)
+        #
+        #     add scope config options to cascading menu
+        #
+        self.cBut.add_option("Show IDY frames", "showidy", T_BOOLEAN, [True, False])
+        self.cBut.add_option("Display Mode", "displaymode", T_STRING, display_mode)
+        self.cBut.add_option("Log mode", "logmode", T_STRING, log_mode)
+        #
+        #     create HP-IL devices and let the GUI object know them
+        #
+        # self.pildevice = cls_pilscope(True, self)
+        # self.pildevice2 = cls_pilscope(False, self)
+        self.pildevice = None
         self.guiobject.set_pildevice(self.pildevice)
 
-    def becomes_visible(self):
+        self.cBut.config_changed_signal.connect(self.do_tabconfig_changed)
+
+    #
+    #  handle changes of tab configuration
+    #
+    def do_tabconfig_changed(self):
+        return
+        param = self.cBut.get_changed_option_name()
+        #
+        #     change local config parameters
+        #
+        if param == "showidy":
+            self.showIdy = PILCONFIG.get(self.name, "showidy")
+            self.pildevice.set_show_idy(self.showIdy)
+            self.pildevice2.set_show_idy(self.showIdy)
+        elif param == "displaymode":
+            self.displayMode = PILCONFIG.get(self.name, "displaymode")
+            self.pildevice.set_displayMode(self.displayMode)
+            self.pildevice2.set_displayMode(self.displayMode)
+        elif param == "logmode":
+            self.logMode = PILCONFIG.get(self.name, "logmode")
+            self.pildevice.setactive(
+                PILCONFIG.get(self.name, "active")
+                and not (self.logMode == LOG_OUTBOUND)
+            )
+            self.pildevice2.setactive(
+                PILCONFIG.get(self.name, "active") and not (self.logMode == LOG_INBOUND)
+            )
+        super().do_tabconfig_changed()
+
+    def enable(self):
+        super().enable()
+        return
+        # self.parent.commthread.register(self.pildevice, self.name)
+        self.pildevice.setactive(
+            PILCONFIG.get(self.name, "active") and not (self.logMode == LOG_OUTBOUND)
+        )
+        self.pildevice.set_show_idy(self.showIdy)
+        self.pildevice.set_displayMode(self.displayMode)
+        if self.logging:
+            self.tagButton.setEnabled(True)
+
+    def post_enable(self):
+        return
+        self.parent.commthread.register(self.pildevice2, self.name)
+        self.pildevice2.setactive(
+            PILCONFIG.get(self.name, "active") and not (self.logMode == LOG_INBOUND)
+        )
+        self.pildevice2.set_show_idy(self.showIdy)
+        self.pildevice2.set_displayMode(self.displayMode)
+
+    def disable(self):
+        super().disable()
+
+    def do_cbActive(self):
+        self.active = self.cbActive.isChecked()
+        PILCONFIG.put(self.name, "active", self.active)
+        return
+        self.pildevice.setactive(
+            PILCONFIG.get(self.name, "active") and not (self.logMode == LOG_OUTBOUND)
+        )
+        self.pildevice2.setactive(
+            PILCONFIG.get(self.name, "active") and not (self.logMode == LOG_INBOUND)
+        )
+        try:
+            self.toggle_active()
+        except AttributeError:
+            pass
         return
 
-    def becomes_invisible(self):
-        return
+    #
+    #  set tag button active/inactive
+    #
+    def do_cbLogging(self):
+        super().do_cbLogging()
+        if self.logging:
+            self.tagButton.setEnabled(True)
+        else:
+            self.tagButton.setEnabled(False)
+
+    #
+    # exec tag button, because we may write it asynchronous pause the thread
+    #
+    def do_tagbutton(self):
+        text, okPressed = QtWidgets.QInputDialog.getText(
+            self, "Tag Logfile", "Logfile tag", QtWidgets.QLineEdit.Normal, ""
+        )
+        if okPressed and text != "":
+            if self.parent.commthread is not None:
+                if self.parent.commthread.isRunning():
+                    self.parent.commthread.halt()
+            #
+            #  all errors that might occur during log write are handled from the
+            #  cbLogging methods, we do not need to catch errors
+            #
+            self.cbLogging.logWrite("\n")
+            self.cbLogging.logWrite(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            )
+            self.cbLogging.logWrite(" ** ")
+            self.cbLogging.logWrite(text)
+            self.cbLogging.logWrite("\n")
+            if self.parent.commthread is not None:
+                self.parent.commthread.resume()
+
+    #
+    #
+    #  Forward items to the terminal frontend widget and do logging
+    #  Note: for the scope a single item is a string not the integer representation of a character
+    #
+    def out_device(self, items):
+        for s in items:
+            l = len(s)
+            if self.scope_charpos + l >= self.guiobject.get_cols():
+                self.guiobject.HPTerminal.process(0x0D)
+                self.guiobject.HPTerminal.process(0x0A)
+                self.cbLogging.logWrite("\n")
+                self.cbLogging.logFlush()
+                self.scope_charpos = 0
+            for i in range(0, l):
+                self.guiobject.HPTerminal.process(ord(s[i]))
+            self.cbLogging.logWrite(s)
+            self.scope_charpos += l
 
 
-class cls_ScopeWidget(QtWidgets.QWidget):
+#
+# HP-IL scope class -----------------------------------------------------------
+#
+# Changelog
+# XX.XX.XXXX jsi:
+#
 
-    def __init__(self, parent, name):
+
+class cls_pilscope(cls_pildevbase):
+
+    CONF_SHOW_IDY = 1
+    CONF_DISPLAYMODE = 2
+
+    def __init__(self, inbound, parent):
         super().__init__()
-        self.pildevice = None
-        self.name = name
+        self.__inbound__ = inbound
 
-        self.vbox = QtWidgets.QVBoxLayout()
-        self.vbox.addWidget(QtWidgets.QLabel("Scope"))
-        self.vbox.addStretch(1)
-        self.setLayout(self.vbox)
+        # opcode, mask, mnemonic
+        self.__mnemo__ = [
+            [0x000, 0x700, "DAB"],
+            [0x100, 0x700, "DSR"],
+            [0x200, 0x700, "END"],
+            [0x300, 0x700, "ESR"],
+            [0x400, 0x7FF, "NUL"],
+            [0x401, 0x7FF, "GTL"],
+            [0x404, 0x7FF, "SDC"],
+            [0x405, 0x7FF, "PPD"],
+            [0x408, 0x7FF, "GET"],
+            [0x40F, 0x7FF, "ELN"],
+            [0x410, 0x7FF, "NOP"],
+            [0x411, 0x7FF, "LLO"],
+            [0x414, 0x7FF, "DCL"],
+            [0x415, 0x7FF, "PPU"],
+            [0x418, 0x7FF, "EAR"],
+            [0x43F, 0x7FF, "UNL"],
+            [0x420, 0x7E0, "LAD"],
+            [0x45F, 0x7FF, "UNT"],
+            [0x440, 0x7E0, "TAD"],
+            [0x460, 0x7E0, "SAD"],
+            [0x480, 0x7F0, "PPE"],
+            [0x490, 0x7FF, "IFC"],
+            [0x492, 0x7FF, "REN"],
+            [0x493, 0x7FF, "NRE"],
+            [0x49A, 0x7FF, "AAU"],
+            [0x49B, 0x7FF, "LPD"],
+            [0x4A0, 0x7E0, "DDL"],
+            [0x4C0, 0x7E0, "DDT"],
+            [0x400, 0x700, "CMD"],
+            [0x500, 0x7FF, "RFC"],
+            [0x540, 0x7FF, "ETO"],
+            [0x541, 0x7FF, "ETE"],
+            [0x542, 0x7FF, "NRD"],
+            [0x560, 0x7FF, "SDA"],
+            [0x561, 0x7FF, "SST"],
+            [0x562, 0x7FF, "SDI"],
+            [0x563, 0x7FF, "SAI"],
+            [0x564, 0x7FF, "TCT"],
+            [0x580, 0x7E0, "AAD"],
+            [0x5A0, 0x7E0, "AEP"],
+            [0x5C0, 0x7E0, "AES"],
+            [0x5E0, 0x7E0, "AMP"],
+            [0x500, 0x700, "RDY"],
+            [0x600, 0x700, "IDY"],
+            [0x700, 0x700, "ISR"],
+        ]
 
-    def set_pildevice(self, pildevice):
-        self.pildevice = pildevice
+        self.__show_idy__ = False
+        self.__displayMode__ = DISPLAY_MNEMONIC
+        self.__parent__ = parent
 
+    #
+    # public -------
+    #
 
-class cls_pilscope:
+    def set_show_idy(self, flag):
+        self.putDeviceQueueItem([cls_pilscope.CONF_SHOW_IDY, flag])
 
-    def __init__(self, parent, guiobject):
-        self.parent = parent
-        self.guiobject = guiobject
+    def set_displayMode(self, flag):
+        self.putDeviceQueueItem([cls_pilscope.CONF_DISPLAYMODE, flag])
 
+    #
+    #  public (overloaded) -------
+    #
+    #  process device queue with config commands
+    #
+    def process_device_queue(self, items):
+        for i in items:
+            if i[0] == cls_pilscope.CONF_SHOW_IDY:
+                self.__show_idy__ = i[1]
+            if i[0] == cls_pilscope.CONF_DISPLAYMODE:
+                self.__displayMode__ = i[1]
+
+    #
+    #  convert frame to readable text and call the parent method out_scope
+    #
     def process(self, frame):
-        print("process", self.guiobject.name)
+        if not self.getactive():
+            return frame
+        #
+        #     process device queue
+        #
+        if not self.__devicequeue__.empty():
+            self.process_device_queue(self.__devicequeue__.getItems())
+        #
+        #     ignore IDY frames
+        #
+        if ((frame & 0x700) == 0x600) and not self.__show_idy__:
+            return frame
+
+        #
+        #     single table solution
+        #
+        for i in self.__mnemo__:
+            if (frame & i[1]) == i[0]:
+                # mnemonic
+                s = i[2]
+                # has argument
+                arg = (~i[1]) & 0xFF
+                if arg != 0:
+                    # add argument
+                    s += " {:02X}".format(frame & arg)
+                break
+
+        #
+        #     inbound frames are lowercase, outbound frames are uppercase
+        #
+        if self.__displayMode__ == DISPLAY_MNEMONIC:
+            s = "{:6s}  ".format(s)
+        elif self.__displayMode__ == DISPLAY_HEX:
+            s = "{:03X}  ".format(frame)
+        elif self.__displayMode__ == DISPLAY_BOTH:
+            s = "{:6s} ({:03X}) ".format(s, frame)
+        if not self.__inbound__:
+            s = s.lower()
+        self.putGuiQueueItem(s)
         return frame
 
 
 def pilscope_spec():
     return [
         cls_Tab_Spec(
-            PILGLOBALS.Tab_Scope, PILGLOBALS.Tab_Type_Scope, None, cls_tabscope, "Scope"
+            PILGLOBALS.Tab_Scope,
+            PILGLOBALS.Tab_Type_Scope,
+            None,
+            cls_tabscope,
+            "Scope",
         )
     ]

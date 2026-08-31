@@ -176,7 +176,7 @@ class cls_pilglobals:
         self.TabModules = [
             "pilscope",
             "pilinterface",
-            #   "pilprinter",
+            "pilprinter",
             #   "pilterminal",
             #   "pildrive",
             #   "pilplotter",

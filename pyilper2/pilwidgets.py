@@ -545,7 +545,7 @@ class cls_tabgeneric(QtWidgets.QWidget):
 
         self.cbActive = QtWidgets.QCheckBox("Device enabled")
         self.cbActive.setChecked(self.active)
-        self.cbActive.setEnabled(False)
+        # self.cbActive.setEnabled(False)
         self.cbActive.stateChanged.connect(self.do_cbActive)
 
         self.hbox2.addWidget(self.cbActive)
@@ -926,12 +926,12 @@ class cls_AboutWindow(QtWidgets.QDialog):
 #
 class cls_PilConfigWindow(QtWidgets.QDialog):
 
-    def __init__(self, parent):
+    def __init__(self, parent, name):
         super().__init__()
         self.__needs_reconnect__ = False
         self.__needs_reconfigure__ = False
         self.__needs_restart__ = False
-        self.__name__ = parent.name
+        self.__name__ = name
         self.__parent__ = parent
 
         self.__workdir__ = PILCONFIG.get(self.__name__, "workdir")
@@ -977,7 +977,6 @@ class cls_PilConfigWindow(QtWidgets.QDialog):
         self.vboxgboxw.addLayout(self.hboxwdir)
         self.vbox1.addWidget(self.gboxw)
 
-        self.vbox1.addStretch(1)
         #
         #     section lifutils path
         #
@@ -1006,7 +1005,33 @@ class cls_PilConfigWindow(QtWidgets.QDialog):
 
         self.hboxlifpath.addLayout(self.vboxlifbut)
         self.vboxgboxlifpath.addLayout(self.hboxlifpath)
-        self.vbox2.addWidget(self.gboxlifpath)
+        self.vbox1.addWidget(self.gboxlifpath)
+        #
+        #     Section qt style
+        #
+        self.gboxst = QtWidgets.QGroupBox()
+        self.gboxst.setFlat(True)
+        self.gboxst.setTitle("Qt Style")
+        self.gridst = QtWidgets.QGridLayout()
+        self.gridst.setSpacing(3)
+
+        self.gridst.addWidget(QtWidgets.QLabel("Style:"), 0, 0)
+        self.combost = QtWidgets.QComboBox()
+        self.combost.addItem("Default")
+        curIdx = 0
+        curCount = 0
+        for availableStyle in QtWidgets.QStyleFactory.keys():
+            self.combost.addItem(availableStyle)
+            curCount += 1
+            if self.__qtstyle__ == availableStyle:
+                curIdx = curCount
+        self.combost.setCurrentIndex(curIdx)
+        self.combost.currentIndexChanged.connect(self.do_styleChanged)
+        self.gridst.addWidget(self.combost, 0, 1)
+        self.gboxst.setLayout(self.gridst)
+        self.vbox1.addWidget(self.gboxst)
+
+        self.vbox1.addStretch(1)
         #
         #     Section Terminal configuration:  scroll up buffer, font size
         #
@@ -1110,30 +1135,6 @@ class cls_PilConfigWindow(QtWidgets.QDialog):
         self.gboxbom.setLayout(self.vboxbom)
         if PILGLOBALS.isWindows:
             self.vbox2.addWidget(self.gboxbom)
-        #
-        #     Section qt style
-        #
-        self.gboxst = QtWidgets.QGroupBox()
-        self.gboxst.setFlat(True)
-        self.gboxst.setTitle("Qt Style")
-        self.gridst = QtWidgets.QGridLayout()
-        self.gridst.setSpacing(3)
-
-        self.gridst.addWidget(QtWidgets.QLabel("Style:"), 0, 0)
-        self.combost = QtWidgets.QComboBox()
-        self.combost.addItem("Default")
-        curIdx = 0
-        curCount = 0
-        for availableStyle in QtWidgets.QStyleFactory.keys():
-            self.combost.addItem(availableStyle)
-            curCount += 1
-            if self.__qtstyle__ == availableStyle:
-                curIdx = curCount
-        self.combost.setCurrentIndex(curIdx)
-        self.combost.currentIndexChanged.connect(self.do_styleChanged)
-        self.gridst.addWidget(self.combost, 0, 1)
-        self.gboxst.setLayout(self.gridst)
-        self.vbox2.addWidget(self.gboxst)
 
         self.vbox2.addStretch(1)
         #
@@ -1245,7 +1246,7 @@ class cls_PilConfigWindow(QtWidgets.QDialog):
         #
         #     store parameters
         #
-        cls_ConfigInterfaceGeneric.store_config(self.__name__)
+
         PILCONFIG.put(self.__name__, "workdir", self.lblwdir.text())
         #
         #     these parameters require a reconfiguration
