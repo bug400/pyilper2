@@ -4,16 +4,32 @@ import os
 import threading
 import traceback
 import importlib
+from dataclasses import dataclass
 from json import JSONDecodeError
 from PySide6 import QtCore, QtWidgets
 
-from .pilwidgets import cls_RuntimeMessageBox, cls_Tabs, cls_PilConfigWindow
+from .pilwidgets import (
+    cls_RuntimeMessageBox,
+    cls_Tabs,
+    cls_PilConfigWindow,
+    cls_DeviceConfigWindow,
+    cls_DevStatusWindow,
+)
 from .pilglobals import PILGLOBALS
 from .pilconfig import PILCONFIG
-from .shortcutconfig import SHORTCUTCONFIG
-from .penconfig import PENCONFIG
+from .shortcutconfig import SHORTCUTCONFIG, cls_ShortcutConfigWindow
+from .penconfig import PENCONFIG, cls_PenConfigWindow
 from .controlthread import cls_controller, controllerItem, cls_IndicatorWidget
 from .pilcore import AppException, decode_pyILPERVersion
+from .pildevbase import cls_pilqueue
+
+
+@dataclass
+class deviceInfo:
+    tabId: int
+    tabType: int
+    tabName: str
+    pildevice: object
 
 
 class cls_ui(QtWidgets.QMainWindow):
@@ -33,6 +49,8 @@ class cls_ui(QtWidgets.QMainWindow):
         self.devstatuswin = None
         self.lifutils_installed = False
         self.tabWidgetList = []
+        self.deviceInfoList = []
+        self.scopeQueue = cls_pilqueue()
 
         #     absulutely needed: call super().__init__()
         self.sig_UpdateStatus.connect(self.updateStatusLine, QtCore.Qt.QueuedConnection)
@@ -75,10 +93,11 @@ class cls_ui(QtWidgets.QMainWindow):
                 [
                     [PILGLOBALS.Tab_Scope, "Scope"],
                     [PILGLOBALS.Tab_Interface, "Interface1"],
-                    [PILGLOBALS.Tab_Dummy, "Dummy1"],
-                    [PILGLOBALS.Tab_Dummy, "Dummy2"],
+                    [PILGLOBALS.Tab_Probe, "Probe1"],
+                    [PILGLOBALS.Tab_Printer, "Printer1"],
                     [PILGLOBALS.Tab_Interface, "Interface2"],
-                    [PILGLOBALS.Tab_Dummy, "Dummy3"],
+                    [PILGLOBALS.Tab_Printer, "Printer2"],
+                    [PILGLOBALS.Tab_Probe, "Probe2"],
                 ],
             )
             lastTab = PILCONFIG.get(self.name, "active_tab")
@@ -158,10 +177,13 @@ class cls_ui(QtWidgets.QMainWindow):
             self.actionDevConfig = self.menuFile.addAction(
                 "Virtual HP-IL device configuration"
             )
+            self.actionDevConfig.triggered.connect(self.devConfig)
             self.actionPenConfig = self.menuFile.addAction("Plotter pen configuration")
+            self.actionPenConfig.triggered.connect(self.penConfig)
             self.actionShortcutConfig = self.menuFile.addAction(
                 "Terminal keyboard shortcut configuration"
             )
+            self.actionShortcutConfig.triggered.connect(self.shortcutConfig)
             self.actionStart = self.menuFile.addAction("Start Loop")
             self.actionStart.triggered.connect(self.controller_restart)
             self.actionPause = self.menuFile.addAction("Pause Loop")
@@ -179,6 +201,7 @@ class cls_ui(QtWidgets.QMainWindow):
             self.actionDevStatus = self.menuUtil.addAction(
                 "Virtual HP-IL device status"
             )
+            self.actionDevStatus.triggered.connect(self.devStatus)
             self.actionCopyPilimage = self.menuUtil.addAction(
                 "Copy PILIMAGE.DAT to workdir"
             )
@@ -249,12 +272,24 @@ class cls_ui(QtWidgets.QMainWindow):
                 tabClass = self.tabSpecifications[id].tab_class
                 tabType = self.tabSpecifications[id].type
                 tabName = t[1]
+
                 if tabType == PILGLOBALS.Tab_Type_Interface:
                     tab = tabClass(self, tabName, self.interfaceSpecifications)
+                elif (
+                    tabType == PILGLOBALS.Tab_Type_Scope
+                    or tabType == PILGLOBALS.Tab_Type_Probe
+                ):
+                    tab = tabClass(self, tabName, self.scopeQueue)
                 else:
                     tab = tabClass(self, tabName)
-                self.tabWidget.addTab(tab, tabName)
-                self.tabWidgetList.append(tab)
+                if tabType != PILGLOBALS.Tab_Type_Probe:
+                    self.tabWidget.addTab(tab, tabName)
+                    self.tabWidgetList.append(tab)
+                if tabType == PILGLOBALS.Tab_Type_Probe:
+                    self.tabWidgetList[0].registerProbe(tabName, tab.pildevice)
+                if tabType != PILGLOBALS.Tab_Type_Scope:
+                    dInfo = deviceInfo(id, tabType, tabName, tab.pildevice)
+                    self.deviceInfoList.append(dInfo)
             #
             # store changed tabconfig, if unknown tab types were removed
             #
@@ -324,9 +359,7 @@ class cls_ui(QtWidgets.QMainWindow):
             self, self.sig_UpdateStatus, self.sig_ControllerTerminated
         )
         ret = self.controller.setup(
-            self.tabConfig,
-            self.tabWidgetList,
-            self.tabSpecifications,
+            self.deviceInfoList,
             self.interfaceSpecifications,
         )
         #
@@ -386,18 +419,53 @@ class cls_ui(QtWidgets.QMainWindow):
         if accept:
             if needs_reconnect:  # TODO check if needed
                 self.controller_stop()
-                # TODO error handling
-                PILCONFIG.save()
-                return
 
             #
-            # reconfigure the tabs while the thread is stopped
+            # reconfigure the tabs while the thread is stopped or paused
             #
             if needs_reconfigure:
                 self.controller_pause()
                 for obj in self.tabWidgetList:
                     obj.reconfigure()
                 self.controller_resume()
+
+    #
+    # device configuration
+    #
+    def devConfig(self):
+
+        if not cls_DeviceConfigWindow.getDeviceConfig(self, self.tabSpecifications):
+            return
+        PILCONFIG.put(self.name, "tabconfigchanged", True)
+        # TODO error check
+        PILCONFIG.save()  # needed?
+
+    #
+    # plotter pen configuration
+    #
+    def penConfig(self):
+        if not cls_PenConfigWindow.getPenConfig():
+            return
+        # TODO error check
+        PENCONFIG.save()
+
+    #
+    # terminal keyboard shortcut configuration
+    #
+    def shortcutConfig(self):
+        if not cls_ShortcutConfigWindow.getShortcutConfig():
+            return
+        # TODO error check
+        SHORTCUTCONFIG.save()
+
+    #
+    # callback show hp-il device status
+    #
+    def devStatus(self):
+        if self.devstatuswin is None:
+            self.devstatuswin = cls_DevStatusWindow(self, self.deviceInfoList)
+        self.devstatuswin.show()
+        self.devstatuswin.raise_()
 
     #
     # Exit Application

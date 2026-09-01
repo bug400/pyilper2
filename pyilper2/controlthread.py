@@ -78,29 +78,24 @@ class cls_controller(threading.Thread):
     #
     #   create the controllerItems data structure to control interface and device processing
     #
-    def setup(
-        self, tabConfig, tabWidgetList, tabSpecifications, interfaceSpecifications
-    ):
-        self.tabWidgetList = tabWidgetList
+    def setup(self, deviceInfoList, interfaceSpecifications):
+        self.deviceInfoList = deviceInfoList
         #
         # First pass, create Item list
         #
-        firstInterfaceIndex = -1
+
         interfaceIndex = -1
         activeInterfaces = 0
-        deviceProcessors = []
+
         tabIndex = 0
-        for t in tabConfig:
-            id = t[0]
-            tabType = tabSpecifications[id].type
-            tabName = t[1]
-            if tabType == PILGLOBALS.Tab_Type_Interface:
+        for deviceInfo in self.deviceInfoList:
+            if deviceInfo.tabType == PILGLOBALS.Tab_Type_Interface:
                 interfaceIndex += 1
-                isDisabled = not PILCONFIG.get(tabName, "active")
-                interfaceTypeId = PILCONFIG.get(tabName, "interface_id")
+                isDisabled = not PILCONFIG.get(deviceInfo.tabName, "active")
+                interfaceTypeId = PILCONFIG.get(deviceInfo.tabName, "interface_id")
                 interfaceName = interfaceSpecifications[interfaceTypeId].interfaceName
                 interfaceConfigName = (
-                    tabName
+                    deviceInfo.tabName
                     + "_"
                     + interfaceSpecifications[interfaceTypeId].configPrefix
                 )
@@ -171,28 +166,27 @@ class cls_controller(threading.Thread):
                 continue
             tidx = self.controllerItems[i].tabIndex + 1
             nextInterfaceItemId = i + 1
+            print(self.controllerItems[i].name)
             while True:
-                if tidx >= len(tabConfig):
+                if tidx >= len(self.deviceInfoList):
                     tidx = 0
                 if nextInterfaceItemId >= len(self.controllerItems.keys()):
                     nextInterfaceItemId = 0
-                id = tabConfig[tidx][0]
-                tabType = tabSpecifications[id].type
-                tabName = tabConfig[tidx][1]
-                isActive = PILCONFIG.get(tabName, "active")
+                deviceInfo = self.deviceInfoList[tidx]
+                isActive = PILCONFIG.get(deviceInfo.tabName, "active")
                 #
                 # type is device, append its process method to the list
                 #
-                if tabType == PILGLOBALS.Tab_Type_Device:
+                if (
+                    deviceInfo.tabType == PILGLOBALS.Tab_Type_Device
+                    or deviceInfo.tabType == PILGLOBALS.Tab_Type_Probe
+                ):
+                    print(deviceInfo.tabName)
                     self.controllerItems[i].deviceProcessors.append(
-                        tabWidgetList[tidx].pildevice.process
+                        deviceInfo.pildevice.process
                     )
                     # print(self.controllerItems[i].deviceProcessors)
-                if tabType == PILGLOBALS.Tab_Type_Scope:
-                    pass
-                if tabType == PILGLOBALS.Tab_Type_Probe:
-                    pass
-                if tabType == PILGLOBALS.Tab_Type_Interface:
+                if deviceInfo.tabType == PILGLOBALS.Tab_Type_Interface:
                     if isActive:
                         self.controllerItems[i].nextInterfaceItemId = (
                             nextInterfaceItemId

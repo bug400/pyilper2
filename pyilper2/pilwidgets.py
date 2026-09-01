@@ -623,13 +623,13 @@ class cls_tabgeneric(QtWidgets.QWidget):
             if self.logging:
                 self.cbLogging.logClose()
             self.cbLogging.setEnabled(False)
-        self.cbActive.setEnabled(False)
+        # self.cbActive.setEnabled(False)
 
     #
     #  enable tab
     #
     def enable(self):
-        self.cbActive.setEnabled(True)
+        # self.cbActive.setEnabled(True)
         if self.cbLogging is not None:
             self.cbLogging.setEnabled(True)
             if self.logging:
@@ -1354,10 +1354,10 @@ class cls_PilConfigWindow(QtWidgets.QDialog):
 
 class cls_DeviceConfigWindow(QtWidgets.QDialog):
 
-    def __init__(self, parent, tabs):
+    def __init__(self, parent, tabSpecifications):
         super().__init__()
         self.parent = parent
-        self.tabs = tabs
+        self.tabSpecifications = tabSpecifications
         self.setWindowTitle("Virtual HP-IL device config")
         self.vlayout = QtWidgets.QVBoxLayout()
         #
@@ -1381,6 +1381,7 @@ class cls_DeviceConfigWindow(QtWidgets.QDialog):
         self.buttonDown.clicked.connect(self.do_itemDown)
         self.buttonAdd.clicked.connect(self.do_itemAdd)
         self.buttonRemove.clicked.connect(self.do_itemRemove)
+        self.devList.currentRowChanged.connect(self.do_checkOperations)
         #
         #     ok/cancel button box
         #
@@ -1404,8 +1405,21 @@ class cls_DeviceConfigWindow(QtWidgets.QDialog):
             typ = tab[0]
             name = tab[1]
             #        self.devList.addItem(name+" ("+ PILGLOBALS.Tab_Names[typ]+ ")")
-            self.devList.addItem(name + " (" + self.tabs[typ].name + ")")
+            self.devList.addItem(name + " (" + self.tabSpecifications[typ].name + ")")
         self.devList.setCurrentRow(0)
+
+    def do_checkOperations(self, row):
+        devType = self.tabList[row][0]
+        if devType == PILGLOBALS.Tab_Scope:
+            self.buttonUp.setEnabled(False)
+            self.buttonDown.setEnabled(False)
+            self.buttonRemove.setEnabled(False)
+        elif devType == PILGLOBALS.Tab_Probe:
+            self.buttonRemove.setEnabled(False)
+        else:
+            self.buttonUp.setEnabled(True)
+            self.buttonDown.setEnabled(True)
+            self.buttonRemove.setEnabled(True)
 
     def do_ok(self):
         PILCONFIG.put(self.parent.name, "tabconfig", self.tabList)
@@ -1453,13 +1467,13 @@ class cls_DeviceConfigWindow(QtWidgets.QDialog):
         item = None
 
     def do_itemAdd(self):
-        retval = cls_AddDeviceWindow.getAddDevice(self, self.tabs)
+        retval = cls_AddDeviceWindow.getAddDevice(self, self.tabSpecifications)
         if retval == "":
             return
         id = retval[0]
         name = retval[1]
         #     self.devList.addItem(name+" ("+ PILGLOBALS.Tab_Names[typ]+ ")")
-        self.devList.addItem(name + " (" + self.tabs[id].name + ")")
+        self.devList.addItem(name + " (" + self.tabSpecifications[id].name + ")")
         self.tabList.append([id, name])
 
     @staticmethod
@@ -1490,11 +1504,11 @@ class cls_Device_validator(QtGui.QValidator):
 #
 class cls_AddDeviceWindow(QtWidgets.QDialog):
 
-    def __init__(self, parent, tabs):
+    def __init__(self, parent, tabSpecifications):
         super().__init__()
         self.id = None
         self.name = None
-        self.tabs = tabs
+        self.tabSpecifications = tabSpecifications
         self.idList = []
         self.tabList = parent.tabList
         self.setWindowTitle("New Virtual HP-IL device")
@@ -1510,11 +1524,11 @@ class cls_AddDeviceWindow(QtWidgets.QDialog):
         self.leditName.setValidator(self.validator)
         self.vlayout.addWidget(self.leditName)
         #
-        #     Combobox, omit the scope!
+        #     Combobox, omit scope and probe
         #
         self.comboTyp = QtWidgets.QComboBox()
-        for k, v in self.tabs.items():
-            if v.id != PILGLOBALS.Tab_Scope:
+        for k, v in self.tabSpecifications.items():
+            if v.id != PILGLOBALS.Tab_Scope and v.id != PILGLOBALS.Tab_Probe:
                 self.comboTyp.addItem(v.name)
                 self.idList.append(v.id)
 
@@ -1567,8 +1581,8 @@ class cls_AddDeviceWindow(QtWidgets.QDialog):
         super().reject()
 
     @staticmethod
-    def getAddDevice(parent, tabs):
-        dialog = cls_AddDeviceWindow(parent, tabs)
+    def getAddDevice(parent, tabSpecifications):
+        dialog = cls_AddDeviceWindow(parent, tabSpecifications)
         dialog.resize(250, 100)
         result = dialog.exec()
         if result == QtWidgets.QDialog.Accepted:
@@ -1582,15 +1596,16 @@ class cls_AddDeviceWindow(QtWidgets.QDialog):
 #
 class cls_DevStatusWindow(QtWidgets.QDialog):
 
-    def __init__(self, parent):
+    def __init__(self, parent, deviceInfoList):
         super().__init__()
         self.parent = parent
+        self.deviceInfoList = deviceInfoList
         self.setWindowTitle("Virtual HP-IL device status")
         self.vlayout = QtWidgets.QVBoxLayout()
         self.setLayout(self.vlayout)
         self.__timer__ = QtCore.QTimer()
         self.__timer__.timeout.connect(self.do_refresh)
-        self.rows = len(parent.pilwidgets) - 1
+        self.rows = len(self.deviceInfoList)
         self.cols = 5
         self.__table__ = QtWidgets.QTableWidget(
             self.rows, self.cols
@@ -1662,20 +1677,21 @@ class cls_DevStatusWindow(QtWidgets.QDialog):
         super().accept()
 
     def do_refresh(self):
-        devices = self.parent.commthread.getDevices()
-        if not devices:
-            return
-        i = 1
+
         for row in range(self.rows):
-            pildevice = devices[i][0]
-            name = devices[i][1]
-            i += 1
-            self.__items__[row, 0].setText(name)
+            deviceInfo = self.deviceInfoList[row]
+            self.__items__[row, 0].setText(deviceInfo.tabName)
+
             for col in range(1, self.cols):
                 self.__items__[row, col].setText("")
-            if pildevice is None:
+            if deviceInfo.tabType != PILGLOBALS.Tab_Type_Device:
                 continue
-            (active, did, aid, addr, addr2nd, hpilstatus) = pildevice.getstatus()
+            if deviceInfo.pildevice is None:
+                continue
+
+            (active, did, aid, addr, addr2nd, hpilstatus) = (
+                deviceInfo.pildevice.getstatus()
+            )
             if not active:
                 continue
             devaddr = ""

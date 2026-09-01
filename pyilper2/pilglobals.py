@@ -160,7 +160,7 @@ class cls_pilglobals:
         self.Tab_HP82162A = 6
         self.Tab_HP2225B = 7
         self.Tab_Rawdrive = 8
-        self.Tab_Dummy = 9
+        self.Tab_Probe = 9
         #
         #     Tab types
         #
@@ -182,7 +182,7 @@ class cls_pilglobals:
             #   "pilplotter",
             #   "pilhp82162a",
             #   "pilhp2225b",
-            "pildummy",
+            "pilprobe",
         ]
 
         #
