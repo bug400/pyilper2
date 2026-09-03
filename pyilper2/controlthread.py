@@ -173,7 +173,6 @@ class cls_controller(threading.Thread):
                 if nextInterfaceItemId >= len(self.controllerItems.keys()):
                     nextInterfaceItemId = 0
                 deviceInfo = self.deviceInfoList[tidx]
-                isActive = PILCONFIG.get(deviceInfo.tabName, "active")
                 #
                 # type is device, append its process method to the list
                 #
@@ -187,7 +186,7 @@ class cls_controller(threading.Thread):
                     )
                     # print(self.controllerItems[i].deviceProcessors)
                 if deviceInfo.tabType == PILGLOBALS.Tab_Type_Interface:
-                    if isActive:
+                    if PILCONFIG.get(deviceInfo.tabName, "active"):
                         self.controllerItems[i].nextInterfaceItemId = (
                             nextInterfaceItemId
                         )

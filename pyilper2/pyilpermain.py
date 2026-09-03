@@ -50,6 +50,7 @@ class cls_ui(QtWidgets.QMainWindow):
         self.lifutils_installed = False
         self.tabWidgetList = []
         self.deviceInfoList = []
+        self.validConfigNameList= []
         self.scopeQueue = cls_pilqueue()
 
         #     absulutely needed: call super().__init__()
@@ -261,37 +262,66 @@ class cls_ui(QtWidgets.QMainWindow):
             #
             self.tabWidget = cls_Tabs()
             self.setCentralWidget(self.tabWidget)
+            self.validConfigNameList.append(self.name)
             for t in self.tabConfig:
                 id = t[0]
+                #
+                # remove entry with an unknown tab id
+                #
                 if id not in self.tabSpecifications.keys():
+                    print(f"deleting tab with non existing id {id}")
                     del self.tabConfig[id]
-                    # TODO: remove config params of this entry
-                    # pattern= t[1]+""_"
-                    # PILCONFIG.delAll(pattern)
                     tabConfigChanged = True
+                    continue
+                #
+                # now build data structures
+                #
                 tabClass = self.tabSpecifications[id].tab_class
                 tabType = self.tabSpecifications[id].type
                 tabName = t[1]
-
-                if tabType == PILGLOBALS.Tab_Type_Interface:
-                    tab = tabClass(self, tabName, self.interfaceSpecifications)
-                elif (
-                    tabType == PILGLOBALS.Tab_Type_Scope
-                    or tabType == PILGLOBALS.Tab_Type_Probe
-                ):
+                if tabType == PILGLOBALS.Tab_Type_Scope:
                     tab = tabClass(self, tabName, self.scopeQueue)
-                else:
-                    tab = tabClass(self, tabName)
-                if tabType != PILGLOBALS.Tab_Type_Probe:
                     self.tabWidget.addTab(tab, tabName)
                     self.tabWidgetList.append(tab)
-                if tabType == PILGLOBALS.Tab_Type_Probe:
-                    self.tabWidgetList[0].registerProbe(tabName, tab.pildevice)
-                if tabType != PILGLOBALS.Tab_Type_Scope:
+                    self.validConfigNameList.append(tabName)
+                elif tabType == PILGLOBALS.Tab_Type_Probe:
+                    tab = tabClass(self, tabName, self.scopeQueue)
                     dInfo = deviceInfo(id, tabType, tabName, tab.pildevice)
                     self.deviceInfoList.append(dInfo)
+                    self.tabWidgetList[0].registerProbe(tabName, tab.pildevice)
+                elif tabType == PILGLOBALS.Tab_Type_Interface:
+                    tab = tabClass(self, tabName, self.interfaceSpecifications)
+                    self.tabWidget.addTab(tab, tabName)
+                    self.tabWidgetList.append(tab)
+                    dInfo = deviceInfo(id, tabType, tabName, tab.pildevice)
+                    self.deviceInfoList.append(dInfo)
+                    self.validConfigNameList.append(tabName)
+                elif tabType == PILGLOBALS.Tab_Type_Device:
+                    tab = tabClass(self, tabName)
+                    self.tabWidget.addTab(tab, tabName)
+                    self.tabWidgetList.append(tab)
+                    dInfo = deviceInfo(id, tabType, tabName, tab.pildevice)
+                    self.deviceInfoList.append(dInfo)
+                    self.validConfigNameList.append(tabName)
+                else:
+                    print("error")  # TODO error message
+                    sys.exit(1)
             #
-            # store changed tabconfig, if unknown tab types were removed
+            # remove entries in configuration which do not exist in tabconfig
+            #
+            removeKeys=[]
+            for key in PILCONFIG.getkeys():
+                keyPrefix=key.split(sep="_")[0]
+                if not keyPrefix in self.validConfigNameList:
+                    removeKeys.append(key)
+            for key in removeKeys:
+                print(f"remove {key}")
+                PILCONFIG.remove(key)
+            if removeKeys:
+                self.tabConfigChanged= True
+
+            #
+            # store changed tabconfig, if entries were removed
             #
             if tabConfigChanged:
                 lastTab = 0

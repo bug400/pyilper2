@@ -125,6 +125,15 @@ class cls_pilconfig:
     #
     def dump(self):
         print(self.__config__)
+    #
+    #  delete keys beginning with prefix (excluding a _)
+    #
+    def delEntries(self,prefix):
+        for key in self.__config__:
+            keyPrefix=key.split(sep="_")[0]
+            if keyPrefix == pattern:
+                print("remove",key)
+                self.remove(key)
 
 
 #

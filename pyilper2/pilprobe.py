@@ -7,10 +7,9 @@ from .pilglobals import PILGLOBALS
 from .pilconfig import PILCONFIG
 
 
-class cls_tabprobe(cls_tabgeneric):
+class cls_tabprobe(QtWidgets.QWidget):
 
     def __init__(self, parent, name, queue):
-        super().__init__(parent, name)
         self.queue = queue
 
         self.id = int("".join([char for char in name[::-1] if char.isdigit()])[::-1])
