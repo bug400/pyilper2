@@ -40,6 +40,7 @@ class cls_ui(QtWidgets.QMainWindow):
     def __init__(self, parent, version, instance):
         super().__init__()
         self.controller = None
+        self.controllerThread = None
         self.parent = parent
         self.name = PILGLOBALS.PackageName
         self.clean = PILGLOBALS.Clean
@@ -50,7 +51,7 @@ class cls_ui(QtWidgets.QMainWindow):
         self.lifutils_installed = False
         self.tabWidgetList = []
         self.deviceInfoList = []
-        self.validConfigNameList= []
+        self.validConfigNameList = []
         self.scopeQueue = cls_pilqueue()
 
         #     absulutely needed: call super().__init__()
@@ -258,7 +259,6 @@ class cls_ui(QtWidgets.QMainWindow):
                     self.interfaceSpecifications[spec.id] = spec
             #
             # Add device tabs, Scope is fixed the first tab, remove unknown tab types
-            # TODO: set scope fixed as first tab
             #
             self.tabWidget = cls_Tabs()
             self.setCentralWidget(self.tabWidget)
@@ -309,16 +309,16 @@ class cls_ui(QtWidgets.QMainWindow):
             #
             # remove entries in configuration which do not exist in tabconfig
             #
-            removeKeys=[]
+            removeKeys = []
             for key in PILCONFIG.getkeys():
-                keyPrefix=key.split(sep="_")[0]
+                keyPrefix = key.split(sep="_")[0]
                 if not keyPrefix in self.validConfigNameList:
                     removeKeys.append(key)
             for key in removeKeys:
                 print(f"remove {key}")
                 PILCONFIG.remove(key)
             if removeKeys:
-                self.tabConfigChanged= True
+                self.tabConfigChanged = True
 
             #
             # store changed tabconfig, if entries were removed
@@ -362,6 +362,8 @@ class cls_ui(QtWidgets.QMainWindow):
             # TODO: do autostart of loop if configured
             # TODO: show starter info if pyilper is run for the first time
             # TODO: show release notes if a new version of pyilper is run for the first time
+            if PILCONFIG.get(self.name, "autostart"):
+                self.controller_start()
         #
         #   catch any exception during initialization
         #
@@ -383,6 +385,7 @@ class cls_ui(QtWidgets.QMainWindow):
     def controller_start(self):
         #
         # TODO: error handling
+        #
         os.chdir(PILCONFIG.get(self.name, "workdir"))
         #
         self.controller = cls_controller(
@@ -394,6 +397,7 @@ class cls_ui(QtWidgets.QMainWindow):
         )
         #
         # No active interface found
+        # TODO: output message
         #
         if ret == 0:
             self.controller = None
@@ -401,10 +405,10 @@ class cls_ui(QtWidgets.QMainWindow):
         #
         # TODO: enable the tab objects
         #
-        for t in self.tabWidgetList:
-            t.enable()
-        self.t = threading.Thread(target=self.controller.run)
-        self.t.start()
+        for tab in self.tabWidgetList:
+            tab.enable()
+        self.controllerThread = threading.Thread(target=self.controller.run)
+        self.controllerThread.start()
         #
         # trigger visible virtual device widget to enable refreshs
         #
@@ -415,15 +419,16 @@ class cls_ui(QtWidgets.QMainWindow):
         if self.controller is None:
             return
         self.controller.stop()
-        self.t.join()
-        while self.t.is_alive():
-            time.sleep(0.1)
-        self.t = None
+        if self.controllerThread is not None:
+            self.controllerThread.join()
+            while self.controllerThread.is_alive():
+                time.sleep(0.1)
+            self.controllerThread = None
         #
         # TODO: disable registered tab objects
         #
-        for t in self.tabWidgetList:
-            t.disable()
+        for tab in self.tabWidgetList:
+            tab.disable()
         print("main: controller thread joined")
         self.controller = None
 

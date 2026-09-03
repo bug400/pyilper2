@@ -943,6 +943,7 @@ class cls_PilConfigWindow(QtWidgets.QDialog):
         self.__hp2225b_screenwidth__ = PILCONFIG.get(
             self.__name__, "hp2225b_screenwidth"
         )
+        self.__autostart__ = PILCONFIG.get(self.__name__, "autostart")
         self.__usebom__ = PILCONFIG.get(self.__name__, "usebom")
         self.__qtstyle__ = PILCONFIG.get(self.__name__, "qtstyle")
 
@@ -1006,6 +1007,19 @@ class cls_PilConfigWindow(QtWidgets.QDialog):
         self.hboxlifpath.addLayout(self.vboxlifbut)
         self.vboxgboxlifpath.addLayout(self.hboxlifpath)
         self.vbox1.addWidget(self.gboxlifpath)
+        #
+        #     Autostart
+        #
+        self.gboxauto = QtWidgets.QGroupBox()
+        self.gboxauto.setFlat(True)
+        self.gboxauto.setTitle("Autostart")
+        self.vboxauto = QtWidgets.QVBoxLayout()
+        self.cbAuto = QtWidgets.QCheckBox("Start loop when program starts")
+        self.cbAuto.setChecked(self.__usebom__)
+        self.cbAuto.stateChanged.connect(self.do_cbAutostart)
+        self.vboxauto.addWidget(self.cbAuto)
+        self.gboxauto.setLayout(self.vboxauto)
+        self.vbox1.addWidget(self.gboxauto)
         #
         #     Section qt style
         #
@@ -1168,6 +1182,9 @@ class cls_PilConfigWindow(QtWidgets.QDialog):
     def do_cbUseBom(self):
         self.__usebom__ = self.cbUseBom.isChecked()
 
+    def do_cbAutostart(self):
+        self.__autostart__ = self.cbAuto.isChecked()
+
     def do_styleChanged(self):
         text = self.combost.currentText()
         self.__qtstyle__ = text
@@ -1327,6 +1344,7 @@ class cls_PilConfigWindow(QtWidgets.QDialog):
             self.__name__, "hp2225b_screenwidth", self.spinHP2225Bscreenwidth.value()
         )
         PILCONFIG.put(self.__name__, "usebom", self.__usebom__)
+        PILCONFIG.put(self.__name__, "autostart", self.__autostart__)
         PILCONFIG.put(self.__name__, "qtstyle", self.__qtstyle__)
         super().accept()
 

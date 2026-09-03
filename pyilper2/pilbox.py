@@ -63,7 +63,7 @@ class cls_pilbox(cls_IOThread):
         )
         self.__ttyDevice__ = PILCONFIG.get(self.__configName__, "device")
         self.__baudrate__ = PILCONFIG.get(self.__configName__, "baudrate")
-        self.__idyframe__ = PILCONFIG.get(self.__configName__, "idyframes")
+        self.__idyframe__ = PILCONFIG.get(self.__configName__, "idyframe")
         self.__isController__ = PILCONFIG.get(self.__configName__, "controllermode")
         self.__ioDevice__ = cls_serialIO(self.__ttyDevice__)  # serial device object
         self.__lasth__ = 0
@@ -365,9 +365,24 @@ class cls_pilboxConfig(cls_ConfigInterfaceGeneric):
         self.cbIdyFrame.stateChanged.connect(self.do_cbIdyFrame)
         self.vb.addWidget(self.cbIdyFrame)
 
+        #
+        # controller mode
+        #
+        self.cbCtrlMode = QtWidgets.QCheckBox(
+            "No HP-IL Controller connected to PIL-Box"
+        )
+        self.cbCtrlMode.setChecked(self.idyframe)
+        self.cbCtrlMode.setEnabled(True)
+        self.cbCtrlMode.stateChanged.connect(self.do_cbCtrlMode)
+        self.vb.addWidget(self.cbCtrlMode)
+
     def do_cbIdyFrame(self):
         self.idyframe = self.cbIdyFrame.isChecked()
         PILCONFIG.put(self.configName, "idyframe", self.idyframe)
+
+    def do_cbCtrlMode(self):
+        self.controllermode = self.cbCtrlMode.isChecked()
+        PILCONFIG.put(self.configName, "controllermode", self.controllermode)
 
     def do_config_interface(self):
         interface = cls_TtyWindow.getTtyDevice(self.tty)
