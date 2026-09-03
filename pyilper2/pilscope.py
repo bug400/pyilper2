@@ -156,6 +156,7 @@ class cls_tabscope(cls_tabtermgeneric):
 
     def enable(self):
         super().enable()
+        self.queue.clear()
         self.controlProbes()
 
         if self.logging:
@@ -230,7 +231,7 @@ class cls_tabscope(cls_tabtermgeneric):
                 id = item[0]
                 frame = item[1]
                 if ((frame & 0x700) == 0x600) and not self.showIdy:
-                    return
+                    continue
                 #
                 # get mnemo
                 for i in self.MNEMO:
@@ -266,6 +267,7 @@ class cls_tabscope(cls_tabtermgeneric):
         pildevice.setactive(self.active)
 
     def controlProbes(self):
+        print(f"control probes {self.active} {self.logMode}")
         if self.active:
             if self.logMode == self.LOG_BOTH:
                 self.probePildevices[1].setactive(True)

@@ -187,10 +187,19 @@ class cls_TtyWindow(QtWidgets.QDialog):
 #
 class cls_tabinterface(cls_tabgeneric):
 
-    def __init__(self, parent, name, interfaceSpecifications):
+    def __init__(
+        self,
+        parent,
+        name,
+        interfaceSpecifications,
+        sig_UpdateInterfaceActive,
+        interfaceNumber,
+    ):
         super().__init__(parent, name)
         self.parent = parent
         self.name = name
+        self.sig_UpdateInterfaceActive = sig_UpdateInterfaceActive
+        self.interfaceNumber = interfaceNumber
 
         self.guiobject = cls_InterfaceWidget(self, self.name, interfaceSpecifications)
         self.add_guiobject(self.guiobject)
@@ -204,6 +213,7 @@ class cls_tabinterface(cls_tabgeneric):
         self.setEnabled(True)
 
     def toggle_active(self):
+        self.sig_UpdateInterfaceActive.emit(self.interfaceNumber, self.active)
         return
 
     def becomes_visible(self):

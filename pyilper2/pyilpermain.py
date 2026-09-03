@@ -22,6 +22,7 @@ from .penconfig import PENCONFIG, cls_PenConfigWindow
 from .controlthread import cls_controller, controllerItem, cls_IndicatorWidget
 from .pilcore import AppException, decode_pyILPERVersion
 from .pildevbase import cls_pilqueue
+from .iothread import cls_IOThread
 
 
 @dataclass
@@ -34,8 +35,9 @@ class deviceInfo:
 
 class cls_ui(QtWidgets.QMainWindow):
 
-    sig_UpdateStatus = QtCore.Signal(list, str)  # must be class variable!!
+    sig_UpdateStatus = QtCore.Signal(int, list, bool)  # must be class variable!!
     sig_ControllerTerminated = QtCore.Signal(str, Exception)  # must be class variable!!
+    sig_UpdateInterfaceActive = QtCore.Signal(int, bool)
 
     def __init__(self, parent, version, instance):
         super().__init__()
@@ -55,9 +57,12 @@ class cls_ui(QtWidgets.QMainWindow):
         self.scopeQueue = cls_pilqueue()
 
         #     absulutely needed: call super().__init__()
-        self.sig_UpdateStatus.connect(self.updateStatusLine, QtCore.Qt.QueuedConnection)
+        self.sig_UpdateStatus.connect(self.updateStatus, QtCore.Qt.QueuedConnection)
         self.sig_ControllerTerminated.connect(
             self.showRuntimeError, QtCore.Qt.QueuedConnection
+        )
+        self.sig_UpdateInterfaceActive.connect(
+            self.updateInterfaceActive, QtCore.Qt.QueuedConnection
         )
 
         if instance == "":
@@ -263,6 +268,8 @@ class cls_ui(QtWidgets.QMainWindow):
             self.tabWidget = cls_Tabs()
             self.setCentralWidget(self.tabWidget)
             self.validConfigNameList.append(self.name)
+            numInterfaces = 0
+            self.interfaceStatus = []
             for t in self.tabConfig:
                 id = t[0]
                 #
@@ -290,12 +297,23 @@ class cls_ui(QtWidgets.QMainWindow):
                     self.deviceInfoList.append(dInfo)
                     self.tabWidgetList[0].registerProbe(tabName, tab.pildevice)
                 elif tabType == PILGLOBALS.Tab_Type_Interface:
-                    tab = tabClass(self, tabName, self.interfaceSpecifications)
+                    tab = tabClass(
+                        self,
+                        tabName,
+                        self.interfaceSpecifications,
+                        self.sig_UpdateInterfaceActive,
+                        numInterfaces,
+                    )
                     self.tabWidget.addTab(tab, tabName)
                     self.tabWidgetList.append(tab)
                     dInfo = deviceInfo(id, tabType, tabName, tab.pildevice)
                     self.deviceInfoList.append(dInfo)
                     self.validConfigNameList.append(tabName)
+                    if tab.get_active():
+                        self.interfaceStatus.append(cls_IOThread.STAT_DISCONNECTED)
+                    else:
+                        self.interfaceStatus.append(cls_IOThread.STAT_DISABLED)
+                    numInterfaces += 1
                 elif tabType == PILGLOBALS.Tab_Type_Device:
                     tab = tabClass(self, tabName)
                     self.tabWidget.addTab(tab, tabName)
@@ -335,7 +353,15 @@ class cls_ui(QtWidgets.QMainWindow):
             #
             self.statusBar = QtWidgets.QStatusBar()
             #       self.statusBar.setFixedWidth(300)
-            self.indicator = None
+            # if self.indicator is not None:
+            # self.statusBar.removeWidget(self.indicator)
+            # self.indicator.deleteLater()
+            self.indicator = cls_IndicatorWidget(10, numInterfaces)
+            self.statusBar.addPermanentWidget(self.indicator)
+            self.indicator.show()
+            self.indicator.updateStatus(self.interfaceStatus)
+            self.statusBar.showMessage("Loop stopped")
+
             self.setSizePolicy(
                 QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
             )
@@ -372,12 +398,38 @@ class cls_ui(QtWidgets.QMainWindow):
             self.showRuntimeError(None, e)
             sys.exit(1)
 
-    def updateStatusLine(self, stat, msg):
-        """Docstring."""
-        if msg is not None:
-            self.statusBar.showMessage(msg)
-        if stat and self.indicator is not None:
-            self.indicator.updateStatus(stat)
+    def updateInterfaceActive(self, interfaceNumber, active):
+        if active:
+            self.interfaceStatus[interfaceNumber] = cls_IOThread.STAT_DISCONNECTED
+        else:
+            self.interfaceStatus[interfaceNumber] = cls_IOThread.STAT_DISABLED
+        self.indicator.updateStatus(self.interfaceStatus)
+        return
+
+    def updateStatus(self, controllerStatus, interfaceStatus, exitError):
+
+        self.indicator.updateStatus(interfaceStatus)
+        allConnected = True
+        for i in interfaceStatus:
+            if i != cls_IOThread.STAT_DISABLED and i != cls_IOThread.STAT_CONNECTED:
+                allConnected = False
+        #
+        #       create status message
+        #
+        msg = ""
+        if controllerStatus == cls_controller.STAT_RUN:
+            if allConnected:
+                msg = "Loop running ..."
+            else:
+                msg = "Waiting for connection(s) ..."
+        elif controllerStatus == cls_controller.STAT_PAUSE:
+            msg = "Loop suspended ..."
+        else:
+            if exitError:
+                msg = "Loop stopped after error"
+            else:
+                msg = "Loop stopped"
+        self.statusBar.showMessage(msg)
 
     #
     #  Start controller thread
@@ -540,14 +592,6 @@ class cls_ui(QtWidgets.QMainWindow):
         event.accept()
         self.hide()
         self.app_exit()
-
-    def createIndicator(self, num):
-        if self.indicator is not None:
-            self.statusBar.removeWidget(self.indicator)
-            self.indicator.deleteLater()
-        self.indicator = cls_IndicatorWidget(10, num)
-        self.statusBar.addPermanentWidget(self.indicator)
-        self.indicator.show()
 
     #
     #  controller terminated signal handler

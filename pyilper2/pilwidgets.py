@@ -643,6 +643,12 @@ class cls_tabgeneric(QtWidgets.QWidget):
         return
 
     #
+    # get active status
+    #
+    def get_active(self):
+        return self.active
+
+    #
     #  action: toogle active checkbox
     #
     def do_cbActive(self):
@@ -1015,7 +1021,7 @@ class cls_PilConfigWindow(QtWidgets.QDialog):
         self.gboxauto.setTitle("Autostart")
         self.vboxauto = QtWidgets.QVBoxLayout()
         self.cbAuto = QtWidgets.QCheckBox("Start loop when program starts")
-        self.cbAuto.setChecked(self.__usebom__)
+        self.cbAuto.setChecked(self.__autostart__)
         self.cbAuto.stateChanged.connect(self.do_cbAutostart)
         self.vboxauto.addWidget(self.cbAuto)
         self.gboxauto.setLayout(self.vboxauto)

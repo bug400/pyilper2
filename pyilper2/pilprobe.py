@@ -31,6 +31,7 @@ class cls_pilprobe:
         return frame
 
     def setactive(self, active):
+        # print(f"probe {self.id} setactive {active}")
         self.__isactive_lock__.acquire()
         self.__isactive__ = active
         self.__isactive_lock__.release()

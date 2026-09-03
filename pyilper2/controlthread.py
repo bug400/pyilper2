@@ -154,9 +154,8 @@ class cls_controller(threading.Thread):
                 self.controllerItems[interfaceIndex] = item
             tabIndex += 1
         #
-        # return, if we have no active interfaces
+        # TODO: return, if we have no active interfaces
         #
-        self.parent.createIndicator(interfaceIndex + 1)
 
         #
         # Pass 2, add pildevice process methods and add index of writer interface
@@ -340,32 +339,12 @@ class cls_controller(threading.Thread):
         #
         #       update status of interfaces
         #
+
         lst = []
-        allConnected = True
         for i in self.controllerItems.keys():
             interfaceStatus = self.controllerItems[i].status
             lst.append(interfaceStatus)
-            if (
-                interfaceStatus != cls_IOThread.STAT_DISABLED
-                and interfaceStatus != cls_IOThread.STAT_CONNECTED
-            ):
-                allConnected = False
-        #
-        #       create status message
-        #
-        if self.status == self.STAT_RUN:
-            if allConnected:
-                msg = "Loop running ..."
-            else:
-                msg = "Waiting for connection(s) ..."
-        elif self.status == self.STAT_PAUSE:
-            msg = "Loop suspended ..."
-        else:
-            if exitError:
-                msg = "Loop stopped after error"
-            else:
-                msg = "Loop stopped"
-        self.sig_UpdateStatus.emit(lst, msg)
+        self.sig_UpdateStatus.emit(self.status, lst, exitError)
 
 
 class cls_IndicatorWidget(QtWidgets.QWidget):

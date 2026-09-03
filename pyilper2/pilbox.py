@@ -401,6 +401,7 @@ class cls_pilboxConfig(cls_ConfigInterfaceGeneric):
         self.butTty.setEnabled(flag)
         self.cbIdyFrame.setEnabled(flag)
         self.comboBaud.setEnabled(flag)
+        self.cbCtrlMode.setEnabled(flag)
         self.radBut.setChecked(flag)
 
 
