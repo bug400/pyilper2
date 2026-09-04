@@ -179,7 +179,7 @@ class cls_pilglobals:
             "pilprinter",
             "pilterminal",
             "pildrive",
-            #   "pilplotter",
+            "pilplotter",
             #   "pilhp82162a",
             #   "pilhp2225b",
             "pilprobe",

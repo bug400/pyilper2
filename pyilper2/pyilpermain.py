@@ -675,6 +675,7 @@ class cls_ui(QtWidgets.QMainWindow):
         msgBox.setText(txt)
         msgBox.setDetailedText(tbTxt)
         msgBox.exec()
+        msgBox.destroy()
 
     #
     # show warning message
@@ -685,6 +686,7 @@ class cls_ui(QtWidgets.QMainWindow):
         msgBox.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Close)
         msgBox.setText(txt)
         msgBox.exec()
+        msgBox.destroy()
 
     #
     # show info message
@@ -695,6 +697,7 @@ class cls_ui(QtWidgets.QMainWindow):
         msgBox.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Close)
         msgBox.setText(txt)
         msgBox.exec()
+        msgBox.destroy()
 
     #
     # Show short error message
@@ -705,6 +708,7 @@ class cls_ui(QtWidgets.QMainWindow):
         msgBox.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Close)
         msgBox.setText(txt)
         msgBox.exec()
+        msgBox.destroy()
 
     #
     # Show detailed error message (exception)
