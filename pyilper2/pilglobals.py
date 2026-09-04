@@ -180,8 +180,8 @@ class cls_pilglobals:
             "pilterminal",
             "pildrive",
             "pilplotter",
-            #   "pilhp82162a",
-            #   "pilhp2225b",
+            "pilhp82162a",
+            "pilhp2225b",
             "pilprobe",
         ]
 
