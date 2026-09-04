@@ -41,8 +41,8 @@ from .pilcore import cls_Tab_Spec, PILGLOBALS
 
 class cls_tabterminal(cls_tabtermgeneric):
 
-    def __init__(self, parent, name):
-        super().__init__(parent, name)
+    def __init__(self, mainUI, name):
+        super().__init__(mainUI, name)
         #
         #     init local configuration parameters
         #

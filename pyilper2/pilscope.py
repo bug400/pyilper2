@@ -96,8 +96,8 @@ class cls_tabscope(cls_tabtermgeneric):
         [0x700, 0x700, "ISR"],
     ]
 
-    def __init__(self, parent, name, queue):
-        super().__init__(parent, name)
+    def __init__(self, guiObject, name, queue):
+        super().__init__(guiObject, name)
         self.log_mode = ["Probe1", "Probe2", "Both"]
         self.display_mode = ["Mnemonic", "Hex", "Both"]
 

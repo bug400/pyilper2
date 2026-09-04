@@ -23,6 +23,7 @@ from .controlthread import cls_controller, controllerItem, cls_IndicatorWidget
 from .pilcore import AppException, decode_pyILPERVersion
 from .pildevbase import cls_pilqueue
 from .iothread import cls_IOThread
+from .lifexec import check_lifutils, cls_liffix, cls_lifinit, cls_installcheck
 
 
 @dataclass
@@ -204,7 +205,9 @@ class cls_ui(QtWidgets.QMainWindow):
 
             self.menuUtil = self.menubar.addMenu("Utilities")
             self.actionInit = self.menuUtil.addAction("Initialize LIF image file")
+            self.actionInit.triggered.connect(self.initLif)
             self.actionFix = self.menuUtil.addAction("Fix Header of LIF image file")
+            self.actionFix.triggered.connect(self.fixLif)
             self.actionDevStatus = self.menuUtil.addAction(
                 "Virtual HP-IL device status"
             )
@@ -215,6 +218,7 @@ class cls_ui(QtWidgets.QMainWindow):
             self.actionInstallCheck = self.menuUtil.addAction(
                 "Check LIFUTILS installation"
             )
+            self.actionInstallCheck.triggered.connect(self.installCheck)
             self.actionInit.setEnabled(False)
             self.actionFix.setEnabled(False)
 
@@ -222,12 +226,12 @@ class cls_ui(QtWidgets.QMainWindow):
             self.actionAbout = self.menuHelp.addAction("About")
             self.actionHelp = self.menuHelp.addAction("Manual")
             #
-            # TODO: check lifutils, do we need that variable
+            # check lifutils, do we need that variable
             #
-            # self.lifutils_installed= check_lifutils()[0]
-            # if self.lifutils_installed:
-            #    self.self.actionInit.setEnabled(False)
-            #    self.actionFix.setEnabled(False)
+            self.lifutils_installed = check_lifutils()[0]
+            if self.lifutils_installed:
+                self.actionInit.setEnabled(True)
+                self.actionFix.setEnabled(True)
             #
             # get tab classes and specifications from modules
             #
@@ -286,43 +290,45 @@ class cls_ui(QtWidgets.QMainWindow):
                 tabClass = self.tabSpecifications[id].tab_class
                 tabType = self.tabSpecifications[id].type
                 tabName = t[1]
+
+                self.tab = None
                 if tabType == PILGLOBALS.Tab_Type_Scope:
-                    tab = tabClass(self, tabName, self.scopeQueue)
-                    self.tabWidget.addTab(tab, tabName)
-                    self.tabWidgetList.append(tab)
+                    self.tab = tabClass(self, tabName, self.scopeQueue)
+                    self.tabWidget.addTab(self.tab, tabName)
+                    self.tabWidgetList.append(self.tab)
                     self.validConfigNameList.append(tabName)
                 elif tabType == PILGLOBALS.Tab_Type_Probe:
-                    tab = tabClass(self, tabName, self.scopeQueue)
-                    dInfo = deviceInfo(id, tabType, tabName, tab.pildevice)
+                    self.tab = tabClass(self, tabName, self.scopeQueue)
+                    dInfo = deviceInfo(id, tabType, tabName, self.tab.pildevice)
                     self.deviceInfoList.append(dInfo)
-                    self.tabWidgetList[0].registerProbe(tabName, tab.pildevice)
+                    self.tabWidgetList[0].registerProbe(tabName, self.tab.pildevice)
                 elif tabType == PILGLOBALS.Tab_Type_Interface:
-                    tab = tabClass(
+                    self.tab = tabClass(
                         self,
                         tabName,
                         self.interfaceSpecifications,
                         self.sig_UpdateInterfaceActive,
                         numInterfaces,
                     )
-                    self.tabWidget.addTab(tab, tabName)
-                    self.tabWidgetList.append(tab)
-                    dInfo = deviceInfo(id, tabType, tabName, tab.pildevice)
+                    self.tabWidget.addTab(self.tab, tabName)
+                    self.tabWidgetList.append(self.tab)
+                    dInfo = deviceInfo(id, tabType, tabName, self.tab.pildevice)
                     self.deviceInfoList.append(dInfo)
                     self.validConfigNameList.append(tabName)
-                    if tab.get_active():
+                    if self.tab.get_active():
                         self.interfaceStatus.append(cls_IOThread.STAT_DISCONNECTED)
                     else:
                         self.interfaceStatus.append(cls_IOThread.STAT_DISABLED)
                     numInterfaces += 1
                 elif tabType == PILGLOBALS.Tab_Type_Device:
-                    tab = tabClass(self, tabName)
-                    self.tabWidget.addTab(tab, tabName)
-                    self.tabWidgetList.append(tab)
-                    dInfo = deviceInfo(id, tabType, tabName, tab.pildevice)
+                    self.tab = tabClass(self, tabName)
+                    self.tabWidget.addTab(self.tab, tabName)
+                    self.tabWidgetList.append(self.tab)
+                    dInfo = deviceInfo(id, tabType, tabName, self.tab.pildevice)
                     self.deviceInfoList.append(dInfo)
                     self.validConfigNameList.append(tabName)
                 else:
-                    print("error")  # TODO error message
+                    self.showError("Illegal Tab Type found")
                     sys.exit(1)
             #
             # remove entries in configuration which do not exist in tabconfig
@@ -385,11 +391,9 @@ class cls_ui(QtWidgets.QMainWindow):
             self.show()
             self.raise_()
             #
-            # TODO: do autostart of loop if configured
             # TODO: show starter info if pyilper is run for the first time
             # TODO: show release notes if a new version of pyilper is run for the first time
-            if PILCONFIG.get(self.name, "autostart"):
-                self.controller_start()
+
         #
         #   catch any exception during initialization
         #
@@ -397,6 +401,11 @@ class cls_ui(QtWidgets.QMainWindow):
             e.add_note("error during program initialization")
             self.showRuntimeError(None, e)
             sys.exit(1)
+        #
+        # Do autostart of loop if configured
+        #
+        if PILCONFIG.get(self.name, "autostart"):
+            self.controller_start()
 
     def updateInterfaceActive(self, interfaceNumber, active):
         if active:
@@ -435,37 +444,45 @@ class cls_ui(QtWidgets.QMainWindow):
     #  Start controller thread
     #
     def controller_start(self):
-        #
-        # TODO: error handling
-        #
-        os.chdir(PILCONFIG.get(self.name, "workdir"))
-        #
-        self.controller = cls_controller(
-            self, self.sig_UpdateStatus, self.sig_ControllerTerminated
-        )
-        ret = self.controller.setup(
-            self.deviceInfoList,
-            self.interfaceSpecifications,
-        )
-        #
-        # No active interface found
-        # TODO: output message
-        #
-        if ret == 0:
-            self.controller = None
+
+        try:
+            os.chdir(PILCONFIG.get(self.name, "workdir"))
+        except Exception as e:
+            e.add_note("Cannot change to working directory")
+            self.showException(e)
             return
-        #
-        # TODO: enable the tab objects
-        #
-        for tab in self.tabWidgetList:
-            tab.enable()
-        self.controllerThread = threading.Thread(target=self.controller.run)
-        self.controllerThread.start()
-        #
-        # trigger visible virtual device widget to enable refreshs
-        #
-        pilwidget = self.tabWidgetList[PILCONFIG.get(self.name, "active_tab")]
-        pilwidget.becomes_visible()
+
+        try:
+            self.controller = cls_controller(
+                self, self.sig_UpdateStatus, self.sig_ControllerTerminated
+            )
+            ret = self.controller.setup(
+                self.deviceInfoList,
+                self.interfaceSpecifications,
+            )
+            #
+            # No active interface found
+            #
+            if ret == 0:
+                self.showInfo("No active Interfaces found")
+                self.controller = None
+                return
+            #
+            # Enable the tab objects
+            #
+            for tab in self.tabWidgetList:
+                tab.enable()
+            self.controllerThread = threading.Thread(target=self.controller.run)
+            self.controllerThread.start()
+            #
+            # trigger visible virtual device widget to enable refreshs
+            #
+            pilwidget = self.tabWidgetList[PILCONFIG.get(self.name, "active_tab")]
+            pilwidget.becomes_visible()
+        except Exception as e:
+            e.add_note("controller initialization failed")
+            self.showException(e)
+            self.controller = None
 
     def controller_stop(self):
         if self.controller is None:
@@ -477,7 +494,7 @@ class cls_ui(QtWidgets.QMainWindow):
                 time.sleep(0.1)
             self.controllerThread = None
         #
-        # TODO: disable registered tab objects
+        # Disable registered tab objects
         #
         for tab in self.tabWidgetList:
             tab.disable()
@@ -524,8 +541,11 @@ class cls_ui(QtWidgets.QMainWindow):
         if not cls_DeviceConfigWindow.getDeviceConfig(self, self.tabSpecifications):
             return
         PILCONFIG.put(self.name, "tabconfigchanged", True)
-        # TODO error check
-        PILCONFIG.save()  # needed?
+        try:
+            PILCONFIG.save()
+        except Exception as e:
+            e.add_note("Device configuration not saved")
+            self.showException(e)
 
     #
     # plotter pen configuration
@@ -533,8 +553,11 @@ class cls_ui(QtWidgets.QMainWindow):
     def penConfig(self):
         if not cls_PenConfigWindow.getPenConfig():
             return
-        # TODO error check
-        PENCONFIG.save()
+        try:
+            PENCONFIG.save()
+        except Exception as e:
+            e.add_note("Plotter pen configuration not saved")
+            self.showException(e)
 
     #
     # terminal keyboard shortcut configuration
@@ -542,8 +565,31 @@ class cls_ui(QtWidgets.QMainWindow):
     def shortcutConfig(self):
         if not cls_ShortcutConfigWindow.getShortcutConfig():
             return
-        # TODO error check
-        SHORTCUTCONFIG.save()
+        try:
+            SHORTCUTCONFIG.save()
+        except Exception as e:
+            e.add_note("Kayboard shortcut configuration not saved")
+            self.showException(e)
+
+    #
+    # callback init LIF data file
+
+    def initLif(self):
+        workdir = PILCONFIG.get(self.name, "workdir")
+        cls_lifinit.execute(workdir)
+
+    #
+    #  callback fix LIF data file
+    #
+    def fixLif(self):
+        workdir = PILCONFIG.get(self.name, "workdir")
+        cls_liffix.execute(workdir)
+
+    #
+    #  callback check LIFUTILS installation
+    #
+    def installCheck(self):
+        cls_installcheck.execute()
 
     #
     # callback show hp-il device status
@@ -629,6 +675,42 @@ class cls_ui(QtWidgets.QMainWindow):
         msgBox.setText(txt)
         msgBox.setDetailedText(tbTxt)
         msgBox.exec()
+
+    #
+    # show warning message
+    #
+    def showWarning(self, txt):
+        msgBox = QtWidgets.QMessageBox()
+        msgBox.setIcon(QtWidgets.QMessageBox.Icon.Warning)
+        msgBox.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Close)
+        msgBox.setText(txt)
+        msgBox.exec()
+
+    #
+    # show info message
+    #
+    def showInfo(self, txt):
+        msgBox = QtWidgets.QMessageBox()
+        msgBox.setIcon(QtWidgets.QMessageBox.Icon.Information)
+        msgBox.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Close)
+        msgBox.setText(txt)
+        msgBox.exec()
+
+    #
+    # Show short error message
+    #
+    def showError(self, txt):
+        msgBox = QtWidgets.QMessageBox()
+        msgBox.setIcon(QtWidgets.QMessageBox.Icon.Critical)
+        msgBox.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Close)
+        msgBox.setText(txt)
+        msgBox.exec()
+
+    #
+    # Show detailed error message (exception)
+    #
+    def showException(self, ex):
+        self.showRuntimeError(None, ex)
 
 
 def main():

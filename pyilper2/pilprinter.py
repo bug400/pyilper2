@@ -38,8 +38,8 @@ from .pilcore import cls_Tab_Spec
 #
 class cls_tabprinter(cls_tabtermgeneric):
 
-    def __init__(self, parent, name):
-        super().__init__(parent, name)
+    def __init__(self, mainUI, name):
+        super().__init__(mainUI, name)
         #
         #     init local configuration parameters
         #
@@ -55,7 +55,7 @@ class cls_tabprinter(cls_tabtermgeneric):
         #
         #     create HP-IL device and let the GUI object know it
         #
-        self.pildevice = cls_pilprinter(self, self.guiobject)
+        self.pildevice = cls_pilprinter(self.guiobject)
         self.guiobject.set_pildevice(self.pildevice)
         self.guiobject.set_charset(self.charset)
 
@@ -77,7 +77,6 @@ class cls_tabprinter(cls_tabtermgeneric):
 
     def enable(self):
         super().enable()
-        # self.parent.commthread.register(self.pildevice, self.name)
         self.pildevice.setactive(PILCONFIG.get(self.name, "active"))
 
     #
@@ -109,14 +108,13 @@ class cls_tabprinter(cls_tabtermgeneric):
 #
 class cls_pilprinter(cls_pildevbase):
 
-    def __init__(self, parent, guiobject):
+    def __init__(self, guiobject):
 
         super().__init__()
         self.__aid__ = 0x2E  # accessory id = printer
         self.__defaddr__ = 3  # default address alter AAU
         self.__did__ = "PRINTER"  # device id
         self.__fesc__ = False  # no escape sequence
-        self.__parent__ = parent  # parent object
         self.__guiobject__ = guiobject
 
     #

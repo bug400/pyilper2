@@ -510,11 +510,11 @@ class LogCheckboxWidget(QtWidgets.QCheckBox):
 #
 class cls_tabgeneric(QtWidgets.QWidget):
 
-    def __init__(self, parent, name):
+    def __init__(self, mainUI, name):
         super().__init__()
         self.name = name
         self.active = PILCONFIG.get(self.name, "active", False)
-        self.parent = parent
+        self.mainUI = mainUI
         self.font_name = PILGLOBALS.Font
         self.font_size = 0
         self.font_width = 0
