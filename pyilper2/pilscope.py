@@ -267,7 +267,6 @@ class cls_tabscope(cls_tabtermgeneric):
         pildevice.setactive(self.active)
 
     def controlProbes(self):
-        print(f"control probes {self.active} {self.logMode}")
         if self.active:
             if self.logMode == self.LOG_BOTH:
                 self.probePildevices[1].setactive(True)

@@ -39,7 +39,7 @@ from .pilcore import getEventPosition, decode_version, cls_Tab_Spec
 from .pilconfig import PILCONFIG
 from .penconfig import PENCONFIG
 from .pildevbase import cls_pildevbase
-from .pilwidgets import cls_tabgeneric, LogCheckboxWidget, T_STRING
+from .pilwidgets import cls_tabgeneric, T_STRING
 from .pilpdf import cls_pdfprinter
 from .lifcore import add_path
 

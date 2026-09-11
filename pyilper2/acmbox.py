@@ -36,7 +36,7 @@ from .pilglobals import PILGLOBALS
 from PySide6 import QtCore, QtGui, QtWidgets
 from .serialio import cls_serialIO
 from .pilconfig import PILCONFIG
-from .pilcore import cls_Interface_Spec
+from .pilcore import cls_Interface_Spec, AppException
 from .iothread import cls_IOThread
 from .pilinterface import cls_ConfigInterfaceGeneric, cls_TtyWindow
 
@@ -131,6 +131,13 @@ class cls_acmbox(cls_IOThread):
                 if self.__stopEvent__.is_set():
                     break
                 #
+                # bail out if we have no tty device
+                #
+                if self.__ttyDevice__ == "":
+                    raise AppException(
+                        f"Serial device not configured in interface {self.__name__}"
+                    )
+                #
                 # check for device if removed
                 #
                 if self.__deviceRemoved__:
@@ -197,7 +204,7 @@ class cls_acmbox(cls_IOThread):
             #
             # put error status and message to queue
             #
-            self.__queue__.put([self.__id__, -1, e])
+            self.__queue__.put([self.__id__, self.MSG_ERROR, e])
         finally:
             self.setStatus(self.STAT_DISCONNECTED)
         return

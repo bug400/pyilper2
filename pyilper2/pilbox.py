@@ -167,6 +167,12 @@ class cls_pilbox(cls_IOThread):
             #
             # outer auto reconnect loop
             #
+            # bail out, if we have no tty device
+            #
+            if self.__ttyDevice__ == "":
+                raise AppException(
+                    f"Serial device not configured in interface {self.__name__}"
+                )
 
             while True:
                 #
@@ -190,7 +196,7 @@ class cls_pilbox(cls_IOThread):
                 #
                 self.open()
                 #
-                # init PIL-Box mode
+                # init PIL-Box
                 #
                 self.initBox()
                 print(self.__name__ + ": open/init passed")
@@ -265,7 +271,8 @@ class cls_pilbox(cls_IOThread):
             #
             # put error status and message to queue
             #
-            self.__queue__.put([self.__id__, -1, e])
+            self.__queue__.put([self.__id__, self.MSG_ERROR, e])
+            print(self.__name__ + ": reader error exit")
         finally:
             self.setStatus(self.STAT_DISCONNECTED)
             return
@@ -280,7 +287,6 @@ class cls_pilbox(cls_IOThread):
         if self.getStatus() != self.STAT_CONNECTED:
             self.__lasth__ = 0
             return
-
         #
         # disassemble into low and high byte
         #
@@ -364,7 +370,6 @@ class cls_pilboxConfig(cls_ConfigInterfaceGeneric):
         self.cbIdyFrame.setEnabled(True)
         self.cbIdyFrame.stateChanged.connect(self.do_cbIdyFrame)
         self.vb.addWidget(self.cbIdyFrame)
-
         #
         # controller mode
         #

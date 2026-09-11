@@ -202,7 +202,7 @@ class cls_usbbox(cls_IOThread):
             #
             # put error status and message to queue
             #
-            self.__queue__.put([self.__id__, -1, e])
+            self.__queue__.put([self.__id__, self.MSG_ERROR, e])
         finally:
             self.setStatus(self.STAT_DISCONNECTED)
         return

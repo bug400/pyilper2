@@ -48,9 +48,16 @@ class cls_pilglobals:
     #  initialize: create instance
     #
     def __init__(self):
-        self.PackageName = __import__(__name__.split(".")[0]).__name__
-        self.Production = __isProduction__  # Production/Development Version
-        self.FullVersion = __version__  # pyILPER full package version
+        #
+        # Package related stuff (see also __init__.py)
+        #
+        self.Package = __import__(__name__.split(".")[0])
+        self.PackageName = self.Package.__name__
+        self.PackageDir = self.Package.__file__
+        self.Production = (
+            self.Package.__isProduction__
+        )  # Production/Development Version
+        self.FullVersion = self.Package.__version__  # pyILPER full package version
         self.ConfigVersion = (
             "3"  # Version number of pyILPER config file, must be string
         )

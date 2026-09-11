@@ -39,7 +39,6 @@ from .pilcharconv import charconv, barrconv, CHARSET_HP2225
 from .pildevbase import cls_pildevbase
 from .pilwidgets import (
     cls_tabgeneric,
-    LogCheckboxWidget,
     T_INTEGER,
     O_DEFAULT,
     T_STRING,

@@ -4,6 +4,8 @@ import os
 import threading
 import traceback
 import importlib
+import shutil
+import re
 from dataclasses import dataclass
 from json import JSONDecodeError
 from PySide6 import QtCore, QtWidgets
@@ -14,6 +16,7 @@ from .pilwidgets import (
     cls_PilConfigWindow,
     cls_DeviceConfigWindow,
     cls_DevStatusWindow,
+    cls_AboutWindow,
 )
 from .pilglobals import PILGLOBALS
 from .pilconfig import PILCONFIG
@@ -60,7 +63,7 @@ class cls_ui(QtWidgets.QMainWindow):
         #     absulutely needed: call super().__init__()
         self.sig_UpdateStatus.connect(self.updateStatus, QtCore.Qt.QueuedConnection)
         self.sig_ControllerTerminated.connect(
-            self.showRuntimeError, QtCore.Qt.QueuedConnection
+            self.controllerErrorHandler, QtCore.Qt.QueuedConnection
         )
         self.sig_UpdateInterfaceActive.connect(
             self.updateInterfaceActive, QtCore.Qt.QueuedConnection
@@ -94,7 +97,7 @@ class cls_ui(QtWidgets.QMainWindow):
             PILCONFIG.get(self.name, "hp2225b_screenwidth", 640)
             PILCONFIG.get(self.name, "usebom", False)
             PILCONFIG.get(self.name, "qtstyle", "Default")
-            PILCONFIG.get(self.name, "autostart", False)
+            PILCONFIG.get(self.name, "autostart", True)
             PILCONFIG.get(
                 self.name,
                 "tabconfig",
@@ -103,8 +106,10 @@ class cls_ui(QtWidgets.QMainWindow):
                     [PILGLOBALS.Tab_Interface, "Interface1"],
                     [PILGLOBALS.Tab_Probe, "Probe1"],
                     [PILGLOBALS.Tab_Printer, "Printer1"],
-                    [PILGLOBALS.Tab_Interface, "Interface2"],
-                    [PILGLOBALS.Tab_Printer, "Printer2"],
+                    [PILGLOBALS.Tab_Terminal, "Terminal"],
+                    [PILGLOBALS.Tab_Plotter, "Plotter"],
+                    [PILGLOBALS.Tab_Drive, "Drive1"],
+                    [PILGLOBALS.Tab_Drive, "Drive2"],
                     [PILGLOBALS.Tab_Probe, "Probe2"],
                 ],
             )
@@ -119,14 +124,10 @@ class cls_ui(QtWidgets.QMainWindow):
             oldversion = decode_pyILPERVersion(PILCONFIG.get(self.name, "version"))
             thisversion = decode_pyILPERVersion(PILGLOBALS.Version)
             if thisversion < oldversion:
-                reply = QtWidgets.QMessageBox.warning(
-                    self.ui,
-                    "Warning",
+                reply = self.showWarningWithCancel(
                     "Your configuration files are of pyILPER version "
-                    + PILCONFIG.get(self.name, "version")
-                    + " which is newer than the version you are running. The program might crash or mishehave. Do you want to continue?",
-                    QtWidgets.QMessageBox.Ok,
-                    QtWidgets.QMessageBox.Cancel,
+                    + +PILCONFIG.get(self.name, "version")
+                    + " which is newer than the version you are running. The program might crash or mishehave. Do you want to continue?"
                 )
                 if reply == QtWidgets.QMessageBox.Cancel:
                     sys.exit(1)
@@ -163,14 +164,10 @@ class cls_ui(QtWidgets.QMainWindow):
                         break
                 if not styleFound:
                     PILCONFIG.put(self.name, "qtstyle", "Default")
-                    reply = QtWidgets.QMessageBox.critical(
-                        self.ui,
-                        "Error",
+                    self.showError(
                         "Style "
                         + qtstyle
                         + " not available. Resetting to system default",
-                        QtWidgets.QMessageBox.Ok,
-                        QtWidgets.QMessageBox.Ok,
                     )
 
             #
@@ -194,12 +191,13 @@ class cls_ui(QtWidgets.QMainWindow):
             self.actionShortcutConfig.triggered.connect(self.shortcutConfig)
             self.actionStart = self.menuFile.addAction("Start Loop")
             self.actionStart.triggered.connect(self.controller_restart)
-            self.actionPause = self.menuFile.addAction("Pause Loop")
-            self.actionPause.triggered.connect(self.controller_pause)
-            self.actionResume = self.menuFile.addAction("Resume Loop")
-            self.actionResume.triggered.connect(self.controller_resume)
+            # self.actionPause = self.menuFile.addAction("Pause Loop")
+            # self.actionPause.triggered.connect(self.controller_pause)
+            # self.actionResume = self.menuFile.addAction("Resume Loop")
+            # self.actionResume.triggered.connect(self.controller_resume)
             self.actionStop = self.menuFile.addAction("Stop Loop")
             self.actionStop.triggered.connect(self.controller_stop)
+            self.actionStop.setEnabled(False)
             self.actionExit = self.menuFile.addAction("Exit")
             self.actionExit.triggered.connect(self.app_exit)
 
@@ -215,6 +213,7 @@ class cls_ui(QtWidgets.QMainWindow):
             self.actionCopyPilimage = self.menuUtil.addAction(
                 "Copy PILIMAGE.DAT to workdir"
             )
+            self.actionCopyPilimage.triggered.connect(self.copyPilImage)
             self.actionInstallCheck = self.menuUtil.addAction(
                 "Check LIFUTILS installation"
             )
@@ -224,6 +223,7 @@ class cls_ui(QtWidgets.QMainWindow):
 
             self.menuHelp = self.menubar.addMenu("Help")
             self.actionAbout = self.menuHelp.addAction("About")
+            self.actionAbout.triggered.connect(self.about)
             self.actionHelp = self.menuHelp.addAction("Manual")
             #
             # check lifutils, do we need that variable
@@ -358,7 +358,7 @@ class cls_ui(QtWidgets.QMainWindow):
             # status bar and idicator widget
             #
             self.statusBar = QtWidgets.QStatusBar()
-            #       self.statusBar.setFixedWidth(300)
+            # self.statusBar.setFixedWidth(300)
             # if self.indicator is not None:
             # self.statusBar.removeWidget(self.indicator)
             # self.indicator.deleteLater()
@@ -431,6 +431,8 @@ class cls_ui(QtWidgets.QMainWindow):
                 msg = "Loop running ..."
             else:
                 msg = "Waiting for connection(s) ..."
+            self.actionStart.setEnabled(False)
+            self.actionStop.setEnabled(True)
         elif controllerStatus == cls_controller.STAT_PAUSE:
             msg = "Loop suspended ..."
         else:
@@ -438,6 +440,8 @@ class cls_ui(QtWidgets.QMainWindow):
                 msg = "Loop stopped after error"
             else:
                 msg = "Loop stopped"
+            self.actionStart.setEnabled(True)
+            self.actionStop.setEnabled(False)
         self.statusBar.showMessage(msg)
 
     #
@@ -479,6 +483,7 @@ class cls_ui(QtWidgets.QMainWindow):
             #
             pilwidget = self.tabWidgetList[PILCONFIG.get(self.name, "active_tab")]
             pilwidget.becomes_visible()
+
         except Exception as e:
             e.add_note("controller initialization failed")
             self.showException(e)
@@ -516,14 +521,8 @@ class cls_ui(QtWidgets.QMainWindow):
         self.controller_start()
 
     def pyilperConfig(self):
-        (accept, needs_reconnect, needs_reconfigure) = cls_PilConfigWindow.getPilConfig(
-            self, self.name
-        )
-        # print(f"return from config {accept} {needs_reconnect} {needs_reconfigure}")
+        (accept, needs_reconfigure) = cls_PilConfigWindow.getPilConfig(self, self.name)
         if accept:
-            if needs_reconnect:  # TODO check if needed
-                self.controller_stop()
-
             #
             # reconfigure the tabs while the thread is stopped or paused
             #
@@ -601,6 +600,45 @@ class cls_ui(QtWidgets.QMainWindow):
         self.devstatuswin.raise_()
 
     #
+    #  callback copy PILIMAGE.DAT to working directory
+    #
+    def copyPilImage(self):
+
+        srcfile = os.path.join(
+            os.path.dirname(PILGLOBALS.PackageDir),
+            "lifimage",
+            "PILIMAGE.DAT",
+        )
+        srcfile = re.sub("//", "/", srcfile, count=1)
+        dstpath = PILCONFIG.get(self.name, "workdir")
+        if os.access(os.path.join(dstpath, "PILIMAGE.DAT"), os.W_OK):
+            if (
+                self.showWarningWithCancel(
+                    "File PILIMAGE.DAT already exists. Do you really want to overwrite that file?"
+                )
+                == QtWidgets.QMessageBox.Cancel
+            ):
+                return
+        try:
+            shutil.copy(srcfile, dstpath)
+        except shutil.SameFileError:
+            self.showError("Source and destination files are identical")
+            return
+        except OSError as e:
+            e.add_note(f"Cannot copy file ${srcfile}")
+            self.showException(e)
+            return
+
+    #
+    # allback show about window
+    #
+    def about(self):
+        if self.aboutwin is None:
+            self.aboutwin = cls_AboutWindow(PILGLOBALS.Version)
+            self.aboutwin.show()
+            self.aboutwin.raise_()
+
+    #
     # Exit Application
     #
     def app_exit(self):
@@ -640,10 +678,21 @@ class cls_ui(QtWidgets.QMainWindow):
         self.app_exit()
 
     #
-    #  controller terminated signal handler
+    #  controller terminated signal handler, show detailed error messages and disable devices
+    #
+    def controllerErrorHandler(self, errMsgPrefix, ex):
+        self.showRuntimeError(errMsgPrefix, ex)
+        #
+        # Disable registered tab objects
+        #
+        for tab in self.tabWidgetList:
+            tab.disable()
+        self.controller = None
+
+    #
+    # show runtime error with traceback in message box
     #
     def showRuntimeError(self, errMsgPrefix, ex):
-        print("controller terminated signal")
         txt = ""
         if hasattr(ex, "__notes__"):
             for line in reversed(ex.__notes__):
@@ -687,6 +736,21 @@ class cls_ui(QtWidgets.QMainWindow):
         msgBox.setText(txt)
         msgBox.exec()
         msgBox.destroy()
+
+    #
+    # show warning message with cancel button
+    #
+    def showWarningWithCancel(self, txt):
+        msgBox = QtWidgets.QMessageBox()
+        msgBox.setIcon(QtWidgets.QMessageBox.Icon.Warning)
+        msgBox.setStandardButtons(
+            QtWidgets.QMessageBox.StandardButton.Ok
+            | QtWidgets.QMessageBox.StandardButton.Cancel
+        )
+        msgBox.setText(txt)
+        ret = msgBox.exec()
+        msgBox.destroy()
+        return ret
 
     #
     # show info message

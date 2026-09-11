@@ -409,9 +409,10 @@ class cls_Tabs(QtWidgets.QTabWidget):
 # Logging check box class --------------------------------------------------
 #
 class LogCheckboxWidget(QtWidgets.QCheckBox):
-    def __init__(self, name):
+    def __init__(self, mainUI, name):
         super().__init__("Log " + name)
         self.name = name
+        self.mainUI = mainUI
         self.filename = self.name + ".log"
         self.log = None
         self.buffer_log = PILCONFIG.get(self.name, "buffer_log", True)
@@ -437,12 +438,8 @@ class LogCheckboxWidget(QtWidgets.QCheckBox):
             self.log.write("\n")
             return True
         except OSError as e:
-            reply = QtWidgets.QMessageBox.critical(
-                self,
-                "Error",
-                "Cannot open log file " + self.filename + ": " + e.strerror,
-                QtWidgets.QMessageBox.Ok,
-                QtWidgets.QMessageBox.Ok,
+            self.mainUI.showError(
+                "Cannot open log file " + self.filename + ": " + e.strerror
             )
             return False
 
@@ -456,12 +453,8 @@ class LogCheckboxWidget(QtWidgets.QCheckBox):
             self.log.close()
             self.log = None
         except OSError as e:
-            reply = QtWidgets.QMessageBox.critical(
-                self,
-                "Error",
+            self.mainUI.showError(
                 "Cannot close log file: " + e.strerror,
-                QtWidgets.QMessageBox.Ok,
-                QtWidgets.QMessageBox.Ok,
             )
 
     def logWrite(self, line):
@@ -470,12 +463,8 @@ class LogCheckboxWidget(QtWidgets.QCheckBox):
         try:
             self.log.write(line)
         except OSError as e:
-            reply = QtWidgets.QMessageBox.critical(
-                self,
-                "Error",
+            self.mainUI.showError(
                 "Cannot write to log file: " + e.strerror + ". Logging disabled",
-                QtWidgets.QMessageBox.Ok,
-                QtWidgets.QMessageBox.Ok,
             )
             try:
                 self.log.close()
@@ -491,12 +480,8 @@ class LogCheckboxWidget(QtWidgets.QCheckBox):
         try:
             self.log.flush()
         except OSError as e:
-            reply = QtWidgets.QMessageBox.critical(
-                self,
-                "Error",
+            self.mainUI.showError(
                 "Cannot flush to log file: " + e.strerror + ". Logging disabled",
-                QtWidgets.QMessageBox.Ok,
-                QtWidgets.QMessageBox.Ok,
             )
             try:
                 self.log.close()
@@ -513,7 +498,8 @@ class cls_tabgeneric(QtWidgets.QWidget):
     def __init__(self, mainUI, name):
         super().__init__()
         self.name = name
-        self.active = PILCONFIG.get(self.name, "active", False)
+        #       self.active = PILCONFIG.get(self.name, "active", False)
+        self.active = PILCONFIG.get(self.name, "active", True)
         self.mainUI = mainUI
         self.font_name = PILGLOBALS.Font
         self.font_size = 0
@@ -579,7 +565,7 @@ class cls_tabgeneric(QtWidgets.QWidget):
     #  insert the cbLogging widget in hbox2 after the cbActive Widget
     #
     def add_logging(self):
-        self.cbLogging = LogCheckboxWidget(self.name)
+        self.cbLogging = LogCheckboxWidget(self, self.name)
         self.hbox2.insertWidget(1, self.cbLogging)
         self.logging = PILCONFIG.get(self.name, "logging", False)
         self.cbLogging.setChecked(self.logging)
@@ -932,17 +918,17 @@ class cls_AboutWindow(QtWidgets.QDialog):
 #
 class cls_PilConfigWindow(QtWidgets.QDialog):
 
-    def __init__(self, parent, name):
+    def __init__(self, mainUI, name):
         super().__init__()
         self.__needs_reconnect__ = False
         self.__needs_reconfigure__ = False
         self.__needs_restart__ = False
         self.__name__ = name
-        self.__parent__ = parent
+        self.__mainUI__ = mainUI
 
         self.__workdir__ = PILCONFIG.get(self.__name__, "workdir")
         self.__termcharsize__ = PILCONFIG.get(self.__name__, "terminalcharsize")
-        self.__dircharsize__ = PILCONFIG.get(self.__name__, "directorycharsize")
+        self.__directorycharsize__ = PILCONFIG.get(self.__name__, "directorycharsize")
         self.__papersize__ = PILCONFIG.get(self.__name__, "papersize")
         self.__lifutilspath__ = PILCONFIG.get(self.__name__, "lifutilspath")
         self.__hp82162a_pixelsize__ = PILCONFIG.get(self.__name__, "hp82162a_pixelsize")
@@ -1119,7 +1105,7 @@ class cls_PilConfigWindow(QtWidgets.QDialog):
         self.spinDirCharsize = QtWidgets.QSpinBox()
         self.spinDirCharsize.setMinimum(11)
         self.spinDirCharsize.setMaximum(18)
-        self.spinDirCharsize.setValue(self.__dircharsize__)
+        self.spinDirCharsize.setValue(self.__directorycharsize__)
         self.gridd.addWidget(self.spinDirCharsize, 0, 1)
 
         self.gboxd.setLayout(self.gridd)
@@ -1235,41 +1221,13 @@ class cls_PilConfigWindow(QtWidgets.QDialog):
         #
         #     check if we need to restart the pyILPER communication
         #
-        self.__needs_reconnect__ = False
-        self.__needs_reconnect__ |= self.check_param("workdir", self.lblwdir.text())
-        #
-        #     we need to reconnect, so get confirmation
-        #
-        if self.__needs_reconnect__ and PILCONFIG.get(
-            PILGLOBALS.PackageName, "show_msg_commparams_changed", True
-        ):
-            msgbox = QtWidgets.QMessageBox()
-            msgbox.setText(
-                "The change of the working directory requires a restart of the pyILPER loop. Continue?"
+        if self.check_param("workdir", self.lblwdir.text()):
+            self.__mainUI__.showInfo(
+                "The change of the working directory requires a restart of the pyILPER loop to take effect."
             )
-            msgbox.setIcon(QtWidgets.QMessageBox.Warning)
-            msgbox.setStandardButtons(
-                QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel
-            )
-            msgbox.setDefaultButton(QtWidgets.QMessageBox.Cancel)
-            cb = QtWidgets.QCheckBox("Do not show this message again")
-            msgbox.setCheckBox(cb)
-            msgbox.setWindowTitle("Warning")
-            reply = msgbox.exec()
-            PILCONFIG.put(
-                PILGLOBALS.PackageName,
-                "show_msg_commparams_changed",
-                cb.checkState() != QtCore.Qt.Checked,
-            )
-            #
-            #    not confirmed, cancel everything
-            #
-            if reply == QtWidgets.QMessageBox.Cancel:
-                super().reject
         #
         #     store parameters
         #
-
         PILCONFIG.put(self.__name__, "workdir", self.lblwdir.text())
         #
         #     these parameters require a reconfiguration
@@ -1300,39 +1258,20 @@ class cls_PilConfigWindow(QtWidgets.QDialog):
         #
         #     some parameters need a restart of the application, inform user
         #
-        if self.__needs_restart__ and PILCONFIG.get(
-            PILGLOBALS.PackageName, "show_msg_restartparams_changed", True
-        ):
-            msgbox = QtWidgets.QMessageBox()
-            msgbox.setText(
-                "Changes of the papersize, the scrollup buffer size or the lifutils path require a restart of pyILPER for take the changes to effect."
-            )
-            msgbox.setIcon(QtWidgets.QMessageBox.Information)
-            msgbox.setStandardButtons(QtWidgets.QMessageBox.Ok)
-            msgbox.setDefaultButton(QtWidgets.QMessageBox.Ok)
-            cb = QtWidgets.QCheckBox("Do not show this message again")
-            msgbox.setCheckBox(cb)
-            msgbox.setWindowTitle("Information")
-            reply = msgbox.exec()
-            PILCONFIG.put(
-                PILGLOBALS.PackageName,
-                "show_msg_restartparams_changed",
-                cb.checkState() != QtCore.Qt.Checked,
+        if self.__needs_restart__:
+            self.__mainUI__.showInfo(
+                "pyILPER must be restartet for changes to papersize, scrollup buffer size or the lifutils path to take effect."
             )
         #
         #     Apply style changes
         #
         if self.__qtstyle__ != PILCONFIG.get(self.__name__, "qtstyle"):
             if self.__qtstyle__ == "Default":
-                if self.__parent__.defaultStyle != "":
-                    QtWidgets.QApplication.setStyle(self.__parent__.defaultStyle)
+                if self.__mainUI__.defaultStyle != "":
+                    QtWidgets.QApplication.setStyle(self.__mainUI__.defaultStyle)
                 else:
-                    reply = QtWidgets.QMessageBox.warning(
-                        self,
-                        "Warning",
-                        "Resetting to default style requires restart of the application",
-                        QtWidgets.QMessageBox.Ok,
-                        QtWidgets.QMessageBox.Ok,
+                    self.__mainUI__.showWarning(
+                        "Resetting to default style requires restart of the application"
                     )
             else:
                 QtWidgets.QApplication.setStyle(self.__qtstyle__)
@@ -1358,17 +1297,17 @@ class cls_PilConfigWindow(QtWidgets.QDialog):
         super().reject()
 
     def get_status(self):
-        return (self.__needs_reconnect__, self.__needs_reconfigure__)
+        return self.__needs_reconfigure__
 
     @staticmethod
-    def getPilConfig(parent, interfaces):
-        dialog = cls_PilConfigWindow(parent, interfaces)
+    def getPilConfig(mainUI, interfaces):
+        dialog = cls_PilConfigWindow(mainUI, interfaces)
         result = dialog.exec()
-        (reconnect, reconfigure) = dialog.get_status()
+        reconfigure = dialog.get_status()
         if result == QtWidgets.QDialog.Accepted:
-            return True, reconnect, reconfigure
+            return True, reconfigure
         else:
-            return False, False, False
+            return False, False
 
 
 #

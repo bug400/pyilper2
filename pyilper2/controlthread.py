@@ -165,7 +165,6 @@ class cls_controller(threading.Thread):
                 continue
             tidx = self.controllerItems[i].tabIndex + 1
             nextInterfaceItemId = i + 1
-            print(self.controllerItems[i].name)
             while True:
                 if tidx >= len(self.deviceInfoList):
                     tidx = 0
@@ -179,11 +178,9 @@ class cls_controller(threading.Thread):
                     deviceInfo.tabType == PILGLOBALS.Tab_Type_Device
                     or deviceInfo.tabType == PILGLOBALS.Tab_Type_Probe
                 ):
-                    print(deviceInfo.tabName)
                     self.controllerItems[i].deviceProcessors.append(
                         deviceInfo.pildevice.process
                     )
-                    # print(self.controllerItems[i].deviceProcessors)
                 if deviceInfo.tabType == PILGLOBALS.Tab_Type_Interface:
                     if PILCONFIG.get(deviceInfo.tabName, "active"):
                         self.controllerItems[i].nextInterfaceItemId = (
@@ -193,7 +190,6 @@ class cls_controller(threading.Thread):
                     else:
                         nextInterfaceItemId += 1
                 tidx += 1
-        # print(self.controllerItems)
         #
         # reset pildevbase global frame counter
         #
@@ -242,7 +238,7 @@ class cls_controller(threading.Thread):
                     except Exception as e:
                         e.add_note(
                             "controlthread: write Error for interface "
-                            + self.controllerItems[writerId].interfaceName
+                            + self.controllerItems[writerId].name
                         )
                         raise e from e
 
@@ -253,9 +249,7 @@ class cls_controller(threading.Thread):
                     self.controllerItems[id].readerThread = None
                     self.e = item[2]
                     exitError = True
-                    errMsgPrefix = (
-                        "Error in IOThread " + self.controllerItems[id].interfaceName
-                    )
+                    errMsgPrefix = "Error in IOThread " + self.controllerItems[id].name
                     break
                 #
                 # got status change message
