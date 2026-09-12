@@ -793,12 +793,6 @@ class cls_tabtermgeneric(cls_tabgeneric):
 #
 # Help Dialog class ----------------------------------------------------------
 #
-class HelpError(Exception):
-    def __init__(self, value):
-        self.value = value
-
-    def __str__(self):
-        return repr(self.value)
 
 
 class cls_HelpWindow(QtWidgets.QDialog):
@@ -810,13 +804,11 @@ class cls_HelpWindow(QtWidgets.QDialog):
 
         self.vlayout = QtWidgets.QVBoxLayout()
         self.setLayout(self.vlayout)
-
-        if PILGLOBALS.Has_Webengine:
+        try:
             self.view = QtWebEngineWidgets.QWebEngineView()
-        else:
-            raise HelpError(
-                "The Python bindings for QtWebEngine are missing or disabled. Can not display manual"
-            )
+        except Exception as e:
+            e.add_note("Cannot create webengine view")
+            raise e from e
 
         self.view.setMinimumWidth(600)
         self.vlayout.addWidget(self.view)
@@ -832,9 +824,8 @@ class cls_HelpWindow(QtWidgets.QDialog):
         self.hlayout.addWidget(self.buttonExit)
         self.hlayout.addWidget(self.buttonForward)
         self.vlayout.addLayout(self.hlayout)
-        if PILGLOBALS.Has_Webkit or PILGLOBALS.Has_Webengine:
-            self.buttonBack.clicked.connect(self.do_back)
-            self.buttonForward.clicked.connect(self.do_forward)
+        self.buttonBack.clicked.connect(self.do_back)
+        self.buttonForward.clicked.connect(self.do_forward)
 
     def do_exit(self):
         self.hide()

@@ -8,7 +8,8 @@ import shutil
 import re
 from dataclasses import dataclass
 from json import JSONDecodeError
-from PySide6 import QtCore, QtWidgets
+from pathlib import Path
+from PySide6 import QtCore, QtWidgets, QtGui
 
 from .pilwidgets import (
     cls_RuntimeMessageBox,
@@ -17,6 +18,7 @@ from .pilwidgets import (
     cls_DeviceConfigWindow,
     cls_DevStatusWindow,
     cls_AboutWindow,
+    cls_HelpWindow,
 )
 from .pilglobals import PILGLOBALS
 from .pilconfig import PILCONFIG
@@ -43,11 +45,12 @@ class cls_ui(QtWidgets.QMainWindow):
     sig_ControllerTerminated = QtCore.Signal(str, Exception)  # must be class variable!!
     sig_UpdateInterfaceActive = QtCore.Signal(int, bool)
 
-    def __init__(self, parent, version, instance):
+#   def __init__(self, parent, version, instance):
+    def __init__(self,parent):
         super().__init__()
         self.controller = None
         self.controllerThread = None
-        self.parent = parent
+#       self.parent = parent
         self.name = PILGLOBALS.PackageName
         self.clean = PILGLOBALS.Clean
         self.instance = PILGLOBALS.Instance
@@ -69,10 +72,10 @@ class cls_ui(QtWidgets.QMainWindow):
             self.updateInterfaceActive, QtCore.Qt.QueuedConnection
         )
 
-        if instance == "":
-            self.setWindowTitle("pyILPER " + version)
+        if PILGLOBALS.Instance == "":
+            self.setWindowTitle("pyILPER " + PILGLOBALS.Version)
         else:
-            self.setWindowTitle("pyILPER " + version + " : " + instance)
+            self.setWindowTitle("pyILPER " + PILGLOBALS.Version + " : " + PILGLOBALS.Instance)
         #
         #       Init configuration, catch any errors in the following init code
         #
@@ -131,7 +134,7 @@ class cls_ui(QtWidgets.QMainWindow):
                 )
                 if reply == QtWidgets.QMessageBox.Cancel:
                     sys.exit(1)
-
+            PILCONFIG.put(self.name, "version", PILGLOBALS.Version)
             #
             # Init pen configuration
             #
@@ -143,7 +146,7 @@ class cls_ui(QtWidgets.QMainWindow):
             )
 
             #
-            # Initterminal keyboard shortcuts
+            # Init terminal keyboard shortcuts
             #
             SHORTCUTCONFIG.open(
                 PILGLOBALS.ConfigVersion,
@@ -171,7 +174,7 @@ class cls_ui(QtWidgets.QMainWindow):
                     )
 
             #
-            #       build GUI
+            # build GUI
             #
             self.menubar = self.menuBar()
             self.menubar.setNativeMenuBar(False)
@@ -225,6 +228,7 @@ class cls_ui(QtWidgets.QMainWindow):
             self.actionAbout = self.menuHelp.addAction("About")
             self.actionAbout.triggered.connect(self.about)
             self.actionHelp = self.menuHelp.addAction("Manual")
+            self.actionHelp.triggered.connect(self.help)
             #
             # check lifutils, do we need that variable
             #
@@ -237,6 +241,14 @@ class cls_ui(QtWidgets.QMainWindow):
             #
             self.tabSpecifications = {}
             self.tabModules = PILGLOBALS.TabModules
+            #
+            # add extra tab modules
+            #
+            extraTabModules = os.environ.get("PYILPER2_EXTRA_TABS")
+            if extraTabModules is not None:
+                for m in extraTabModules.split(","):
+                    self.tabModules.append(m)
+
             for m in self.tabModules:
                 #
                 # retrieve tab module object
@@ -254,6 +266,14 @@ class cls_ui(QtWidgets.QMainWindow):
             #
             self.interfaceSpecifications = {}
             self.interfaceModules = PILGLOBALS.InterfaceModules
+            #
+            # add extra interface modules
+            #
+            extraInterfaceModules = os.environ.get("PYILPER2_EXTRA_INTERFACES")
+            if extraInterfaceModules is not None:
+                for m in extraInterfaceModules.split(","):
+                    self.interfaceModules.append(m)
+
             for m in self.interfaceModules:
                 #
                 # retrieve interface module object
@@ -274,6 +294,14 @@ class cls_ui(QtWidgets.QMainWindow):
             self.validConfigNameList.append(self.name)
             numInterfaces = 0
             self.interfaceStatus = []
+            #
+            # Build data structures for tab/device management and add tab objects to the main tab Widget
+            # tabWidgetList: list of the tab objects; note: some devices (probes) have no tab object
+            # validConfigNameList: list of tab names which have configuration entries in PILCONFIG, used to remove entries for non existing items
+            # deviceInfoList: Datestructures with various informations about devices (note: the Scope is not a device)
+            #
+            # For interfaces the initial interface status is created (disconnected/deactivated interface)
+            #
             for t in self.tabConfig:
                 id = t[0]
                 #
@@ -331,7 +359,7 @@ class cls_ui(QtWidgets.QMainWindow):
                     self.showError("Illegal Tab Type found")
                     sys.exit(1)
             #
-            # remove entries in configuration which do not exist in tabconfig
+            # remove entries in configuration which do not exist in validConfigNameList
             #
             removeKeys = []
             for key in PILCONFIG.getkeys():
@@ -351,17 +379,12 @@ class cls_ui(QtWidgets.QMainWindow):
                 lastTab = 0
                 PILCONFIG.put(self.name, "tabconfigchanged", True)
                 PILCONFIG.put(self.name, "tabconfig", self.tabConfig)
-                # TODO output warning message
                 PILCONFIG.put(self.name, "active_tab", 0)
 
             #
             # status bar and idicator widget
             #
             self.statusBar = QtWidgets.QStatusBar()
-            # self.statusBar.setFixedWidth(300)
-            # if self.indicator is not None:
-            # self.statusBar.removeWidget(self.indicator)
-            # self.indicator.deleteLater()
             self.indicator = cls_IndicatorWidget(10, numInterfaces)
             self.statusBar.addPermanentWidget(self.indicator)
             self.indicator.show()
@@ -374,7 +397,7 @@ class cls_ui(QtWidgets.QMainWindow):
             self.setStatusBar(self.statusBar)
 
             #
-            #  move window to last position
+            #  move main window to last position
             #
             position = PILCONFIG.get(self.name, "position")
             if position != "":
@@ -390,23 +413,36 @@ class cls_ui(QtWidgets.QMainWindow):
             #
             self.show()
             self.raise_()
-            #
-            # TODO: show starter info if pyilper is run for the first time
-            # TODO: show release notes if a new version of pyilper is run for the first time
 
         #
-        #   catch any exception during initialization
+        # catch any exception during initialization
         #
         except Exception as e:
             e.add_note("error during program initialization")
             self.showRuntimeError(None, e)
             sys.exit(1)
         #
+        # if we run pyILPER for the first time (oldversion =0.0.0), show startup info
+        #
+        if PILCONFIG.get(self.name, "position") == "":
+            self.startupInfo()
+        else:
+            #
+            # if we run a new version for the first time, show release notes
+            #
+            if thisversion > oldversion:
+                self.releaseInfo(PILGLOBALS.Version)
+        #
+        #
         # Do autostart of loop if configured
         #
         if PILCONFIG.get(self.name, "autostart"):
             self.controller_start()
 
+    #
+    # This signal callback updates the interface status if the active checkbox of an interface is checked/unchecked.
+    # Note: this is only possible, if the controlthread is n o t running
+    #
     def updateInterfaceActive(self, interfaceNumber, active):
         if active:
             self.interfaceStatus[interfaceNumber] = cls_IOThread.STAT_DISCONNECTED
@@ -415,15 +451,25 @@ class cls_ui(QtWidgets.QMainWindow):
         self.indicator.updateStatus(self.interfaceStatus)
         return
 
+    #
+    # This signal callback updates the interface status and the loop status if the controlthread is running
+    # The handler also controls the activation of the loop start/loop stop actions in the file menu
+    #
     def updateStatus(self, controllerStatus, interfaceStatus, exitError):
 
+        #
+        # update interface indicators
+        #
         self.indicator.updateStatus(interfaceStatus)
+        #
+        # check, if all interfaces are connected, then the loop is running
+        #
         allConnected = True
         for i in interfaceStatus:
             if i != cls_IOThread.STAT_DISABLED and i != cls_IOThread.STAT_CONNECTED:
                 allConnected = False
         #
-        #       create status message
+        # create the appropriate status message
         #
         msg = ""
         if controllerStatus == cls_controller.STAT_RUN:
@@ -445,7 +491,7 @@ class cls_ui(QtWidgets.QMainWindow):
         self.statusBar.showMessage(msg)
 
     #
-    #  Start controller thread
+    #  Start controller thread, enable the tab objects and trigger the visible tab to enable refreshs
     #
     def controller_start(self):
 
@@ -489,6 +535,9 @@ class cls_ui(QtWidgets.QMainWindow):
             self.showException(e)
             self.controller = None
 
+    #
+    # Stop the controller thread, disable all tabs
+    #
     def controller_stop(self):
         if self.controller is None:
             return
@@ -506,25 +555,37 @@ class cls_ui(QtWidgets.QMainWindow):
         print("main: controller thread joined")
         self.controller = None
 
+    #
+    # suspend execution of the control thread, used if devices need to be reconfigured if the pyILPER config was changed. Not callable from UI
+    #
     def controller_pause(self):
         if self.controller is not None:
             self.controller.pause()
 
+    #
+    # resume execution of a suspended control thread
+    #
     def controller_resume(self):
         if self.controller is not None:
             self.controller.resume()
 
+    #
+    # restart control thread (not used at the moment)
+    #
     def controller_restart(self):
         if self.controller is not None:
             print("illegal status")
             return
         self.controller_start()
 
+    #
+    # pyILPER system configuration callback
+    #
     def pyilperConfig(self):
         (accept, needs_reconfigure) = cls_PilConfigWindow.getPilConfig(self, self.name)
         if accept:
             #
-            # reconfigure the tabs while the thread is stopped or paused
+            # reconfigure the tabs while the thread is suspended
             #
             if needs_reconfigure:
                 self.controller_pause()
@@ -533,7 +594,7 @@ class cls_ui(QtWidgets.QMainWindow):
                 self.controller_resume()
 
     #
-    # device configuration
+    # pyILPER device configuration callback
     #
     def devConfig(self):
 
@@ -547,7 +608,7 @@ class cls_ui(QtWidgets.QMainWindow):
             self.showException(e)
 
     #
-    # plotter pen configuration
+    # plotter pen configuration callback
     #
     def penConfig(self):
         if not cls_PenConfigWindow.getPenConfig():
@@ -559,7 +620,7 @@ class cls_ui(QtWidgets.QMainWindow):
             self.showException(e)
 
     #
-    # terminal keyboard shortcut configuration
+    # terminal keyboard shortcut configuration callback
     #
     def shortcutConfig(self):
         if not cls_ShortcutConfigWindow.getShortcutConfig():
@@ -591,7 +652,7 @@ class cls_ui(QtWidgets.QMainWindow):
         cls_installcheck.execute()
 
     #
-    # callback show hp-il device status
+    # callback show HP-IL device status
     #
     def devStatus(self):
         if self.devstatuswin is None:
@@ -630,7 +691,7 @@ class cls_ui(QtWidgets.QMainWindow):
             return
 
     #
-    # allback show about window
+    # callback show about window
     #
     def about(self):
         if self.aboutwin is None:
@@ -659,6 +720,20 @@ class cls_ui(QtWidgets.QMainWindow):
         height = self.height()
         position = [pos_x, pos_y, width, height]
         PILCONFIG.put(self.name, "position", position)
+        #
+        # Store position of help window
+        #
+        if self.helpwin is not None:
+            helpposition = [
+                self.helpwin.pos().x(),
+                self.helpwin.pos().y(),
+                self.helpwin.width(),
+                self.helpwin.height(),
+            ]
+            PILCONFIG.put(self.name, "helpposition", helpposition)
+        #
+        # close all floating windows and store their positions
+        #
         self.tabWidget.closeFloatingWindows()
         #
         # store configuration
@@ -672,6 +747,9 @@ class cls_ui(QtWidgets.QMainWindow):
             self.showRuntimeError(None, e)
         QtWidgets.QApplication.quit()
 
+    #
+    # this catches the window close event
+    #
     def closeEvent(self, event):
         event.accept()
         self.hide()
@@ -780,10 +858,70 @@ class cls_ui(QtWidgets.QMainWindow):
     def showException(self, ex):
         self.showRuntimeError(None, ex)
 
+    #
+    # callback show help window
+    #
+    def help(self):
+        self.showHelp("", "index.html")
+
+    #
+    # show release information window
+    #
+    def releaseInfo(self, version):
+        self.showHelp("", "releasenotes.html")
+
+    #
+    # show startup info
+    #
+    def startupInfo(self):
+        self.showHelp("", "startup.html")
+
+    #
+    #  show help windows for a certain document
+    #
+    def showHelp(self, subdir, document):
+        if subdir == "":
+            docPath = Path(PILGLOBALS.PackageDir).parent / "Manual" / document
+        else:
+            docPath = Path(PILGLOBALS.PackageDir).parent / "Manual" / subdir / document
+        print(docPath)
+        #
+        # use internal browser
+        #
+        if PILGLOBALS.Has_Webengine:
+            if self.helpwin is None:
+                try:
+                    self.helpwin = cls_HelpWindow()
+                except Exception as e:
+                    e.add_note(f"Cannot load help page {docPath}")
+                    self.showException(e)
+                    return
+
+                helpposition = PILCONFIG.get(self.name, "helpposition")
+                if helpposition != "":
+                    self.helpwin.move(QtCore.QPoint(helpposition[0], helpposition[1]))
+                    self.helpwin.resize(helpposition[2], helpposition[3])
+                else:
+                    self.helpwin.resize(720, 700)
+            self.helpwin.loadDocument(docPath)
+            self.helpwin.show()
+            self.helpwin.raise_()
+        #
+        # use system browser
+        #
+        else:
+            ret = QtGui.QDesktopServices.openUrl(
+                QtCore.QUrl.fromLocalFile(str(docPath.resolve()))
+            )
+            if not ret:
+                self.showError(
+                    "Cannot launch system default browser to display a pyILPER help page"
+                )
+
 
 def main():
     app = QtWidgets.QApplication(sys.argv)
-    prog = cls_ui(app, "", "")
+    prog = cls_ui(app)
     app.exec()
 
 

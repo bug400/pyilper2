@@ -98,8 +98,8 @@ class cls_pilglobals:
         self.Interface_PilBox = 0
         self.Interface_Tcpip = 1
         self.Interface_Socket = 2
-        self.Interface_AcmBox = 3
-        self.Interface_UsbBox = 4
+        self.Interface_AcmBox = 10
+        self.Interface_UsbBox = 11
         #
         #     Interface hardware classes
         #
@@ -109,7 +109,7 @@ class cls_pilglobals:
         #
         #     Interface Modules
         #
-        self.InterfaceModules = ["pilbox", "piltcpip", "acmbox", "usbbox"]
+        self.InterfaceModules = ["pilbox", "piltcpip", "pilsocket", "acmbox", "usbbox"]
         self.DefaultInterface = self.Interface_PilBox
         self.AutoreconnectInterval = 1
         #

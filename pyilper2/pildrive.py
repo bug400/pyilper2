@@ -189,11 +189,9 @@ class cls_RawDriveWidget(QtWidgets.QWidget):
         #     Set default values
         #
         self.filename = PILCONFIG.get(self.name, "filename", "")
-        DRIVEGLOBALS.MEDIUM = PILCONFIG.get(
-            self.name, "medium", DRIVEGLOBALS.MEDIUM_HDRIVE1
-        )
+        self.medium = PILCONFIG.get(self.name, "medium", DRIVEGLOBALS.MEDIUM_HDRIVE1)
         deviceName, self.tracks, self.surfaces, self.blocks = DRIVEGLOBALS.mediainfo[
-            DRIVEGLOBALS.MEDIUM
+            self.medium
         ]
         self.did = PILCONFIG.get(
             self.name, "did", DRIVEGLOBALS.deviceinfo[DRIVEGLOBALS.DEV_HDRIVE1][0]
@@ -226,6 +224,7 @@ class cls_RawDriveWidget(QtWidgets.QWidget):
         self.lbltxt2 = QtWidgets.QLabel("Medium type ")
         self.grid.addWidget(self.lbltxt2, 0, 0)
         self.comboMedium = QtWidgets.QComboBox()
+        print(self.medium)
         for i in DRIVEGLOBALS.mediainfo.keys():
             txt = DRIVEGLOBALS.mediainfo[i][0]
             if i != DRIVEGLOBALS.MEDIUM_UNKNOWN:

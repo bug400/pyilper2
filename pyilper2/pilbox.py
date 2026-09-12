@@ -327,7 +327,7 @@ class cls_pilboxConfig(cls_ConfigInterfaceGeneric):
         self.tty = PILCONFIG.get(self.configName, "device", "")
         self.ttyspeed = PILCONFIG.get(self.configName, "baudrate", 0)
         self.idyframe = PILCONFIG.get(self.configName, "idyframe", True)
-        self.controllermode = PILCONFIG.get(self.configName, "controllermode", 0)
+        self.controllermode = PILCONFIG.get(self.configName, "controllermode", False)
 
         #
         #     serial device
@@ -376,7 +376,7 @@ class cls_pilboxConfig(cls_ConfigInterfaceGeneric):
         self.cbCtrlMode = QtWidgets.QCheckBox(
             "No HP-IL Controller connected to PIL-Box"
         )
-        self.cbCtrlMode.setChecked(self.idyframe)
+        self.cbCtrlMode.setChecked(self.controllermode)
         self.cbCtrlMode.setEnabled(True)
         self.cbCtrlMode.stateChanged.connect(self.do_cbCtrlMode)
         self.vb.addWidget(self.cbCtrlMode)

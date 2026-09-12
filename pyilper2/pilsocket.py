@@ -49,7 +49,7 @@ from .iothread import cls_IOThread
 from .pilinterface import cls_ConfigInterfaceGeneric
 
 
-class cls_piltcpip(cls_IOThread):
+class cls_pilsocket(cls_IOThread):
 
     RET_TIMEOUT = -1
 
@@ -73,14 +73,27 @@ class cls_piltcpip(cls_IOThread):
         )
 
         self.port = PILCONFIG.get(self.__configName__, "port")
-        self.remotehost = PILCONFIG.get(self.__configName__, "remotehost")
-        self.remoteport = PILCONFIG.get(self.__configName__, "remoteport")
         self.outsocket = None
-        self.outconnected = False
         self.inconnected = False
 
         self.serverlist = []
         self.clientlist = []
+        #
+        # This flag is used to tell the reader thread that an acknowledge byte is awaited
+        #
+        self.requestAcknowledgeLock = threading.Lock()
+        self.requestAcknowledge = False
+
+    def setRequestAcknowledge(self, value):
+        self.requestAcknowledgeLock.acquire()
+        self.requestAcknowledge = value
+        self.requestAcknowledgeLock.release()
+
+    def getRequestAcknowledge(self):
+        self.requestAcknowledgeLock.acquire()
+        value = self.requestAcknowledge
+        self.requestAcknowledgeLock.release()
+        return value
 
     #
     #  Connect to Network
@@ -112,33 +125,8 @@ class cls_piltcpip(cls_IOThread):
         if len(self.serverlist) == 0:
             raise AppException(self.__name__ + ": cannot bind to port")
 
-    def openclient(self):
-        #
-        #     connect to remote host
-        #
-        self.outsocket = None
-        self.outconnected = False
-        for res in socket.getaddrinfo(
-            self.remotehost, self.remoteport, socket.AF_UNSPEC, socket.SOCK_STREAM
-        ):
-            af, socktype, proto, canonname, sa = res
-            try:
-                self.outsocket = socket.socket(af, socktype, proto)
-            except OSError as msg:
-                self.outsocket = None
-                continue
-            try:
-                self.outsocket.connect(sa)
-                self.outconnected = True
-            except OSError as msg:
-                self.outsocket.close()
-                self.outsocket = None
-                continue
-            break
-        return self.outconnected
-
     def isConnected(self):
-        return self.outconnected and self.inconnected
+        return self.inconnected
 
     #
     #  Disconnect from Network
@@ -148,21 +136,6 @@ class cls_piltcpip(cls_IOThread):
             s.close()
         for s in self.serverlist:
             s.close()
-        if self.outconnected:
-            self.outsocket.shutdown(socket.SHUT_WR)
-            self.outsocket.close()
-            self.outsocket = None
-            self.outconnected = False
-
-    #
-    # Close output socket
-    #
-    def close_outsocket(self):
-        if self.outconnected:
-            self.outsocket.shutdown(socket.SHUT_WR)
-            self.outsocket.close()
-            self.outsocket = None
-            self.outconnected = False
 
     #
     #  Read HP-IL frame from PIL-Box (2 byte), handle connect to server socket
@@ -181,10 +154,9 @@ class cls_piltcpip(cls_IOThread):
                 self.inconnected = True
                 print(self.__name__ + ": inconnected true")
             else:
-                bytrx = s.recv(2)
-                # print(self.__name__+": bytrx ", bytrx)
+                bytrx = s.recv(1)
                 if bytrx:
-                    return socket.ntohs((bytrx[1] << 8) | bytrx[0])
+                    return bytrx
                 else:
                     self.clientlist.remove(s)
                     s.close()
@@ -193,33 +165,60 @@ class cls_piltcpip(cls_IOThread):
         return None
 
     #
+    # Write to socket
+    #
+    def write(self, lbyt, hbyt=None):
+        # print(f"{self.name}: write {lbyt} {hbyt}")
+        if self.inconnected == False:
+            raise AppException("cannot send data to socket, no connection")
+        if hbyt is None:
+            buf = bytearray([lbyt])
+        else:
+            buf = bytearray([lbyt, hbyt])
+        try:
+            self.clientlist[0].sendall(buf)  ## correct ?
+        except OSError as e:
+            e.add_note(f"cannot send data to socket {e.strerror}")
+            raise e from e
+
+    #
     # TCP/IP frame writer, called by controlthread
     #
     def writer(self, frame):
-        bRetry = True
-        b = bytearray(2)
-        f = socket.htons(frame)
-        b[0] = f & 0xFF
-        b[1] = f >> 8
-        while bRetry:
-            if self.isConnected():
-                try:
-                    self.outsocket.send(b)
-                    break
-                except ConnectionError:
-                    self.outsocket.shutdown(socket.SHUT_WR)
-                    self.outsocket.close()
-                    self.outsocket = None
-                    self.outconnected = False
-            else:
-                bRetry = self.openclient()
+        #
+        # disassemble answer frame
+        #
+        hbyt, lbyt = self.disassemble_frame(frame)
+
+        if hbyt != self.__lasth__:
+            #
+            # send high part if different from last one
+            #
+            self.__lasth__ = hbyt
+            self.write(hbyt)
+            #
+            # read acknowledge (note: this clashes with the tread job!), so set flag for the reader thread
+            #
+            self.setRequestAcknowledge(True)
+            """
+            b = self.read(PILGLOBALS.Com_Tmout_Ack)
+            if b is None:
+                raise AppException("cannot get acknowledge: timeout")
+            if ord(b) != 0x0D:
+                raise AppException("cannot get acknowledge: unexpected value")
+            """
+        #
+        #        otherwise send only low part
+        #
+        self.write(lbyt)
 
     #
-    #  TCP/IP reader thread
+    #  Socket reader thread
     #
     def reader(self):
 
         self.setStatus(self.STAT_CONNECTING)
+        self.__lasth__ = 0
         try:
             #
             # open server port
@@ -235,26 +234,59 @@ class cls_piltcpip(cls_IOThread):
                 result = self.read(1.0)
                 if self.__stopEvent__.is_set():
                     break
-                if result == cls_piltcpip.RET_TIMEOUT:
+                if result == self.RET_TIMEOUT:
                     continue
                 if self.isConnected():
                     if not connected:
                         connected = True
                         self.setStatus(self.STAT_CONNECTED)
-                        print(self.__name__ + ": connected to virtual HP-IL devices")
+                        print(self.__name__ + ": connected to client")
                 else:
                     if connected:
                         connected = False
-                        self.close_outsocket()
                         self.setStatus(self.STAT_CONNECTING)
-                        print(
-                            self.__name__ + ": not connected to virtual HP-IL devices"
-                        )
+                        print(self.__name__ + ": not connected to client")
 
                 # print(self.__name__+": main read result ", result)
                 if result is None:
                     continue
-                self.__queue__.put([self.__id__, result])
+
+                byt = ord(result)
+                if self.getRequestAcknowledge():
+                    self.setRequestAcknowledge(False)
+                    if byt != 0x0D:
+                        raise AppException(
+                            f"cannot get acknowledge, unexpected value {byt}"
+                        )
+                #
+                # is not a low byte
+                #
+                if (byt & 0xC0) == 0x00:
+                    #
+                    # check for high byte, else ignore
+                    #
+                    if (byt & 0x20) != 0:
+                        #
+                        # got high byte, save it and continue
+                        #
+                        self.__lasth__ = byt & 0xFF
+                    continue
+                #
+                # low byte, assemble frame according to 7- oder 8 bit format
+                #
+                frame = self.assemble_frame(self.__lasth__, byt)
+                # print(f"{self.__name__} frame {frame}")
+                #
+                # send acknowledge if we received a pil box command
+                #
+                if frame & 0x7F4 == 0x494:
+                    #
+                    # send only original low byte as acknowledge, we can write here because we are in the thread job
+                    #
+                    lbyt = byt
+                    self.write(byt)
+                else:
+                    self.__queue__.put([self.__id__, frame])
             #
             #     normal termination
             #
@@ -266,75 +298,52 @@ class cls_piltcpip(cls_IOThread):
         #
         except ExceptionGroup as e:
             #
-            #        put error status and message to queue
+            # put error status and message to queue
             #
             self.__queue__.put([self.__id__, self.MSG_ERROR, e])
-
+            print(self.__name__, ": reader error exit")
         finally:
             self.setStatus(self.STAT_DISCONNECTED)
         return
 
 
-class cls_piltcpip_config(cls_ConfigInterfaceGeneric):
+class cls_pilsocket_config(cls_ConfigInterfaceGeneric):
 
     def __init__(self, parent, name, id, interfacespecifications):
 
         super().__init__(parent, name, id, interfacespecifications)
 
-        self.port = PILCONFIG.get(self.configName, "port", 60001)
-        self.remoteport = PILCONFIG.get(self.configName, "remoteport", 60000)
-        self.remotehost = PILCONFIG.get(self.configName, "remotehost", "localhost")
+        self.port = PILCONFIG.get(self.configName, "port", 59999)
 
         self.intvalidator = QtGui.QIntValidator()
         self.glayout = QtWidgets.QGridLayout()
         self.lbltxt3 = QtWidgets.QLabel("Port:")
         self.glayout.addWidget(self.lbltxt3, 0, 0)
-        self.lbltxt4 = QtWidgets.QLabel("Remote host:")
-        self.glayout.addWidget(self.lbltxt4, 1, 0)
-        self.lbltxt5 = QtWidgets.QLabel("Remote port:")
-        self.glayout.addWidget(self.lbltxt5, 2, 0)
         self.edtPort = QtWidgets.QLineEdit()
         self.glayout.addWidget(self.edtPort, 0, 1)
         self.edtPort.setText(str(self.port))
         self.edtPort.setValidator(self.intvalidator)
-        self.edtRemoteHost = QtWidgets.QLineEdit()
-        self.glayout.addWidget(self.edtRemoteHost, 1, 1)
-        self.edtRemoteHost.setText(self.remotehost)
-        self.edtRemotePort = QtWidgets.QLineEdit()
-        self.glayout.addWidget(self.edtRemotePort, 2, 1)
-        self.edtRemotePort.setText(str(self.remoteport))
-        self.edtRemotePort.setValidator(self.intvalidator)
         self.vb.addLayout(self.glayout)
 
         self.edtPort.editingFinished.connect(self.do_storePort)
-        self.edtRemoteHost.editingFinished.connect(self.do_storeRemoteHost)
-        self.edtRemotePort.editingFinished.connect(self.do_storeRemotePort)
 
     def setActive(self, flag):
         self.edtPort.setEnabled(flag)
-        self.edtRemoteHost.setEnabled(flag)
-        self.edtRemotePort.setEnabled(flag)
         self.radBut.setChecked(flag)
 
     def do_storePort(self):
         PILCONFIG.put(self.configName, "port", int(self.edtPort.text()))
 
-    def do_storeRemoteHost(self):
-        PILCONFIG.put(self.configName, "remotehost", self.edtRemoteHost.text())
 
-    def do_storeRemotePort(self):
-        PILCONFIG.put(self.configName, "remoteport", int(self.edtRemotePort.text()))
-
-
-def piltcpip_spec():
+def pilsocket_spec():
     return [
         cls_Interface_Spec(
-            PILGLOBALS.Interface_Tcpip,
-            "if_tcpip",
-            cls_piltcpip,
+            PILGLOBALS.Interface_Socket,
+            "if_socket",
+            cls_pilsocket,
             "reader",
             "writer",
-            cls_piltcpip_config,
-            "TCP/IP",
+            cls_pilsocket_config,
+            "Socket",
         )
     ]
