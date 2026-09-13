@@ -32,15 +32,11 @@ from dataclasses import dataclass
 from .pilglobals import PILGLOBALS
 
 USE_8BITS = True
-#
-#  TODO: remove!!! (pildrive, pilplotter, pilqterm)
-#  portable function to get mouse cursor coordinate
-#
 
-
+"""
 def getEventPosition(ev):
     return ev.position().toPoint()
-
+"""
 
 #
 # A note on pyILPER error handling in the thread code.

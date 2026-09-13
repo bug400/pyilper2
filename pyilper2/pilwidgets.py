@@ -31,7 +31,6 @@ import datetime
 import re
 import sys
 import functools
-import pyilper
 from pathlib import Path
 
 from .pilglobals import PILGLOBALS
@@ -1214,7 +1213,7 @@ class cls_PilConfigWindow(QtWidgets.QDialog):
         #
         if self.check_param("workdir", self.lblwdir.text()):
             self.__mainUI__.showInfo(
-                "The change of the working directory requires a restart of the pyILPER loop to take effect."
+                "The change of the working directory requires a restart of pyILPER to take effect."
             )
         #
         #     store parameters

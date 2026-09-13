@@ -189,19 +189,19 @@ class cls_tabinterface(cls_tabgeneric):
 
     def __init__(
         self,
-        parent,
+        mainUI,
         name,
         interfaceSpecifications,
         sig_UpdateInterfaceActive,
         interfaceNumber,
     ):
-        super().__init__(parent, name)
-        self.parent = parent
-        self.name = name
+        super().__init__(mainUI, name)
         self.sig_UpdateInterfaceActive = sig_UpdateInterfaceActive
         self.interfaceNumber = interfaceNumber
 
-        self.guiobject = cls_InterfaceWidget(self, self.name, interfaceSpecifications)
+        self.guiobject = cls_InterfaceWidget(
+            self.mainUI, self.name, interfaceSpecifications
+        )
         self.add_guiobject(self.guiobject)
         self.pildevice = None
         self.cbActive.setEnabled(True)
@@ -228,9 +228,9 @@ class cls_tabinterface(cls_tabgeneric):
 #
 class cls_InterfaceWidget(QtWidgets.QWidget):
 
-    def __init__(self, parent, name, interfaceSpecifications):
+    def __init__(self, mainUI, name, interfaceSpecifications):
         super().__init__()
-        self.parent = parent
+        self.mainUI = mainUI
         self.name = name
         self.pildevice = None
         self.interfaceSpecifications = interfaceSpecifications
@@ -239,8 +239,10 @@ class cls_InterfaceWidget(QtWidgets.QWidget):
             self.name, "interface_id", PILGLOBALS.DefaultInterface
         )
         if self.selectedInterfaceId not in interfaceSpecifications.keys():
+            self.mainUI.showWarning(
+                f"Interface with Id {self.selectedInterfaceId} not found. Resetting to PIL-Box interface."
+            )
             self.selectedInterfaceId = PILGLOBALS.DefaultInterface
-            # TODO output warning message
         self.vbox = QtWidgets.QVBoxLayout()
         self.hbox = QtWidgets.QHBoxLayout()
         self.gbox = QtWidgets.QGroupBox()

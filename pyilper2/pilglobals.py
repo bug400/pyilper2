@@ -27,8 +27,6 @@ import platform
 import sys
 from PySide6 import QtGui, QtCore
 
-from pyilper import __version__, __isProduction__
-
 
 def checkVersion(package, version, requiredMajor, requiredMinor):
     splitVersion = version.split(".")

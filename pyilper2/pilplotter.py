@@ -35,7 +35,7 @@ import array
 from .pilglobals import PILGLOBALS
 from PySide6 import QtCore, QtGui, QtPrintSupport, QtWidgets
 
-from .pilcore import getEventPosition, decode_version, cls_Tab_Spec
+from .pilcore import decode_version, cls_Tab_Spec
 from .pilconfig import PILCONFIG
 from .penconfig import PENCONFIG
 from .pildevbase import cls_pildevbase
@@ -83,7 +83,6 @@ class cls_tabplotter(cls_tabgeneric):
 
     def __init__(self, mainUI, name):
         super().__init__(mainUI, name)
-        self.name = name
         #
         #     this parameter is global
         #
@@ -439,7 +438,7 @@ class cls_mygraphicsview(QtWidgets.QGraphicsView):
     #
     def mousePressEvent(self, event):
         if self.digitize:
-            x = getEventPosition(event)
+            x = event.position().toPoint()
             p = self.mapToScene(x)
             x = p.x()
             y = p.y()

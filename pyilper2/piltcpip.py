@@ -111,6 +111,7 @@ class cls_piltcpip(cls_IOThread):
                 continue
         if len(self.serverlist) == 0:
             raise AppException(self.__name__ + ": cannot bind to port")
+        print(f"{self.__name__} server opened")
 
     def openclient(self):
         #
@@ -130,9 +131,11 @@ class cls_piltcpip(cls_IOThread):
             try:
                 self.outsocket.connect(sa)
                 self.outconnected = True
+#               print(f"{self.__name__} connected to client")
             except OSError as msg:
                 self.outsocket.close()
                 self.outsocket = None
+#               print(f"{self.__name__} connect failed!")
                 continue
             break
         return self.outconnected
@@ -202,7 +205,7 @@ class cls_piltcpip(cls_IOThread):
         b[0] = f & 0xFF
         b[1] = f >> 8
         while bRetry:
-            if self.isConnected():
+            if self.outconnected:
                 try:
                     self.outsocket.send(b)
                     break

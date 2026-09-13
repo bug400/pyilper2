@@ -153,9 +153,6 @@ class cls_controller(threading.Thread):
                     )
                 self.controllerItems[interfaceIndex] = item
             tabIndex += 1
-        #
-        # TODO: return, if we have no active interfaces
-        #
 
         #
         # Pass 2, add pildevice process methods and add index of writer interface

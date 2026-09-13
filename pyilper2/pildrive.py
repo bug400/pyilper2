@@ -40,7 +40,7 @@ from .pildevbase import cls_pildevbase
 from .pilwidgets import cls_tabgeneric, T_STRING, T_INTEGER, O_DEFAULT
 from .pilconfig import PILCONFIG
 from .pilcharconv import CHARSET_HP71, charsets
-from .pilcore import getEventPosition, cls_Tab_Spec
+from .pilcore import cls_Tab_Spec
 from .lifutils import cls_LifFile, cls_LifDir, getLifInt, putLifInt
 from .lifcore import *
 from .lifexec import (
@@ -865,7 +865,7 @@ class DirTableView(QtWidgets.QTableView):
     #
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton:
-            row = self.indexAt(getEventPosition(event)).row()
+            row = self.indexAt(event.position().toPoint()).row()
             isSelected = False
             #
             #       check if the row is already selected

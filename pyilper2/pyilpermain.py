@@ -172,7 +172,10 @@ class cls_ui(QtWidgets.QMainWindow):
                         + qtstyle
                         + " not available. Resetting to system default",
                     )
-
+            #
+            # change working directory
+            #
+            self.changeWorkdir()
             #
             # build GUI
             #
@@ -496,13 +499,6 @@ class cls_ui(QtWidgets.QMainWindow):
     def controller_start(self):
 
         try:
-            os.chdir(PILCONFIG.get(self.name, "workdir"))
-        except Exception as e:
-            e.add_note("Cannot change to working directory")
-            self.showException(e)
-            return
-
-        try:
             self.controller = cls_controller(
                 self, self.sig_UpdateStatus, self.sig_ControllerTerminated
             )
@@ -586,6 +582,8 @@ class cls_ui(QtWidgets.QMainWindow):
         if accept:
             #
             # reconfigure the tabs while the thread is suspended
+            # Note: controller_pause and controller_resume do nothing, if
+            # self.controller is None
             #
             if needs_reconfigure:
                 self.controller_pause()
@@ -746,6 +744,16 @@ class cls_ui(QtWidgets.QMainWindow):
             )
             self.showRuntimeError(None, e)
         QtWidgets.QApplication.quit()
+
+    #
+    # change working directory
+    #
+    def changeWorkdir(self):
+        try:
+            os.chdir(PILCONFIG.get(self.name, "workdir"))
+        except Exception as e:
+            e.add_note("Cannot change to working directory")
+            self.showException(e)
 
     #
     # this catches the window close event

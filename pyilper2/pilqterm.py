@@ -40,7 +40,6 @@ from .pilglobals import PILGLOBALS
 
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from .pilcore import getEventPosition
 from .pilcharconv import icharconv, CHARSET_HP71, CHARSET_HP75, CHARSET_HP41
 from .shortcutconfig import (
     SHORTCUTCONFIG,
@@ -582,7 +581,7 @@ class QTerminalWidget(QtWidgets.QGraphicsView):
         if button == QtCore.Qt.LeftButton:
             self._HPTerminal.selectionStop()
             self._selectionText = ""
-            self._press_pos = getEventPosition(event)
+            self._press_pos = event.position().toPoint()
             if not self._HPTerminal.selectionStart(
                 self._press_pos, self._true_w, self._char_height
             ):
@@ -593,7 +592,7 @@ class QTerminalWidget(QtWidgets.QGraphicsView):
     #
     def mouseMoveEvent(self, event):
         if self._press_pos:
-            move_pos = getEventPosition(event)
+            move_pos = event.position().toPoint()
             self._saved_pos = move_pos
             if move_pos.y() < self._ScrollUpAreaY and move_pos.y() >= 0:
                 self.set_autoscroll(AUTOSCROLL_UP)
