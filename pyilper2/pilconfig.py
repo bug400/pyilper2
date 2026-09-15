@@ -131,7 +131,7 @@ class cls_pilconfig:
     def delEntries(self,prefix):
         for key in self.__config__:
             keyPrefix=key.split(sep="_")[0]
-            if keyPrefix == pattern:
+            if keyPrefix == prefix:
                 print("remove",key)
                 self.remove(key)
 

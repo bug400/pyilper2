@@ -382,6 +382,7 @@ class cls_DriveWidget(QtWidgets.QWidget):
         self.tabObject = tabObject
         self.name = name
         self.mainUI = mainUI
+        self.isEnabled = False
         #
         #     Set default values
         #
@@ -432,18 +433,18 @@ class cls_DriveWidget(QtWidgets.QWidget):
         #
         self.butPack = QtWidgets.QPushButton("Pack")
         self.butPack.setEnabled(False)
-        self.butPack.setAutoDefault(False)
+        #       self.butPack.setAutoDefault(False)
         self.vbox3.addWidget(self.butPack)
         self.butImport = QtWidgets.QPushButton("Import")
-        self.butImport.setEnabled(False)
+        #       self.butImport.setEnabled(False)
         self.butImport.setAutoDefault(False)
         self.vbox3.addWidget(self.butImport)
         self.butLabel = QtWidgets.QPushButton("Label")
-        self.butLabel.setEnabled(False)
+        #       self.butLabel.setEnabled(False)
         self.butLabel.setAutoDefault(False)
         self.vbox3.addWidget(self.butLabel)
         self.butDirList = QtWidgets.QPushButton("Directory Listing")
-        self.butDirList.setEnabled(False)
+        #       self.butDirList.setEnabled(False)
         self.butDirList.setAutoDefault(False)
         self.vbox3.addWidget(self.butDirList)
         self.vbox3.addStretch(1)
@@ -516,6 +517,7 @@ class cls_DriveWidget(QtWidgets.QWidget):
     #     enable/disable
     #
     def enable(self):
+        self.isEnabled = True
         did, aid = DRIVEGLOBALS.deviceinfo[self.drivetype]
         self.pildevice.setdevice(did, aid)
         status, tracks, surfaces, blocks = self.lifMediumCheck(self.filename, True)
@@ -532,8 +534,11 @@ class cls_DriveWidget(QtWidgets.QWidget):
         self.pildevice.sethdisk(self.filename, tracks, surfaces, blocks)
         self.lblFilename.setText(self.filename)
         self.lifdir.setFileName(self.filename)
+        self.toggle_controls()
 
     def disable(self):
+        self.isEnabled = False
+        self.toggle_controls()
         return
 
     #
@@ -549,7 +554,7 @@ class cls_DriveWidget(QtWidgets.QWidget):
         self.butFilename.setEnabled(True)
         for w in self.gbox_buttonlist:
             w.setEnabled(True)
-        if self.tabObject.active:
+        if self.tabObject.active and self.isEnabled:
             self.butPack.setEnabled(False)
             self.butImport.setEnabled(False)
             self.butLabel.setEnabled(False)
@@ -853,15 +858,16 @@ class TableModel(QtGui.QStandardItemModel):
 
 class DirTableView(QtWidgets.QTableView):
 
-    def __init__(self, parent, mainUI, tabObject, papersize):
+    def __init__(self, parent, mainUI, tabObject, guiObject, papersize):
         super().__init__(parent)
         self.parent = parent
         self.mainUI = mainUI
         self.tabObject = tabObject
+        self.guiObject = guiObject
         self.papersize = papersize
 
     #
-    #       custom mouse press even. A click to a selected row unselects it
+    # custom mouse press even. A click to a selected row unselects it
     #
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton:
@@ -897,7 +903,7 @@ class DirTableView(QtWidgets.QTableView):
     #       context menu
     #
     def contextMenuEvent(self, event):
-        if self.tabObject.active:
+        if self.tabObject.active and self.guiObject.isEnabled:
             event.accept()
             return
         if not self.mainUI.lifutils_installed:
@@ -935,7 +941,7 @@ class DirTableView(QtWidgets.QTableView):
                 event.accept()
                 return
             workdir = PILCONFIG.get(PILGLOBALS.PackageName, "workdir")
-            charset = PILCONFIG.get(self.tabOjbect.name, "charset")
+            charset = PILCONFIG.get(self.tabObject.name, "charset")
             if action == exportAction:
                 cls_lifexport.execute(imagefile, liffilename, liffiletype, workdir)
             elif action == purgeAction:
@@ -957,15 +963,16 @@ class cls_LifDirWidget(QtWidgets.QWidget):
 
     def __init__(self, parent, name, mainUI, tabObject, rows, font_name, papersize):
         super().__init__(parent)
-        self.parent = parent
+        #       self.parent = parent
         self.name = name
         self.mainUI = mainUI
         self.tabObject = tabObject
+        self.guiObject = parent
         self.__papersize__ = papersize
         self.__font_name__ = font_name
         self.__font_size__ = 13
         self.__table__ = DirTableView(
-            self, mainUI, tabObject, self.__papersize__
+            self, mainUI, tabObject, self.guiObject, self.__papersize__
         )  # Table view for dir
         self.__table__.setSortingEnabled(False)  # no sorting
         ##
@@ -1084,16 +1091,16 @@ class cls_LifDirWidget(QtWidgets.QWidget):
         if self.__filename__ == "":
             return
 
-        if self.parent.pildevice is None:
+        if self.guiObject.pildevice is None:
             return
         self.clear()
-        self.parent.pildevice.acquiredisklock()
+        self.guiObject.pildevice.acquiredisklock()
         try:
             lif = cls_LifFile()
             lif.set_filename(self.__filename__)
             lif.lifopen()
         except Exception:
-            self.parent.pildevice.releasedisklock()
+            self.guiObject.pildevice.releasedisklock()
             return
         lifdir = cls_LifDir(lif)
         lifdir.open()
@@ -1169,7 +1176,7 @@ class cls_LifDirWidget(QtWidgets.QWidget):
                 self.__model__.setItem(self.__rowcount__, column, item)
             self.__rowcount__ += 1
         lif.lifclose()
-        self.parent.pildevice.releasedisklock()
+        self.guiObject.pildevice.releasedisklock()
         #
         #       go to end of scroll area
         #

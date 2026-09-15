@@ -45,12 +45,12 @@ class cls_ui(QtWidgets.QMainWindow):
     sig_ControllerTerminated = QtCore.Signal(str, Exception)  # must be class variable!!
     sig_UpdateInterfaceActive = QtCore.Signal(int, bool)
 
-#   def __init__(self, parent, version, instance):
-    def __init__(self,parent):
+    #   def __init__(self, parent, version, instance):
+    def __init__(self, parent):
         super().__init__()
         self.controller = None
         self.controllerThread = None
-#       self.parent = parent
+        #       self.parent = parent
         self.name = PILGLOBALS.PackageName
         self.clean = PILGLOBALS.Clean
         self.instance = PILGLOBALS.Instance
@@ -58,6 +58,7 @@ class cls_ui(QtWidgets.QMainWindow):
         self.aboutwin = None
         self.devstatuswin = None
         self.lifutils_installed = False
+        self.isEnabled = False
         self.tabWidgetList = []
         self.deviceInfoList = []
         self.validConfigNameList = []
@@ -75,7 +76,9 @@ class cls_ui(QtWidgets.QMainWindow):
         if PILGLOBALS.Instance == "":
             self.setWindowTitle("pyILPER " + PILGLOBALS.Version)
         else:
-            self.setWindowTitle("pyILPER " + PILGLOBALS.Version + " : " + PILGLOBALS.Instance)
+            self.setWindowTitle(
+                "pyILPER " + PILGLOBALS.Version + " : " + PILGLOBALS.Instance
+            )
         #
         #       Init configuration, catch any errors in the following init code
         #
@@ -175,7 +178,9 @@ class cls_ui(QtWidgets.QMainWindow):
             #
             # change working directory
             #
+            self.oldWorkdir = ""
             self.changeWorkdir()
+
             #
             # build GUI
             #
@@ -514,8 +519,10 @@ class cls_ui(QtWidgets.QMainWindow):
                 self.controller = None
                 return
             #
-            # Enable the tab objects
+            # Enable the tab objects, change workdir first
             #
+            self.changeWorkdir()
+            self.isEnabled = True
             for tab in self.tabWidgetList:
                 tab.enable()
             self.controllerThread = threading.Thread(target=self.controller.run)
@@ -548,6 +555,7 @@ class cls_ui(QtWidgets.QMainWindow):
         #
         for tab in self.tabWidgetList:
             tab.disable()
+        self.isEnabled = False
         print("main: controller thread joined")
         self.controller = None
 
@@ -746,14 +754,18 @@ class cls_ui(QtWidgets.QMainWindow):
         QtWidgets.QApplication.quit()
 
     #
-    # change working directory
+    # change working directory, if changed
     #
     def changeWorkdir(self):
-        try:
-            os.chdir(PILCONFIG.get(self.name, "workdir"))
-        except Exception as e:
-            e.add_note("Cannot change to working directory")
-            self.showException(e)
+        workdir = PILCONFIG.get(self.name, "workdir")
+        if self.oldWorkdir != workdir:
+            print(f"change workdir to {workdir}")
+            try:
+                os.chdir(PILCONFIG.get(self.name, "workdir"))
+            except Exception as e:
+                e.add_note("Cannot change to working directory")
+                self.showException(e)
+            self.oldWorkdir = workdir
 
     #
     # this catches the window close event
@@ -773,6 +785,7 @@ class cls_ui(QtWidgets.QMainWindow):
         #
         for tab in self.tabWidgetList:
             tab.disable()
+        self.isEnabled = False
         self.controller = None
 
     #

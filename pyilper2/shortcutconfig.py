@@ -285,7 +285,7 @@ class cls_shortcutconfig:
       try:
          self.__userconfig__.write(self.__shortcutconfig__)
       except Exception as e:
-         s.add_note("cannot save shortcut configuration")
+         e.add_note("cannot save shortcut configuration")
          raise e from e
 #
 SHORTCUTCONFIG=  cls_shortcutconfig()

@@ -107,7 +107,7 @@ class cls_pilglobals:
         #
         #     Interface Modules
         #
-        self.InterfaceModules = ["pilbox", "piltcpip", "pilsocket", "acmbox", "usbbox"]
+        self.InterfaceModules = ["pilbox", "piltcpip", "pilsocket"]
         self.DefaultInterface = self.Interface_PilBox
         self.AutoreconnectInterval = 1
         #
@@ -132,7 +132,7 @@ class cls_pilglobals:
         self.Pilbox_Command_COFF = 0x497  # initialize in controller off mode
         self.Pilbox_Command_COFI = 0x495  # initialize in controller on mode (w. IDY)
         self.Pilbox_Command_CON = 0x496  # initialize in controller on mode
-        self.Pilbox_Commands_PASSTHRU = 0x49C  # initialize in passthru mode (frame i/o)
+        self.Pilbox_Command_PASSTHRU = 0x49C  # initialize in passthru mode (frame i/o)
         #
         #     predefined baudrates
         #     the list controlles the baudrates that are supported by the application:

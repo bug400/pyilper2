@@ -101,7 +101,7 @@ class cls_usbbox(cls_IOThread):
     #
     def close(self):
         try:
-            self.sendCmd(PILGLOBALS.Pilbox_Commands_TDIS, PILGLOBALS.Tmout_Cmd)
+            self.sendCmd(PILGLOBALS.Pilbox_Command_TDIS, PILGLOBALS.Tmout_Cmd)
             self.__ioDevice__.close()
         except Exception:
             pass
@@ -111,7 +111,7 @@ class cls_usbbox(cls_IOThread):
     #
     def initBox(self):
         try:
-            self.sendCmd(PILGLOBALS.Pilbox_Commands_PASSTHRU, PILGLOBALS.Tmout_Cmd)
+            self.sendCmd(PILGLOBALS.Pilbox_Command_PASSTHRU, PILGLOBALS.Tmout_Cmd)
         except Exception as e:
             e.add_note(self.__name__ + ": cannot initialize USB-Box")
             raise e from e

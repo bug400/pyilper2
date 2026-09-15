@@ -107,7 +107,7 @@ class cls_acmbox(cls_IOThread):
     #
     def initBox(self):
         try:
-            self.sendCmd(PILGLOBALS.Pilbox_Commands_PASSTHRU, PILGLOBALS.Tmout_Cmd)
+            self.sendCmd(PILGLOBALS.Pilbox_Command_PASSTHRU, PILGLOBALS.Tmout_Cmd)
         except Exception as e:
             e.add_note(self.__name__ + ": cannot initialize ACM-Box")
             raise e from e

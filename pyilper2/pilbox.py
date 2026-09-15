@@ -245,8 +245,9 @@ class cls_pilbox(cls_IOThread):
                             #
                             # send acknowledge only at 9600 baud connection
                             #
+                            # TODO: check!
                             if self.__baudrate__ == 9600:
-                                self.__ioDevice__.boxWrite(0x0D)
+                                self.__ioDevice__.writePilBoxFrame(0x0D)
                         continue
                     #
                     # low byte, build frame
@@ -374,7 +375,7 @@ class cls_pilboxConfig(cls_ConfigInterfaceGeneric):
         # controller mode
         #
         self.cbCtrlMode = QtWidgets.QCheckBox(
-            "No HP-IL Controller connected to PIL-Box"
+            "HP-IL Controller connected to PIL-Box"
         )
         self.cbCtrlMode.setChecked(self.controllermode)
         self.cbCtrlMode.setEnabled(True)

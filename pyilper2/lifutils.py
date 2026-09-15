@@ -81,7 +81,7 @@ class cls_LifDir:
 
     def rewind(self):
         if not self.isOpen:
-            raise AppException("Directory not open", "")
+            raise AppException("Directory not open")
         self.cur_entry = 0
 
     def getNextEntry(self):

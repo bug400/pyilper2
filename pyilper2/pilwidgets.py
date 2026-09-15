@@ -1209,16 +1209,20 @@ class cls_PilConfigWindow(QtWidgets.QDialog):
     #
     def do_ok(self):
         #
-        #     check if we need to restart the pyILPER communication
+        #     check if we need to change the workdir
         #
         if self.check_param("workdir", self.lblwdir.text()):
-            self.__mainUI__.showInfo(
-                "The change of the working directory requires a restart of pyILPER to take effect."
-            )
+            PILCONFIG.put(self.__name__, "workdir", self.lblwdir.text())
+            if not self.__mainUI__.isEnabled:
+                self.__mainUI__.changeWorkdir()
+            else:
+                self.__mainUI__.showInfo(
+                    "The change of the working directory requires a restart of the loop to take effect."
+                )
         #
         #     store parameters
         #
-        PILCONFIG.put(self.__name__, "workdir", self.lblwdir.text())
+
         #
         #     these parameters require a reconfiguration
         #
@@ -1250,7 +1254,7 @@ class cls_PilConfigWindow(QtWidgets.QDialog):
         #
         if self.__needs_restart__:
             self.__mainUI__.showInfo(
-                "pyILPER must be restartet for changes to papersize, scrollup buffer size or the lifutils path to take effect."
+                "pyILPER must be restartet for changes to papersize or the lifutils path to take effect."
             )
         #
         #     Apply style changes
@@ -1416,7 +1420,12 @@ class cls_DeviceConfigWindow(QtWidgets.QDialog):
     def do_itemRemove(self):
         row = self.devList.currentRow()
         del self.tabList[row]
-        item = self.devList.takeItem(row)
+        #
+        # readjust row
+        #
+        delRow=row
+        self.devList.setCurrentRow(delRow-1)
+        item = self.devList.takeItem(delRow)
         item = None
 
     def do_itemAdd(self):

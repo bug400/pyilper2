@@ -182,7 +182,6 @@ class cls_piltcpip(cls_IOThread):
                 cs, addr = s.accept()
                 self.clientlist.append(cs)
                 self.inconnected = True
-                print(self.__name__ + ": inconnected true")
             else:
                 bytrx = s.recv(2)
                 # print(self.__name__+": bytrx ", bytrx)
@@ -192,7 +191,6 @@ class cls_piltcpip(cls_IOThread):
                     self.clientlist.remove(s)
                     s.close()
                     self.inconnected = False
-                    print(self.__name__ + ": inconnected false")
         return None
 
     #
