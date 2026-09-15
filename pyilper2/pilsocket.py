@@ -72,7 +72,7 @@ class cls_pilsocket(cls_IOThread):
             interfaceName,
         )
 
-        self.port = PILCONFIG.get(self.__configName__, "port")
+        self.port = PILCONFIG.get(self.__configName__, "serverport")
         self.outsocket = None
         self.inconnected = False
 
@@ -313,7 +313,7 @@ class cls_pilsocket_config(cls_ConfigInterfaceGeneric):
 
         super().__init__(parent, name, id, interfacespecifications)
 
-        self.port = PILCONFIG.get(self.configName, "port", 59999)
+        self.port = PILCONFIG.get(self.configName, "serverport", 59999)
 
         self.intvalidator = QtGui.QIntValidator()
         self.glayout = QtWidgets.QGridLayout()
@@ -332,7 +332,7 @@ class cls_pilsocket_config(cls_ConfigInterfaceGeneric):
         self.radBut.setChecked(flag)
 
     def do_storePort(self):
-        PILCONFIG.put(self.configName, "port", int(self.edtPort.text()))
+        PILCONFIG.put(self.configName, "serverport", int(self.edtPort.text()))
 
 
 def pilsocket_spec():

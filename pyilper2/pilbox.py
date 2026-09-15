@@ -245,7 +245,7 @@ class cls_pilbox(cls_IOThread):
                             #
                             # send acknowledge only at 9600 baud connection
                             #
-                            # TODO: check!
+                            # This is disabled now, no 9600 baud!
                             if self.__baudrate__ == 9600:
                                 self.__ioDevice__.writePilBoxFrame(0x0D)
                         continue
@@ -360,11 +360,12 @@ class cls_pilboxConfig(cls_ConfigInterfaceGeneric):
             i += 1
 
         self.hboxbaud.addWidget(self.comboBaud)
+        self.comboBaud.currentIndexChanged.connect(self.do_config_baudrate)
         self.hboxbaud.addStretch(1)
         self.vb.addLayout(self.hboxbaud)
 
         #
-        #     idy frames
+        # idy frames
         #
         self.cbIdyFrame = QtWidgets.QCheckBox("Enable IDY frames")
         self.cbIdyFrame.setChecked(self.idyframe)
@@ -374,9 +375,7 @@ class cls_pilboxConfig(cls_ConfigInterfaceGeneric):
         #
         # controller mode
         #
-        self.cbCtrlMode = QtWidgets.QCheckBox(
-            "HP-IL Controller connected to PIL-Box"
-        )
+        self.cbCtrlMode = QtWidgets.QCheckBox("HP-IL Controller connected to PIL-Box")
         self.cbCtrlMode.setChecked(self.controllermode)
         self.cbCtrlMode.setEnabled(True)
         self.cbCtrlMode.stateChanged.connect(self.do_cbCtrlMode)
@@ -397,10 +396,12 @@ class cls_pilboxConfig(cls_ConfigInterfaceGeneric):
         self.tty = interface
         self.lblTty.setText(self.tty)
         PILCONFIG.put(self.configName, "device", self.tty)
+
+    def do_config_baudrate(self, idx):
         PILCONFIG.put(
             self.configName,
             "baudrate",
-            PILGLOBALS.Baudrates[self.comboBaud.currentIndex()][1],
+            PILGLOBALS.Baudrates[idx][1],
         )
 
     def setActive(self, flag):

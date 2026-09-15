@@ -23,8 +23,8 @@
 # Changelog
 # XX.XX.XXXX jsi:
 #
-from .userconfig import cls_userconfig
 from .pilglobals import PILGLOBALS
+from .userconfig import cls_userconfig
 
 
 class cls_pilconfig:
@@ -125,15 +125,18 @@ class cls_pilconfig:
     #
     def dump(self):
         print(self.__config__)
+
     #
     #  delete keys beginning with prefix (excluding a _)
     #
-    def delEntries(self,prefix):
+    def delKeys(self, prefix):
+        removeList = []
         for key in self.__config__:
-            keyPrefix=key.split(sep="_")[0]
+            keyPrefix = key.split(sep="_")[0]
             if keyPrefix == prefix:
-                print("remove",key)
-                self.remove(key)
+                removeList.append(key)
+        for key in removeList:
+            self.remove(key)
 
 
 #

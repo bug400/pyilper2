@@ -31,6 +31,7 @@ import datetime
 import re
 import sys
 import functools
+import copy
 from pathlib import Path
 
 from .pilglobals import PILGLOBALS
@@ -1261,14 +1262,10 @@ class cls_PilConfigWindow(QtWidgets.QDialog):
         #
         if self.__qtstyle__ != PILCONFIG.get(self.__name__, "qtstyle"):
             if self.__qtstyle__ == "Default":
-                if self.__mainUI__.defaultStyle != "":
-                    QtWidgets.QApplication.setStyle(self.__mainUI__.defaultStyle)
-                else:
-                    self.__mainUI__.showWarning(
-                        "Resetting to default style requires restart of the application"
-                    )
+                style = QtWidgets.QApplication.style().name()
             else:
-                QtWidgets.QApplication.setStyle(self.__qtstyle__)
+                style = self.__qtstyle__
+            QtWidgets.QApplication.setStyle(style)
         #
         #     store parameters
         #
@@ -1338,7 +1335,7 @@ class cls_DeviceConfigWindow(QtWidgets.QDialog):
         self.buttonDown.clicked.connect(self.do_itemDown)
         self.buttonAdd.clicked.connect(self.do_itemAdd)
         self.buttonRemove.clicked.connect(self.do_itemRemove)
-        self.devList.currentRowChanged.connect(self.do_checkOperations)
+        self.devList.itemClicked.connect(self.do_itemClicked)
         #
         #     ok/cancel button box
         #
@@ -1357,15 +1354,19 @@ class cls_DeviceConfigWindow(QtWidgets.QDialog):
         #
         #     fill list widget
         #
-        self.tabList = PILCONFIG.get(self.parent.name, "tabconfig")
+        self.tabList = copy.deepcopy(PILCONFIG.get(self.parent.name, "tabconfig"))
         for tab in self.tabList:
             typ = tab[0]
             name = tab[1]
             #        self.devList.addItem(name+" ("+ PILGLOBALS.Tab_Names[typ]+ ")")
             self.devList.addItem(name + " (" + self.tabSpecifications[typ].name + ")")
         self.devList.setCurrentRow(0)
+        self.checkOperations(0)
 
-    def do_checkOperations(self, row):
+    def do_itemClicked(self, item):
+        self.checkOperations(self.devList.currentRow())
+
+    def checkOperations(self, row):
         devType = self.tabList[row][0]
         if devType == PILGLOBALS.Tab_Scope:
             self.buttonUp.setEnabled(False)
@@ -1377,6 +1378,10 @@ class cls_DeviceConfigWindow(QtWidgets.QDialog):
             self.buttonUp.setEnabled(True)
             self.buttonDown.setEnabled(True)
             self.buttonRemove.setEnabled(True)
+        if row == 1:
+            self.buttonUp.setEnabled(False)
+        if row == self.devList.count() - 1:
+            self.buttonDown.setEnabled(False)
 
     def do_ok(self):
         PILCONFIG.put(self.parent.name, "tabconfig", self.tabList)
@@ -1390,7 +1395,7 @@ class cls_DeviceConfigWindow(QtWidgets.QDialog):
         if num_rows == 0:
             return
         row = self.devList.currentRow()
-        if row == 0:
+        if row == 1:
             return
         item = self.devList.takeItem(row)
         self.devList.insertItem(row - 1, item)
@@ -1399,6 +1404,7 @@ class cls_DeviceConfigWindow(QtWidgets.QDialog):
         temp = self.tabList[row]
         self.tabList[row] = self.tabList[row - 1]
         self.tabList[row - 1] = temp
+        self.checkOperations(row - 1)
         return
 
     def do_itemDown(self):
@@ -1415,6 +1421,7 @@ class cls_DeviceConfigWindow(QtWidgets.QDialog):
         temp = self.tabList[row]
         self.tabList[row] = self.tabList[row + 1]
         self.tabList[row + 1] = temp
+        self.checkOperations(row + 1)
         return
 
     def do_itemRemove(self):
@@ -1423,10 +1430,11 @@ class cls_DeviceConfigWindow(QtWidgets.QDialog):
         #
         # readjust row
         #
-        delRow=row
-        self.devList.setCurrentRow(delRow-1)
+        delRow = row
+        self.devList.setCurrentRow(delRow - 1)
         item = self.devList.takeItem(delRow)
         item = None
+        self.checkOperations(delRow - 1)
 
     def do_itemAdd(self):
         retval = cls_AddDeviceWindow.getAddDevice(self, self.tabSpecifications)
@@ -1437,6 +1445,9 @@ class cls_DeviceConfigWindow(QtWidgets.QDialog):
         #     self.devList.addItem(name+" ("+ PILGLOBALS.Tab_Names[typ]+ ")")
         self.devList.addItem(name + " (" + self.tabSpecifications[id].name + ")")
         self.tabList.append([id, name])
+        lastRow = self.devList.count() - 1
+        self.devList.setCurrentRow(lastRow)
+        self.checkOperations(lastRow)
 
     @staticmethod
     def getDeviceConfig(parent, tabs):

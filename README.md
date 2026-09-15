@@ -13,7 +13,7 @@ It is the result of a nearly two-year-long, comprehensive overhaul of the softwa
 Operating Requirements
 ----------------------
 
-Python >= 3.11, Pyside6 >= 6.8 and pySerial >= 3.5. Qt5 is not supported anymore.
+Python >= 3.11, Pyside6 >= 6.8, pySerial >= 3.5 and LIFUTILS 2.0.2. Qt5 is not supported anymore.
 
 
 pyILPER Loop
@@ -26,6 +26,8 @@ Interfaces
 ----------
 
 Interfaces can be configured at an arbitrary position in the loop in the "Virtual HP-IL devices configuration" window. They are now configured in their tab. Please note that each additional interface will slow down the throughput of the loop considerably. As before, the interface types PIL-Box. TCP/IP and socket are available. The PIL-Box interface has an additional configuration option, that tells the box whether to operate in controller on or controller off mode.
+
+The PIL-Box tty speed of 9600 baud is not supported any more.
 
 Interfaces have four states that are indicated by a status indicator in the status bar: "inactive" (black), "disconnected" (red), "waiting for connection" (yellow) and "connected" (green). The loop goes only into "running" state if all interfaces are connected.
 
@@ -51,7 +53,7 @@ There were no functional changes to the devices.
 Software Status
 ---------------
 
-This is a development verision that is almost feature complete with the exception of an updated online help. The possibility of migrating the configuration from version 1.9 is still being investigated.
+This is a development verision that is almost feature complete with the exception of an updated online help.
 
 Most system functions have been tested on Linux. On Windows and macOS only smoke tests were run.
 
@@ -65,9 +67,23 @@ Installing and Running the software
 
 - Unpack the zip file and go to the top-level directory of the package
 
-- run "python -m pyilper2"
+- run 
+
+     python -m pyilper2
 
 The configuration of pyILPER2 is entirely separated from the configuration of version 1.x. If you start the program for the first time, a default configuration is created. Complete the configuration for the interface and start the loop again.
+
+
+Migrate configuration from pyILPER 1.9
+--------------------------------------
+
+It is possible to migrate the pyILPER configuration from version 1.9 to 2.0.
+
+Run:
+
+     python -m pyilper2 --migrate
+
+Note: The configuration files of the production version of pyILPER 1.9 are used.
 
 
 Performance

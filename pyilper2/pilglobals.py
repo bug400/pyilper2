@@ -107,7 +107,7 @@ class cls_pilglobals:
         #
         #     Interface Modules
         #
-        self.InterfaceModules = ["pilbox", "piltcpip", "pilsocket"]
+        self.InterfaceModules = ["pilbox", "piltcpip", "pilsocket","acmbox","usbbox"]
         self.DefaultInterface = self.Interface_PilBox
         self.AutoreconnectInterval = 1
         #
@@ -141,7 +141,7 @@ class cls_pilglobals:
         #     the baudrates must be defined in ascending order
         self.Baudrates = [
             ["Auto", 0],
-            ["9600", 9600],
+            # ["9600", 9600],
             ["115200", 115200],
             ["230400", 230400],
         ]

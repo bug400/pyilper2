@@ -111,7 +111,7 @@ def decode_pyILPERVersion(version_string):
 #
 #  assemble file name of config file
 #
-def buildconfigfilename(filename, configversion, instance, production):
+def buildconfigfilename(configdir, filename, configversion, instance, production):
     #
     #  determine config file name
     #
@@ -127,7 +127,7 @@ def buildconfigfilename(filename, configversion, instance, production):
         #
         # LINUX
         #
-        configpath = os.path.join(userhome, ".config", PILGLOBALS.StandardConfigDir)
+        configpath = os.path.join(userhome, ".config", configdir)
     elif PILGLOBALS.isWindows:
         #
         # Windows
@@ -135,23 +135,22 @@ def buildconfigfilename(filename, configversion, instance, production):
         configpath = os.path.join(
             os.environ["HOMEDRIVE"],
             os.environ["HOMEPATH"],
-            PILGLOBALS.StandardConfigDir,
+            configdir,
         )
     elif PILGLOBALS.isMacos:
         #
         # Mac OS X
         #
-        configpath = os.path.join(
-            userhome, "Library", "Application Support", PILGLOBALS.StandardConfigDir
-        )
+        configpath = os.path.join(userhome, "Library", "Application Support", configdir)
     #
     else:
         #
         # Fallback
         #
-        configpath = os.path.join(userhome, PILGLOBALS.StandardConfigDir)
+        configpath = os.path.join(userhome, configdir)
     configfilename = os.path.join(configpath, fname)
 
+    # print(configfilename, configdir)
     return configfilename, configpath
 
 

@@ -25,6 +25,8 @@
 
 import json
 import os
+
+from .pilglobals import PILGLOBALS
 from .pilcore import buildconfigfilename
 
 
@@ -35,7 +37,7 @@ class cls_userconfig:
         #  determine config file name
         #
         self.__configfile__, self.__configpath__ = buildconfigfilename(
-            filename, configversion, instance, production
+            PILGLOBALS.StandardConfigDir, filename, configversion, instance, production
         )
 
     #

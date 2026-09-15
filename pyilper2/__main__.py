@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-# pyILPER 1.2.4 for Linux
+# pyILPER 2.0
 #
 # An emulator for virtual HP-IL devices for the PIL-Box
 # derived from ILPER 1.4.5 for Windows
@@ -26,20 +26,169 @@
 # Starting pyILPER with command line arguments is only possible if called as module
 # Some maintenance functions which are called by a command line options are located here
 #
-# Change log
-# XX.XX.XXXX
 #
 import sys
 import os
 import shutil
 import argparse
+from json import JSONDecodeError
 from .pyilpermain import main
 from .pilglobals import PILGLOBALS
-from .pilconfig import cls_pilconfig
-from .pilcore import buildconfigfilename
-from pyilper2 import __version__, __isProduction__
+from .pilconfig import cls_pilconfig, PILCONFIG
+from .pilcore import buildconfigfilename, decode_pyILPERVersion
+
+# from pyilper2 import __version__, __isProduction__
 
 
+#
+# migrate config from version 1.9 (production) to 2.0
+#
+def migrateConfig(args):
+
+    newName = PILGLOBALS.PackageName
+    oldName = "pyilper"
+    #
+    #  ask for confirmation
+    #
+    print("\nW A R N I N G!")
+    print("This overwrites the current configuration files of pyILPER 2.0")
+    inp = input("Continue? (enter 'YES' uppercase): ")
+
+    if inp != "YES":
+        print("cancelled")
+        return
+    #
+    # copy files
+    #
+    count = 0
+    for name in ["pyilper", "penconfig", "shortcutconfig"]:
+        from_filename = buildconfigfilename("pyilper", name, "2", args.instance, True)[
+            0
+        ]
+        if not os.path.isfile(from_filename):
+            continue
+        to_filename = buildconfigfilename(
+            PILGLOBALS.StandardConfigDir,
+            name,
+            PILGLOBALS.ConfigVersion,
+            args.instance,
+            PILGLOBALS.Production,
+        )[0]
+
+        try:
+            shutil.copy(from_filename, to_filename)
+        except shutil.SameFileError as e:
+            print(
+                "Error copying file "
+                + from_filename
+                + " "
+                + "source and destination file are identical"
+            )
+            return
+
+        except OSError as e:
+            print("Error copying file " + from_filename + ": " + e.strerror)
+            return
+
+        print(from_filename)
+        print("copied to:")
+        print(to_filename)
+        count += 1
+    #
+    # migrate pyilper configuration
+    #
+    try:
+        PILCONFIG.open(
+            PILGLOBALS.ConfigVersion,
+            args.instance,
+            PILGLOBALS.Production,
+            False,
+        )
+        #
+        # check version of old configuration must be of 1.9
+        #
+        oldversion = decode_pyILPERVersion(PILCONFIG.get("pyilper", "version"))
+        if oldversion < 10900:
+            print("cannot migrate pyilper configuration from versions < 1.9.0")
+            return
+
+        PILCONFIG.put(newName, "version", PILGLOBALS.Version)
+        #
+        # migrate tab configuration
+        #
+        tabconfig = PILCONFIG.get(oldName, "tabconfig")
+        newTabconfig = [[0, "Scope"], [1, "Interface1"], [9, "Probe1"]]
+        for t in tabconfig:
+            tabid = t[0]
+            tabname = t[1]
+            tabid += 1
+            newTabconfig.append([tabid, tabname])
+        newTabconfig.append([9, "Probe2"])
+        PILCONFIG.put(newName, "tabconfig", newTabconfig)
+        PILCONFIG.put(newName, "tabconfigchanged", True)
+        PILCONFIG.put(newName, "active_tab", 0)
+        #
+        # migrate interface config
+        #
+        for k in [
+            "if_pilbox_device",
+            "if_pilbox_baudrate",
+            "if_pilbox_idyframe",
+            "if_tcpip_port",
+            "if_tcpip_remoteport",
+            "if_tcpip_remotehost",
+            "if_socket_serverport",
+        ]:
+            subk = k.split("if_")
+            value = PILCONFIG.get("if", subk[1])
+            PILCONFIG.put("Interface1", k, value)
+        baudrate = PILCONFIG.get("Interface1", "if_pilbox_baudrate")
+        if baudrate == 9600:
+            PILCONFIG.put("Interface1", "if_pilbox_baudrate", 115200)
+        PILCONFIG.put("Interface1", "if_pilbox_controllermode", False)
+        PILCONFIG.put("Interface1", "active", True)
+        interfaceid = PILCONFIG.get(oldName, "mode")
+        PILCONFIG.put("Interface1", "interface_id", interfaceid)
+        #
+        # migrate remaining pyILPER config
+        #
+        PILCONFIG.put(newName, "autostart", True)
+
+        for k in [
+            "workdir",
+            "usebom",
+            "terminalcharsize",
+            "directorycharsize",
+            "helpposition",
+            "hp2225b_screenwidth",
+            "hp82162a_pixelsize",
+            "lifutilspath",
+            "papersize",
+            "position",
+        ]:
+            value = PILCONFIG.get(oldName, k)
+            PILCONFIG.put(newName, k, value)
+        #
+        # remove old keys
+        #
+        PILCONFIG.delKeys("pyilper")
+        PILCONFIG.delKeys("if")
+
+        PILCONFIG.save()
+    except JSONDecodeError as ex:
+        print(f"JSON decode error: {ex.msg} at {ex.lineno}:{ex.colno}")
+
+    except OSError as e:
+        print("Error reading or writing migrated configuration ")
+        return
+
+    print(
+        count,
+        "files copied and migrated. Restart pyILPER without the 'migrate' option now",
+    )
+
+
+#
 # copy configuration data from devel to production and vice versa
 # - a development/beta version of pyILPER copies the files of the
 #   production version
@@ -91,12 +240,20 @@ def copyConfig(args):
     #
     for name in ["pyilper", "penconfig", "shortcutconfig"]:
         from_filename = buildconfigfilename(
-            name, PILGLOBALS.ConfigVersion, args.instance, not PILGLOBALS.Production
+            PILGLOBALS.StandardConfigDir,
+            name,
+            PILGLOBALS.ConfigVersion,
+            args.instance,
+            not PILGLOBALS.Production,
         )[0]
         if not os.path.isfile(from_filename):
             continue
         to_filename = buildconfigfilename(
-            name, PILGLOBALS.ConfigVersion, args.instance, PILGLOBALS.Production
+            PILGLOBALS.StandardConfigDir,
+            name,
+            PILGLOBALS.ConfigVersion,
+            args.instance,
+            PILGLOBALS.Production,
         )[0]
         try:
             shutil.copy(from_filename, to_filename)
@@ -164,6 +321,12 @@ def start():
         action=ValidateScale,
         help="Force scaling for high-DPI displays. 1.0<=SCALE<=4.0",
     )
+    parser.add_argument(
+        "--migrate",
+        "-migrate",
+        action="store_true",
+        help="Migrate pyILPER configuration from version 1.9",
+    )
 
     parser.add_argument("--v", "-v", action="store_true", help="Show pyILPER version")
     args = parser.parse_args()
@@ -171,27 +334,22 @@ def start():
     #  show version
     #
     if args.v:
-        print("pyILPER ", __version__, end="")
-        if __isProduction__:
-            print(" (Production)")
-        else:
-            print(" (Development)")
+        print("pyILPER ", PILGLOBALS.Version, end="")
         sys.exit(0)
     #
-    #   run -cc and -mc commands
+    #   run -cc and -migrate commands
     #
-
     if args.cc:
         copyConfig(args)
+        sys.exit(1)
+    if args.migrate:
+        migrateConfig(args)
         sys.exit(1)
     #
     #  set scaling, if specified
     #
     if args.scale:
         os.putenv("QT_SCALE_FACTOR", str(args.scale))
-    #
-    #  set command line arguments to PILGLOBALS and run pyILPER
-    #
     #
     #  set command line arguments to PILGLOBALS and run pyILPER
     #

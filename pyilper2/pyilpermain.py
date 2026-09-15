@@ -759,7 +759,6 @@ class cls_ui(QtWidgets.QMainWindow):
     def changeWorkdir(self):
         workdir = PILCONFIG.get(self.name, "workdir")
         if self.oldWorkdir != workdir:
-            print(f"change workdir to {workdir}")
             try:
                 os.chdir(PILCONFIG.get(self.name, "workdir"))
             except Exception as e:
