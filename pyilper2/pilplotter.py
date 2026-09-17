@@ -1,12 +1,12 @@
-#!/usr/bin/python3
 # -*- coding: utf-8 -*-
+#
 # pyILPER 2.0
 #
 # An emulator for virtual HP-IL devices for the PIL-Box
 # derived from ILPER 1.4.5 for Windows
 # Copyright (c) 2008-2013   Jean-Francois Garnier
 # C++ version (c) 2013 Christoph Gießelink
-# Python Version (c) 2015 Joachim Siebold
+# Python Version (c) 2026 Joachim Siebold
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -22,10 +22,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# Plotter tab object classes ---------------------------------------------------
+# virtual HP7570A plotter (gui and virtual HP-IL device)
 #
-# Changelog
-# XX.XX.XXXX jsi:
+
 
 import sys
 import subprocess
@@ -1217,7 +1216,7 @@ class cls_PlotterConfigWindow(QtWidgets.QDialog):
 
 
 #
-# Plotter emulator (thrad component) -----------------------------------------------
+# HP-IL device classes for the plotter
 #
 # This is the thread component of the plotter emulator.
 # The thread part is called from the  __indata__ method. Incoming bytes from the
@@ -1518,7 +1517,7 @@ class cls_HP7470(QtCore.QObject):
         self.parse_state = 0
 
     #
-    #  process_char is called py the cls_pilplotter __indata__ method (registered)
+    #  process_char is called by the cls_pilplotter __indata__ method (registered)
     #  process single characters obtained from the interface loop, store
     #  complete HPGL-commands in and process them. This ugly parser ensures that
     #  emu7470 gets HPGL-Commands with a more strict HPGL-syntax

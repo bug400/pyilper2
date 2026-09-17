@@ -3,7 +3,12 @@
 /debian/files
 /debian/pyilper/
 /build/
-/p
+/.vscode
+/pyilper2/Manual/
+/pyilper2/pyilper2-code.workspace
+pyilper2/pyilper2.code-workspace
+/TODO
+/*.txt
 /__pycache__/
 /pyilper.egg-info/
 *.pyc

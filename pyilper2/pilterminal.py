@@ -1,12 +1,12 @@
-#!/usr/bin/python3
 # -*- coding: utf-8 -*-
-# pyILPER 1.2.1 for Linux
+#
+# pyILPER 2.0
 #
 # An emulator for virtual HP-IL devices for the PIL-Box
 # derived from ILPER 1.4.5 for Windows
 # Copyright (c) 2008-2013   Jean-Francois Garnier
 # C++ version (c) 2013 Christoph Gießelink
-# Python Version (c) 2015 Joachim Siebold
+# Python Version (c) 2026 Joachim Siebold
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -21,6 +21,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# pilterminal.py: virtual terminal with keyboard support (gui and HP-IL device)
+#
 
 import threading
 import array
@@ -34,9 +37,6 @@ from .pilcore import cls_Tab_Spec, PILGLOBALS
 #
 # Terminal tab object classes ----------------------------------------------
 #
-# Changelog
-#
-# XX.XX.XXXX jsi
 
 
 class cls_tabterminal(cls_tabtermgeneric):
@@ -111,13 +111,7 @@ class cls_tabterminal(cls_tabtermgeneric):
 
 
 #
-# HP-IL virtual terminal object class ---------------------------------------
-#
-# Initial release derived from ILPER 1.43 for Windows
-#
-# Changelog
-#
-# XX.XX.XXXX jsi
+# HP-IL device class for the terminal
 #
 class cls_pilterminal(cls_pildevbase):
 

@@ -1,8 +1,8 @@
-#!/usr/bin/python3
 # -*- coding: utf-8 -*-
-# pyILPER 2
 #
-# (c) 2015 Joachim Siebold
+# pyILPER 2.0
+#
+# (c) 20126Joachim Siebold
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -18,10 +18,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# userconfig class ---------------------------------------------------------
+# userconfig.py: base class for configuration data management
 #
-# Changelog
-# XX.XX.XXXX jsi:
 
 import json
 import os

@@ -1,8 +1,8 @@
-#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
-# Dialogs for lif utilities operations
-# (c) 2015 Joachim Siebold
+# pyILPER 2.0
+#
+# (c) 2026 Joachim Siebold
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -18,21 +18,14 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# pdf printer class ----------------------------------------------------
+# pilpdf: creates a PDF printer wich adds graphic items to a single or multi column
+# output.
 #
-# Changelog
-# XX.XX.XXXX - jsi
 
-#
 from .pilglobals import PILGLOBALS
 from PySide6 import QtCore, QtGui, QtWidgets, QtPrintSupport
 
 
-#
-# PDF printer class:
-# creates a PDF printer wich adds graphic items to a single or multi column
-# output.
-#
 class cls_pdfprinter(QtCore.QObject):
 
     def __init__(

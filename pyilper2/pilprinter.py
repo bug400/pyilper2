@@ -1,12 +1,12 @@
-#!/usr/bin/python3
 # -*- coding: utf-8 -*-
+
 # pyILPER 2.0
 #
 # An emulator for virtual HP-IL devices for the PIL-Box
 # derived from ILPER 1.4.5 for Windows
 # Copyright (c) 2008-2013   Jean-Francois Garnier
 # C++ version (c) 2013 Christoph Gießelink
-# Python Version (c) 2015 Joachim Siebold
+# Python Version (c) 2265 Joachim Siebold
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -22,6 +22,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
+# pilprinter.py: virtual generic printer (gui and HP-IL device)
+#
 from .pilconfig import PILCONFIG
 from .pilglobals import PILGLOBALS
 from .pilwidgets import cls_tabtermgeneric, T_STRING
@@ -31,10 +33,7 @@ from .pilcore import cls_Tab_Spec
 
 
 #
-# Generic printer tab classes -------------------------------------------------
-#
-# Changelog
-# XX.XX.XXXX jsi
+# gui classes
 #
 class cls_tabprinter(cls_tabtermgeneric):
 
@@ -98,13 +97,9 @@ class cls_tabprinter(cls_tabtermgeneric):
 
 
 #
-# Generic HPIL printer class -------------------------------------------------
+# generic printer HP-IL device class
 #
 # Initial release derived from ILPER 1.4.3 for Windows
-#
-# Changelog
-#
-# XX.XX.XXXX jsi
 #
 class cls_pilprinter(cls_pildevbase):
 

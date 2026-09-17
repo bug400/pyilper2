@@ -1,12 +1,12 @@
-#!/usr/bin/python3
 # -*- coding: utf-8 -*-
+#
 # pyILPER 2.0
 #
 # An emulator for virtual HP-IL devices for the PIL-Box
 # derived from ILPER 1.4.5 for Windows
 # Copyright (c) 2008-2013   Jean-Francois Garnier
 # C++ version (c) 2013 Christoph Gießelink
-# Python Version (c) 2015 Joachim Siebold
+# Python Version (c) 2026 Joachim Siebold
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -26,6 +26,11 @@
 # Starting pyILPER with command line arguments is only possible if called as module
 # Some maintenance functions which are called by a command line options are located here
 #
+# __main__.py: This file is executed, if pyILPER2 is called as a module
+#
+# Note: Calling pyILPER as a module is the o n l y reliable way to get access to command
+# line parameters. Therefore all code that is executed without calling the main application
+# is implemented here.
 #
 import sys
 import os

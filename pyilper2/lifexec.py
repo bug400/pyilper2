@@ -1,8 +1,8 @@
-#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
-# Dialogs for lif utilities operations
-# (c) 2015 Joachim Siebold
+# pyILPER 2.0
+#
+# (c) 2026 Joachim Siebold
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -18,10 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# lif utilities dialog classes -------------------------------------------------
-#
-# Changelog
-# XX.XX.XXXX - jsi
+# lifexec.py: GUI Integration of the LIFUTILS programs into the pyILPER gui.
 #
 import subprocess
 import tempfile

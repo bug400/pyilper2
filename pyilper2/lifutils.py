@@ -1,12 +1,11 @@
-#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
-# LIF utilities for pyILPE 2.0
+# pyILPER 2.0
 #
 # Python classes to handle LIF image files
 # derived from the LIF utilities of Tony Duell
 # Copyright (c) 2008 A. R. Duell
-# Python Version (c) 2015 Joachim Siebold
+# Python Version (c) 2026 Joachim Siebold
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -22,10 +21,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# LIF image file classes ---------------------------------------------------
-#
-# Changelog
-# XX.XX.XXXX jsi
+# lifutils.py: Classes to acces a LIF image file diretory and the header of
+# a LIF file
 #
 import os
 from .pilglobals import PILGLOBALS

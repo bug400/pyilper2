@@ -1,10 +1,9 @@
-#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
 # pyILPER 2.0
 #
 # Keyboard mapping definitions
-# Copyright (c) 2019 J. Siebold
+# Copyright (c) 2026 J. Siebold
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -20,10 +19,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# pyILPER keyboard definitions  ---------------------------------------------------
+# pilkeymap.py: key map definitions for the virtual terminal. Supports
+# mapping of function keys of the PC keyboard to HP-71 or HP-75 keys.
 #
-# Changelog
-# XX.XX.XXXX - jsi:
 
 
 from .pilglobals import PILGLOBALS

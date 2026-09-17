@@ -1,12 +1,12 @@
-#!/usr/bin/python3
 # -*- coding: utf-8 -*-
+#
 # pyILPER 2.0
 #
 # An emulator for virtual HP-IL devices for the PIL-Box
 # derived from ILPER 1.4.5 for Windows
 # Copyright (c) 2008-2013   Jean-Francois Garnier
 # C++ version (c) 2013 Christoph Gießelink
-# Python Version (c) 2015 Joachim Siebold
+# Python Version (c) 2026 Joachim Siebold
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -22,7 +22,50 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# controller object class  ---------------------------------------------
+# controlthread.py: classes for the main controller threads
+# The controlthread is started from the main GUI application. It implements
+# the pyILPER virtual HP-IL loop. For each interface in the pyILPER configuration
+# it starts and controls a reader thread.
+#
+# The architecture is illustrated in the diagram below.
+#
+#                        Queue                 Signal             Signal
+# Reader Threads           +                     +
+#                          |                     ^
+#                          |                     |
+#                Data read from Interface     Terminate
+#                   Status/Error Info          Signal
+#                          |                     |
+#                          v                     |
+# Control Thread    Process Frame          on termination     forward Status/error
+#                          ^                                         |
+#                          |                                         |
+#                   Control Commands                                 |
+#                    Start/Stop etc.                                 |
+#                          |                                         |
+# GUI Application          +                                         +
+#
+# Information coming from the reader thread or the GUI application contain an id to determine its
+# origin. The process frame pseudo code is:
+#
+#  while True:
+#      if data in queue (blocked get with timeout):
+#          get interface id and data from queue
+#          if id is from an interface:
+#              if data is frame:
+#                  process the virtual HP-IL devices following the Interface in the virtual loop
+#                  write processed frame to the next interface in the virtual loop
+#             elif data is status change:
+#                  emit status signal to GUI Application
+#             elif data is error message:
+#                  emit error message signal to GUI Application
+#                  terminate reader threads
+#                  exit controlthread
+#         if id is from GUI Application:
+#            if command is stop:
+#                terminate reader threads
+#                exit controlthread
+#
 
 import sys
 import time
@@ -39,6 +82,9 @@ from .iothread import cls_IOThread
 from .pildevbase import cls_pildevbase
 
 
+#
+# This datacass contains all information that is needed to process an incoming frame
+#
 @dataclass
 class controllerItem:
     isDisabled: bool

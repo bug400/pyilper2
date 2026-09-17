@@ -1,3 +1,33 @@
+# -*- coding: utf-8 -*-
+#
+# pyILPER 2.0
+#
+# An emulator for virtual HP-IL devices for the PIL-Box
+# derived from ILPER 1.4.5 for Windows
+# Copyright (c) 2008-2013   Jean-Francois Garnier
+# C++ version (c) 2013 Christoph Gießelink
+# Python Version (c) 2026 Joachim Siebold
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# pilinterface.py: gui of the interface tab. Allows pluggable interfaces to add
+# their configuration gui into the tab. Provides classes to select tty interfaces.
+# Defines the dataclass where properties of pluggable interfaces are specified.
+#
+
+
 from PySide6 import QtCore, QtWidgets
 import serial.tools.list_ports
 

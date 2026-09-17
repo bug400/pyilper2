@@ -1,12 +1,12 @@
-﻿#!/usr/bin/python3
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
+#
 # pyILPER 2.0
 #
 # An emulator for virtual HP-IL devices for the PIL-Box
 # derived from ILPER 1.4.5 for Windows
 # Copyright (c) 2008-2013   Jean-Francois Garnier
 # C++ version (c) 2013 Christoph Gießelink
-# Python Version (c) 2015 Joachim Siebold
+# Python Version (c) 2026 Joachim Siebold
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -22,12 +22,18 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# ACM i/o thread class  ---------------------------------------------
+# acmbox.py: pluggable interface code for a USB to HP-IL converter
+# implemented using a microcontroller that includes a USB interface.
+# Frames are transferred as 16 bit values which makes the conversion
+# fully transparent. There is a speed increase of about 10% compared
+# to using the PIL-Box protocol
 #
-# Changelog
+# The PIL-Box protocol is only used to send commands to the box which
+# only implements the TDIS and the custom PASSTHRU mode.
 #
-# XX.XX.2026 jsi
-# - code taken from pyILPER 1.9 and modified for pyILPER 2.0
+# On the PC side, the USB serial ACM device is used. An arbitrary
+# baudrate can be used, the device will always operate at full speed.
+#
 
 
 import time

@@ -1,7 +1,7 @@
-#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
 # pyILPER 2.0
+#
 # Copyright (c) 2026 J. Siebold
 #
 # This program is free software; you can redistribute it and/or
@@ -18,11 +18,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# pyILPER support functions and classes -----------------------------------------------
-#
-# Changelog
-# XX.XX.2026 jsi:
-# - derived from version 1.9
+# pilcore: pyILPER support functions and dataclasses to specify properties
+# of pluggable interfaces and devices
 #
 import re
 import os
@@ -31,12 +28,6 @@ import shutil
 from dataclasses import dataclass
 from .pilglobals import PILGLOBALS
 
-USE_8BITS = True
-
-"""
-def getEventPosition(ev):
-    return ev.position().toPoint()
-"""
 
 #
 # A note on pyILPER error handling in the thread code.

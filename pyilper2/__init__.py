@@ -1,6 +1,6 @@
-#!/usr/bin/python3
 # -*- coding: utf-8 -*-
-# pyILPER 2 for Linux
+#
+# pyILPER 2
 #
 # An emulator for virtual HP-IL devices for the PIL-Box
 # derived from ILPER 1.4.5 for Windows
@@ -22,9 +22,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# Change log
-# 05.03.2023 - jsi
-# - implented __version__ and __isProduction__
+# __init__.py: Add constants to package namespace
 
 __version__ = "2.0.0"  # single source for pyILPER version
 __isProduction__ = False  # set to True, if production version

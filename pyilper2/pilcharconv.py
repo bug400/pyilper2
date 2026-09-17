@@ -1,8 +1,8 @@
-#!/usr/bin/python3
 # -*- coding: utf-8 -*-
-# pilcharconv for pyILPER 2.0
 #
-# (c) 2015 Joachim Siebold
+# pyILPER 2.0
+#
+# (c) 2026 Joachim Siebold
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -18,12 +18,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# character conversion ---------------------------------------
+# pilcharconv: character conversion for the HP-41, HP-71, HP-75, ROMAN8 and
+# HP2225 (internal use only) character code.
 #
-# Changelog
-#
-# XX.XX.XXXX jsi:
-
 #
 # Note: if the order of character sets is changed mind to alter the
 #       CHAR_ATTRIB look up table in pilqterm. All character sets

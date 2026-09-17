@@ -1,6 +1,7 @@
-#!/usr/bin/python3
 # -*- coding: utf-8 -*-
+
 # pyILPER 2.0
+#
 # (c) 2026 Joachim Siebold
 #
 # This program is free software; you can redistribute it and/or
@@ -17,10 +18,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# pilglobals class -------------------------------------------
-#
-# Changelog
-# XX.XX.XXXX jsi
+# pilglobals.py: global constants for pyILPER.
+# Note: some constants are set on parsing of program parameters (see setArgs)
 #
 import os
 import platform
@@ -107,7 +106,7 @@ class cls_pilglobals:
         #
         #     Interface Modules
         #
-        self.InterfaceModules = ["pilbox", "piltcpip", "pilsocket","acmbox","usbbox"]
+        self.InterfaceModules = ["pilbox", "piltcpip", "pilsocket", "acmbox", "usbbox"]
         self.DefaultInterface = self.Interface_PilBox
         self.AutoreconnectInterval = 1
         #

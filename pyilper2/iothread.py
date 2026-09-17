@@ -1,12 +1,12 @@
-#!/usr/bin/python3
 # -*- coding: utf-8 -*-
-# pyILPER 1.2.1 for Linux
+#
+# pyILPER 2.0
 #
 # An emulator for virtual HP-IL devices for the PIL-Box
 # derived from ILPER 1.4.5 for Windows
 # Copyright (c) 2008-2013   Jean-Francois Garnier
 # C++ version (c) 2013 Christoph Gießelink
-# Python Version (c) 2015 Joachim Siebold
+# Python Version (c) 2026 Joachim Siebold
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -22,12 +22,35 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# IO Thread virtual class  ---------------------------------------------
+# iothread.py: base class for reader thread
+# See the diagrad im controlthread.py for an overview of the architecture.
 #
-# Changelog
+# Note: that all interfaces implement an autoreconnect feature
 #
-# XX.XX.2026 jsi
-# - first version
+# The pseudocode of a reader thread is:
+#
+# while True:
+#     # outer reconnect loop
+#     check for client/device connection
+#     if connected:
+#         put status change to queue
+#         while true:
+#              # inner read data loop
+#              if data available (blocked read with timeout):
+#                   put data to queue
+#                   continue
+#              if i/o error:
+#                   if error cause is device unplugged or client disconnect:
+#                       # return to connect loop
+#                       break
+#                    else:
+#                        put error message and status change to queue
+#                        disconnect client/close device
+#                        exit
+#              iff stop signal set by controlthread:
+#                  disconnect client/device
+#                  exit
+#
 
 import threading
 from .pilglobals import PILGLOBALS

@@ -1,0 +1,10 @@
+
+<h2 class="w3-text-teal">Release Notes for <em>pyILPER</em> 2.0.0</h2>
+<p><b>Note:</b>: <em>pyILPER</em> 2.0.0 is a significant internal overhaul of the 1.x version that essentially provides the following enhancements:<p>
+<ul class="w3-ul">
+<li>Similar to the virtual HP-IL devices, there can now be multiple interfaces of the PIL-Box, TCP/IP or socket type, each with its own tab where it can be configured. The interface tabs can be placed anywhere within the tabs of the virtual devices.</li>
+<li>The scope now receives data from two probes, which can be placed anywhere between the virtual devices.. The frames captured by the probes can then be displayed simultaneously in the scope, just as before.</li>
+<li>Nothing has changed regarding the use of virtual devices, except that they are now enabled by default when created.</li>
+<li>The configuration files of <em>pyILPER</em> 2.0.0 are entirely separated from the configuration files of the 1.x versions. Therefore both versions can be installed side by side without any problems. It is possible to migrate a configuration of <em>pyILPER</em> 1.9.x to 2.0.0, see description of command line parameters. If you use a <em>pyILPER</em> version prior to 1.9.x then upgrade to that version first.</li>
+<li>Since version 2.0 requires more advanced program features, the requirements for Python and Qt have been raised to Python 3.11, Qt 6.8, and pySerial 3.5. Ther is <b>no</b> support for Qt5 any more.</li>
+</ul>

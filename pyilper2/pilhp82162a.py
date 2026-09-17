@@ -1,12 +1,12 @@
-#!/usr/bin/python3
 # -*- coding: utf-8 -*-
-# pyILPER 1.2.4 for Linux
+#
+# pyILPER 2.0
 #
 # An emulator for virtual HP-IL devices for the PIL-Box
 # derived from ILPER 1.4.5 for Windows
 # Copyright (c) 2008-2013   Jean-Francois Garnier
 # C++ version (c) 2013 Christoph Gießelink
-# Python Version (c) 2015 Joachim Siebold
+# Python Version (c) 2026 Joachim Siebold
 # HP82162a printer emulation derived from the nonpareil emulator
 # (C) 1995, 2003, 2004, 2005, 2006, 2008 Eric Smith
 #
@@ -24,11 +24,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# HP82162A virtual device classes  ---------------------------------------------
+# hp82162a.py: virtual HP82162A printer (gui and HP-IL device)
 #
-# Changelog
-# XX.XX.XXXX jsi:
-
 #
 import copy
 import threading
