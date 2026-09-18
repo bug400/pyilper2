@@ -261,7 +261,7 @@ class cls_piltcpip(cls_IOThread):
         #
         # error exit
         #
-        except ExceptionGroup as e:
+        except Exception as e:
             #
             #        put error status and message to queue
             #

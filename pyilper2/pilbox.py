@@ -62,13 +62,15 @@ class cls_pilbox(cls_IOThread):
         self.__ttyDevice__ = PILCONFIG.get(self.__configName__, "device")
         self.__baudrate__ = PILCONFIG.get(self.__configName__, "baudrate")
         self.__idyframe__ = PILCONFIG.get(self.__configName__, "idyframe")
-        self.__isController__ = PILCONFIG.get(self.__configName__, "controllermode")
+        self.__controllerIsConnected__ = PILCONFIG.get(
+            self.__configName__, "controllerconnected"
+        )
         self.__ioDevice__ = cls_serialIO(self.__ttyDevice__)  # serial device object
         self.__lasth__ = 0
-        if self.__isController__:
-            print(self.__name__ + ": controller on mode")
-        else:
+        if self.__controllerIsConnected__:
             print(self.__name__ + ": controller off mode")
+        else:
+            print(self.__name__ + ": controller on mode")
 
     #
     #  get connection speed
@@ -140,7 +142,7 @@ class cls_pilbox(cls_IOThread):
     #  Init Box, send either CON, COFI or COFF
     #
     def initBox(self):
-        if self.__isController__:
+        if not self.__controllerIsConnected__:
             cmd = PILGLOBALS.Pilbox_Command_CON
         else:
             if self.__idyframe__:
@@ -326,7 +328,9 @@ class cls_pilboxConfig(cls_ConfigInterfaceGeneric):
         self.tty = PILCONFIG.get(self.configName, "device", "")
         self.ttyspeed = PILCONFIG.get(self.configName, "baudrate", 0)
         self.idyframe = PILCONFIG.get(self.configName, "idyframe", True)
-        self.controllermode = PILCONFIG.get(self.configName, "controllermode", False)
+        self.controllermode = PILCONFIG.get(
+            self.configName, "controllerconnected", True
+        )
 
         #
         #     serial device
@@ -385,7 +389,7 @@ class cls_pilboxConfig(cls_ConfigInterfaceGeneric):
 
     def do_cbCtrlMode(self):
         self.controllermode = self.cbCtrlMode.isChecked()
-        PILCONFIG.put(self.configName, "controllermode", self.controllermode)
+        PILCONFIG.put(self.configName, "controllerconnected", self.controllermode)
 
     def do_config_interface(self):
         interface = cls_TtyWindow.getTtyDevice(self.tty)

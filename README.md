@@ -25,7 +25,7 @@ pyILPER creates a virtual loop of emulated HP-IL devices, interfaces, and two sc
 Interfaces
 ----------
 
-Interfaces can be configured at an arbitrary position in the loop in the "Virtual HP-IL devices configuration" window. They are now configured in their tab. Please note that each additional interface will slow down the throughput of the loop considerably. As before, the interface types PIL-Box. TCP/IP and socket are available. The PIL-Box interface has an additional configuration option, that tells the box whether to operate in controller on or controller off mode.
+Interfaces can be configured at an arbitrary position in the loop in the "Virtual HP-IL devices configuration" window. They are now configured in their tab. Please note that <b>each additional interface will slow down the throughput of the loop considerably</b>. As before, the interface types PIL-Box. TCP/IP and socket are available. The PIL-Box interface has an additional configuration option, that tells the box whether to operate in controller on or controller off mode.
 
 The PIL-Box tty speed of 9600 baud is not supported any more.
 
@@ -69,24 +69,35 @@ Installing and Running the software
 
 - run 
 
-     python -m pyilper2
+     python -m pyilper2 -v
 
-The configuration of pyILPER2 is entirely separated from the configuration of version 1.x. If you start the program for the first time, a default configuration is created. Complete the configuration for the interface and start the loop again.
+This show the program version.
 
-
-Migrate configuration from pyILPER 1.9
---------------------------------------
-
-It is possible to migrate the pyILPER configuration from version 1.9 to 2.0.
-
-Run:
+The configuration of pyILPER2 is entirely separated from the configuration of version 1.x. You can migrate the configuration of your pyILPER 1.9 production version into a pyILPER 2.0 compatible format:
 
      python -m pyilper2 --migrate
 
-Note: The configuration files of the production version of pyILPER 1.9 are used.
+Now run the program:
+
+     pyilper -m pyiper2
+
+If you did not have a pyilper 2.0 configuration before, a default configuration with one Interface of type PIL-Box is created. pyILPER will start with an error message, that the serial device of the PIL-Box has not been configured. Enter the device name in der Interface tab and start the loop from the file menu.
+
+Configuration with Multiple Interfaces
+--------------------------------------
+
+If your pyILPER configuration contains several interfaces, there are a few thins to keep in mind:
+
+- Connect all USB devices
+
+- Start the loop. Check, whether all USB devices connect. If their status stays "connecting" then the serial device in the interface configuration does not exist.
+
+- start the TCP/IP virtual HP-IL devices and make them running.
+
+- start the HP-IL controller last! Please follow the instructions above regarding TCP/IP connections.
 
 
 Performance
 -----------
 
-The loop throughput of Version 2.0 is 5-10% less than the performance of version 1.9 because of the overhead required for a multi-interface architecture.
+The loop throughput of Version 2.0 is 5-10% less than the performance of an identically configured version 1.9 because of the overhead required for a multi-interface architecture.
