@@ -229,10 +229,6 @@ class cls_ui(QtWidgets.QMainWindow):
             self.actionShortcutConfig.triggered.connect(self.shortcutConfig)
             self.actionStart = self.menuFile.addAction("Start Loop")
             self.actionStart.triggered.connect(self.controller_restart)
-            # self.actionPause = self.menuFile.addAction("Pause Loop")
-            # self.actionPause.triggered.connect(self.controller_pause)
-            # self.actionResume = self.menuFile.addAction("Resume Loop")
-            # self.actionResume.triggered.connect(self.controller_resume)
             self.actionStop = self.menuFile.addAction("Stop Loop")
             self.actionStop.triggered.connect(self.controller_stop)
             self.actionStop.setEnabled(False)
@@ -514,8 +510,6 @@ class cls_ui(QtWidgets.QMainWindow):
                 msg = "Waiting for connection(s) ..."
             self.actionStart.setEnabled(False)
             self.actionStop.setEnabled(True)
-        elif controllerStatus == cls_controller.STAT_PAUSE:
-            msg = "Loop suspended ..."
         else:
             if exitError:
                 msg = "Loop stopped after error"
@@ -585,29 +579,6 @@ class cls_ui(QtWidgets.QMainWindow):
         self.isEnabled = False
         print("main: controller thread joined")
         self.controller = None
-
-    #
-    # suspend execution of the control thread, used if devices need to be reconfigured if the pyILPER config was changed. Not callable from UI
-    #
-    def controller_pause(self):
-        if self.controller is not None:
-            self.controller.pause()
-
-    #
-    # resume execution of a suspended control thread
-    #
-    def controller_resume(self):
-        if self.controller is not None:
-            self.controller.resume()
-
-    #
-    # restart control thread (not used at the moment)
-    #
-    def controller_restart(self):
-        if self.controller is not None:
-            print("illegal status")
-            return
-        self.controller_start()
 
     #
     # pyILPER system configuration callback

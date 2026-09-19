@@ -37,7 +37,8 @@
 #         while true:
 #              # inner read data loop
 #              if data available (blocked read with timeout):
-#                   put data to queue
+#                   process the virtual HP-IL devices following the Interface in the virtual loop
+#                   write processed frame to the next interface in the virtual loop
 #                   continue
 #              if i/o error:
 #                   if error cause is device unplugged or client disconnect:
@@ -68,7 +69,13 @@ class cls_IOThread(threading.Thread):
     MSG_STATUS = -11
 
     def __init__(
-        self, parent, stopEvent, queue, id, interfaceConfigName, interfaceName
+        self,
+        parent,
+        stopEvent,
+        queue,
+        id,
+        interfaceConfigName,
+        interfaceName,
     ):
         super().__init__()
         self.__parent__ = parent
@@ -77,11 +84,16 @@ class cls_IOThread(threading.Thread):
         self.__id__ = id
         self.__name__ = interfaceName
         self.__configName__ = interfaceConfigName
+
         self.__status__ = self.STAT_DISCONNECTED
         self.__statLock__ = threading.Lock()
         self.USE_8BITS = True
         self.__ioDevice__ = None
         self.__deviceRemoved__ = True
+
+    def addInfo(self, deviceProcessors, writer):
+        self.__deviceProcessors__ = deviceProcessors
+        self.__writer__ = writer
 
     def setStatus(self, stat):
         with self.__statLock__:

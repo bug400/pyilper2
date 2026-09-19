@@ -193,9 +193,15 @@ class cls_acmbox(cls_IOThread):
                         continue
                     # print(self.__name__ + ": read frame %x" % frame)
                     #
-                    # put frame to queue
+                    # execute the following devices in the pyILPER loop
                     #
-                    self.__queue__.put([self.__id__, frame])
+                    for processMethod in self.__deviceProcessors__:
+                        frame = processMethod(frame)
+                    #
+                    # write to the next interface
+                    #
+                    self.__writer__(frame)
+
             #
             # normal termination
             #

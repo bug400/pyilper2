@@ -283,7 +283,16 @@ class cls_pilsocket(cls_IOThread):
                     lbyt = byt
                     self.write(byt)
                 else:
-                    self.__queue__.put([self.__id__, frame])
+                    #
+                    # execute the following devices in the pyILPER loop
+                    #
+                    for processMethod in self.__deviceProcessors__:
+                        frame = processMethod(frame)
+                    #
+                    # write to the next interface
+                    #
+                    self.__writer__(frame)
+
             #
             #     normal termination
             #

@@ -33,7 +33,7 @@
 # Reader Threads           +                     +
 #                          |                     ^
 #                          |                     |
-#                Data read from Interface     Terminate
+#                          |                 Terminate
 #                   Status/Error Info          Signal
 #                          |                     |
 #                          v                     |
@@ -41,7 +41,7 @@
 #                          ^                                         |
 #                          |                                         |
 #                   Control Commands                                 |
-#                    Start/Stop etc.                                 |
+#                    Start/Stop                                      |
 #                          |                                         |
 # GUI Application          +                                         +
 #
@@ -52,10 +52,7 @@
 #      if data in queue (blocked get with timeout):
 #          get interface id and data from queue
 #          if id is from an interface:
-#              if data is frame:
-#                  process the virtual HP-IL devices following the Interface in the virtual loop
-#                  write processed frame to the next interface in the virtual loop
-#             elif data is status change:
+#             if data is status change:
 #                  emit status signal to GUI Application
 #             elif data is error message:
 #                  emit error message signal to GUI Application
@@ -102,12 +99,9 @@ class controllerItem:
 class cls_controller(threading.Thread):
 
     STAT_RUN = 0
-    STAT_PAUSE = 1
-    STAT_STOP = 2
+    STAT_STOP = 1
 
-    CMD_PAUSE = -1
-    CMD_RESUME = -2
-    CMD_STOP = -3
+    CMD_STOP = -1
 
     CONTROLLER_ID = -1
 
@@ -234,6 +228,17 @@ class cls_controller(threading.Thread):
                         nextInterfaceItemId += 1
                 tidx += 1
         #
+        # pass 3 make deviceProcessors and writer known to the iothread objects
+        #
+        for i in self.controllerItems.keys():
+            if self.controllerItems[i].isDisabled:
+                continue
+            writerId = self.controllerItems[i].nextInterfaceItemId
+            writer = self.controllerItems[writerId].writer
+            self.controllerItems[i].commObject.addInfo(
+                self.controllerItems[i].deviceProcessors, writer
+            )
+        #
         # reset pildevbase global frame counter
         #
         cls_pildevbase.resetGlobalCounter()
@@ -265,30 +270,9 @@ class cls_controller(threading.Thread):
                 item = self.queue.get()
                 id = item[0]
                 #
-                # process frames, item[1] is data and always >=0
-                #
-                if item[1] >= 0:
-                    frame = item[1]
-                    for processMethod in self.controllerItems[id].deviceProcessors:
-                        frame = processMethod(frame)
-                    writerId = self.controllerItems[id].nextInterfaceItemId
-
-                    #
-                    # call writer of next interface to send frame
-                    #
-                    try:
-                        self.controllerItems[writerId].writer(frame)
-                    except Exception as e:
-                        e.add_note(
-                            "controlthread: write Error for interface "
-                            + self.controllerItems[writerId].name
-                        )
-                        raise e from e
-
-                #
                 # got error message from an io thread
                 #
-                elif item[1] == cls_IOThread.MSG_ERROR:
+                if item[1] == cls_IOThread.MSG_ERROR:
                     self.controllerItems[id].readerThread = None
                     self.e = item[2]
                     exitError = True
@@ -306,16 +290,7 @@ class cls_controller(threading.Thread):
                 elif id == self.CONTROLLER_ID and item[1] == self.CMD_STOP:
                     self.status = self.STAT_STOP
                     break
-                elif id == self.CONTROLLER_ID and item[1] == self.CMD_PAUSE:
-                    self.status = self.STAT_PAUSE
-                    self.updateStatus(exitError)
-                    print("controller: pause")
-                    continue
-                elif id == self.CONTROLLER_ID and item[1] == self.CMD_RESUME:
-                    self.status = self.STAT_RUN
-                    print("controller: resume")
-                    self.updateStatus(exitError)
-                    continue
+
         #
         # Exception error exit
         #
@@ -348,26 +323,12 @@ class cls_controller(threading.Thread):
             self.sig_ControllerTerminated.emit(errMsgPrefix, self.e)
         return
 
-    def pause(self):
-        if self.status != self.STAT_RUN:
-            print("Illegal status")
-            return
-        self.queue.put([self.CONTROLLER_ID, self.CMD_PAUSE])
-        print("controller pause")
-
     def stop(self):
         if self.status != self.STAT_RUN:
             print("Illegal status", self.status)
             return
         self.queue.put([self.CONTROLLER_ID, self.CMD_STOP])
         print("controller stop")
-
-    def resume(self):
-        if self.status != self.STAT_PAUSE:
-            print("Illegal status")
-            return
-        self.queue.put([self.CONTROLLER_ID, self.CMD_RESUME])
-        print("controller resume")
 
     #
     #   Update status information in the status bar of the GUI

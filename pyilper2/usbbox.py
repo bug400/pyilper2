@@ -194,7 +194,13 @@ class cls_usbbox(cls_IOThread):
                     #
                     # put frame to queue
                     #
-                    self.__queue__.put([self.__id__, frame])
+                    for processMethod in self.__deviceProcessors__:
+                        frame = processMethod(frame)
+                    #
+                    # write to the next interface
+                    #
+                    self.__writer__(frame)
+
             #
             # normal termination
             #

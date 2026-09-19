@@ -96,8 +96,3 @@ If your pyILPER configuration contains several interfaces, there are a few thins
 
 - start the HP-IL controller last! Please follow the instructions above regarding TCP/IP connections.
 
-
-Performance
------------
-
-The loop throughput of Version 2.0 is 5-10% less than the performance of an identically configured version 1.9 because of the overhead required for a multi-interface architecture.

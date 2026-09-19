@@ -251,7 +251,16 @@ class cls_piltcpip(cls_IOThread):
                 # print(self.__name__+": main read result ", result)
                 if result is None:
                     continue
-                self.__queue__.put([self.__id__, result])
+                #
+                # execute the following devices in the pyILPER loop
+                #
+                frame = result
+                for processMethod in self.__deviceProcessors__:
+                    frame = processMethod(frame)
+                #
+                # write to the next interface
+                #
+                self.__writer__(frame)
             #
             #     normal termination
             #
