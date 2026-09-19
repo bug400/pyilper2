@@ -1307,12 +1307,13 @@ class cls_PilConfigWindow(QtWidgets.QDialog):
 
 class cls_DeviceConfigWindow(QtWidgets.QDialog):
 
-    def __init__(self, parent, tabSpecifications):
+    def __init__(self, mainUI, tabSpecifications):
         super().__init__()
-        self.parent = parent
+        self.mainUI = mainUI
         self.tabSpecifications = tabSpecifications
         self.setWindowTitle("Virtual HP-IL device config")
         self.vlayout = QtWidgets.QVBoxLayout()
+        self.isModified = False
         #
         #     item list and up/down buttons
         #
@@ -1353,7 +1354,7 @@ class cls_DeviceConfigWindow(QtWidgets.QDialog):
         #
         #     fill list widget
         #
-        self.tabList = copy.deepcopy(PILCONFIG.get(self.parent.name, "tabconfig"))
+        self.tabList = copy.deepcopy(PILCONFIG.get(self.mainUI.name, "tabconfig"))
         for tab in self.tabList:
             typ = tab[0]
             name = tab[1]
@@ -1383,8 +1384,15 @@ class cls_DeviceConfigWindow(QtWidgets.QDialog):
             self.buttonDown.setEnabled(False)
 
     def do_ok(self):
-        PILCONFIG.put(self.parent.name, "tabconfig", self.tabList)
-        super().accept()
+        if self.isModified:
+            self.mainUI.showInfo(
+                "pyILPER must be restarted for the changes to take effect."
+            )
+            PILCONFIG.put(self.mainUI.name, "tabconfig", self.tabList)
+            PILCONFIG.put(self.mainUI.name, "tabconfigchanged", True)
+            super().accept()
+        else:
+            super().reject()
 
     def do_cancel(self):
         super().reject()
@@ -1404,6 +1412,7 @@ class cls_DeviceConfigWindow(QtWidgets.QDialog):
         self.tabList[row] = self.tabList[row - 1]
         self.tabList[row - 1] = temp
         self.checkOperations(row - 1)
+        self.isModified = True
         return
 
     def do_itemDown(self):
@@ -1421,6 +1430,7 @@ class cls_DeviceConfigWindow(QtWidgets.QDialog):
         self.tabList[row] = self.tabList[row + 1]
         self.tabList[row + 1] = temp
         self.checkOperations(row + 1)
+        self.isModified = True
         return
 
     def do_itemRemove(self):
@@ -1434,6 +1444,7 @@ class cls_DeviceConfigWindow(QtWidgets.QDialog):
         item = self.devList.takeItem(delRow)
         item = None
         self.checkOperations(delRow - 1)
+        self.isModified = True
 
     def do_itemAdd(self):
         retval = cls_AddDeviceWindow.getAddDevice(self, self.tabSpecifications)
@@ -1447,10 +1458,11 @@ class cls_DeviceConfigWindow(QtWidgets.QDialog):
         lastRow = self.devList.count() - 1
         self.devList.setCurrentRow(lastRow)
         self.checkOperations(lastRow)
+        self.isModified = True
 
     @staticmethod
-    def getDeviceConfig(parent, tabs):
-        dialog = cls_DeviceConfigWindow(parent, tabs)
+    def getDeviceConfig(mainUI, tabs):
+        dialog = cls_DeviceConfigWindow(mainUI, tabs)
         dialog.resize(350, 100)
         result = dialog.exec()
         if result == QtWidgets.QDialog.Accepted:

@@ -77,7 +77,7 @@ class cls_ui(QtWidgets.QMainWindow):
         super().__init__()
         self.controller = None
         self.controllerThread = None
-        #       self.parent = parent
+
         self.name = PILGLOBALS.PackageName
         self.clean = PILGLOBALS.Clean
         self.instance = PILGLOBALS.Instance
@@ -91,7 +91,7 @@ class cls_ui(QtWidgets.QMainWindow):
         self.validConfigNameList = []
         self.scopeQueue = cls_pilqueue()
 
-        #     absulutely needed: call super().__init__()
+        #     absolutely needed: call super().__init__() to make this work!
         self.sig_UpdateStatus.connect(self.updateStatus, QtCore.Qt.QueuedConnection)
         self.sig_ControllerTerminated.connect(
             self.controllerErrorHandler, QtCore.Qt.QueuedConnection
@@ -146,7 +146,16 @@ class cls_ui(QtWidgets.QMainWindow):
                     [PILGLOBALS.Tab_Probe, "Probe2"],
                 ],
             )
-            lastTab = PILCONFIG.get(self.name, "active_tab")
+            #
+            # If the tab config was changed set lastTab to 0
+            #
+            tabConfigChanged = PILCONFIG.get(self.name, "tabconfigchanged")
+            if tabConfigChanged:
+                lastTab = 0
+                PILCONFIG.put(self.name, "tabconfigchanged", False)
+                PILCONFIG.put(self.name, "active_tab", 0)
+            else:
+                lastTab = PILCONFIG.get(self.name, "active_tab")
 
             self.tabConfig = PILCONFIG.get(self.name, "tabconfig")
             tabConfigChanged = False
@@ -228,7 +237,7 @@ class cls_ui(QtWidgets.QMainWindow):
             )
             self.actionShortcutConfig.triggered.connect(self.shortcutConfig)
             self.actionStart = self.menuFile.addAction("Start Loop")
-            self.actionStart.triggered.connect(self.controller_restart)
+            self.actionStart.triggered.connect(self.controller_start)
             self.actionStop = self.menuFile.addAction("Stop Loop")
             self.actionStop.triggered.connect(self.controller_stop)
             self.actionStop.setEnabled(False)
@@ -404,7 +413,7 @@ class cls_ui(QtWidgets.QMainWindow):
                 self.tabConfigChanged = True
 
             #
-            # store changed tabconfig, if entries were removed
+            # store changed tabconfig, if tabs of non existing tab types were removed
             #
             if tabConfigChanged:
                 lastTab = 0
@@ -604,7 +613,6 @@ class cls_ui(QtWidgets.QMainWindow):
 
         if not cls_DeviceConfigWindow.getDeviceConfig(self, self.tabSpecifications):
             return
-        PILCONFIG.put(self.name, "tabconfigchanged", True)
         try:
             PILCONFIG.save()
         except Exception as e:
