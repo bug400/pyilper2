@@ -33,7 +33,6 @@ from PySide6 import QtWidgets
 from .pilglobals import PILGLOBALS
 from .pilconfig import PILCONFIG
 from .pilwidgets import cls_tabtermgeneric, T_BOOLEAN, T_STRING, O_DEFAULT
-from .pildevbase import cls_pildevbase
 from .pilcore import cls_Tab_Spec
 
 
@@ -243,6 +242,7 @@ class cls_tabscope(cls_tabtermgeneric):
                             s += " {:02X}".format(frame & arg)
                         break
                 if self.displayMode == self.DISPLAY_MNEMONIC:
+                    # s = "{:6s} ({:1d})  ".format(s,id)
                     s = "{:6s}  ".format(s)
                 elif self.displayMode == self.DISPLAY_HEX:
                     s = "{:03X}  ".format(frame)

@@ -1368,20 +1368,24 @@ class cls_DeviceConfigWindow(QtWidgets.QDialog):
 
     def checkOperations(self, row):
         devType = self.tabList[row][0]
+        butUp = True
+        butDown = True
+        butAdd = True
+        butRemove = True
         if devType == PILGLOBALS.Tab_Scope:
-            self.buttonUp.setEnabled(False)
-            self.buttonDown.setEnabled(False)
-            self.buttonRemove.setEnabled(False)
-        elif devType == PILGLOBALS.Tab_Probe:
-            self.buttonRemove.setEnabled(False)
-        else:
-            self.buttonUp.setEnabled(True)
-            self.buttonDown.setEnabled(True)
-            self.buttonRemove.setEnabled(True)
+            butUp = False
+            butDown = False
+            butRemove = False
+        if devType == PILGLOBALS.Tab_Probe:
+            butRemove = False
         if row == 1:
-            self.buttonUp.setEnabled(False)
+            butUp = False
         if row == self.devList.count() - 1:
-            self.buttonDown.setEnabled(False)
+            butDown = False
+        self.buttonUp.setEnabled(butUp)
+        self.buttonDown.setEnabled(butDown)
+        self.buttonRemove.setEnabled(butRemove)
+        self.buttonAdd.setEnabled(butAdd)
 
     def do_ok(self):
         if self.isModified:

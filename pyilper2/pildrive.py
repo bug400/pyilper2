@@ -784,7 +784,7 @@ class cls_DriveWidget(QtWidgets.QWidget):
         elif status == 3:
             #
             if not quiet:
-                self.maiUI.showWarning(
+                self.mainUI.showWarning(
                     "File does not contain a LIF type 1 medium with valid layout information. Using default layout of current drive type."
                 )
 
