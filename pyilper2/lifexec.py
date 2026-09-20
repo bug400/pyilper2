@@ -51,8 +51,9 @@ def get_lifutils_version(cmd):
             [cmd, "-v"], stdout=subprocess.PIPE, creationflags=SUBPROCESS_FLAG
         )
         retval = int(ret.stdout.decode())
-    finally:
-        return retval
+    except Exception:
+        pass
+    return retval
 
 
 #
@@ -182,8 +183,7 @@ def exec_single(parent, cmd):
             QtWidgets.QMessageBox.Ok,
             QtWidgets.QMessageBox.Ok,
         )
-    finally:
-        return
+    return
 
 
 #
@@ -212,8 +212,8 @@ def exec_single_export(parent, cmd):
             QtWidgets.QMessageBox.Ok,
             QtWidgets.QMessageBox.Ok,
         )
-    finally:
-        return returnvalue
+
+    return returnvalue
 
 
 #
@@ -272,7 +272,7 @@ def exec_double_import(parent, cmd1, cmd2, inputfile):
     finally:
         if tmpfile is not None:
             tmpfile.close()
-        return
+    return
 
 
 #
@@ -360,7 +360,7 @@ def exec_double_export(parent, cmd1, cmd2, outputfile):
             tmpfile.close()
         if fd is not None:
             os.close(fd)
-        return returnvalue
+    return returnvalue
 
 
 #

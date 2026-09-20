@@ -106,7 +106,7 @@ class cls_pilglobals:
         #
         #     Interface Modules
         #
-        self.InterfaceModules = ["pilbox", "piltcpip", "pilsocket", "acmbox", "usbbox"]
+        self.InterfaceModules = ["pilbox", "piltcpip", "pilsocket"]
         self.DefaultInterface = self.Interface_PilBox
         self.AutoreconnectInterval = 1
         #

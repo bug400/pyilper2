@@ -83,10 +83,11 @@ Now run the program:
 
 If you did not have a pyilper 2.0 configuration before, a default configuration with one Interface of type PIL-Box is created. pyILPER will start with an error message, that the serial device of the PIL-Box has not been configured. Enter the device name in der Interface tab and start the loop from the file menu.
 
+
 Configuration with Multiple Interfaces
 --------------------------------------
 
-If your pyILPER configuration contains several interfaces, there are a few thins to keep in mind:
+If your pyILPER configuration contains several interfaces, there are a few thins to keep in mind. It is recommended that you activate the pyILPER virtual loop in the following order:
 
 - Connect all USB devices
 
@@ -96,3 +97,10 @@ If your pyILPER configuration contains several interfaces, there are a few thins
 
 - start the HP-IL controller last! Please follow the instructions above regarding TCP/IP connections.
 
+
+Performance
+-----------
+
+The loop throughput of the pyILPER virtual loop of version 2 is almost identical the the throughput of version 1 with an identical interface/devices configuration.
+
+Each additional interface significantly slows down the virtual loop. For example, if the throughput of an interface is 2,000 frames/s, then the total throughput of the loop drops to approximately 500 frames/s, assuming all other overhead is negligible.

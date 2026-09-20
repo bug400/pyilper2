@@ -270,9 +270,13 @@ class cls_InterfaceWidget(QtWidgets.QWidget):
         )
         if self.selectedInterfaceId not in interfaceSpecifications.keys():
             self.mainUI.showWarning(
-                f"Interface with Id {self.selectedInterfaceId} not found. Resetting to PIL-Box interface."
+                f"{self.name}: Interface with Id {self.selectedInterfaceId} not found. Resetting to PIL-Box interface."
             )
             self.selectedInterfaceId = PILGLOBALS.DefaultInterface
+            PILCONFIG.put(self.name, "interface_id", self.selectedInterfaceId)
+            #
+            # TODO remove configuration of interface types that do not exist any more
+            #
         self.vbox = QtWidgets.QVBoxLayout()
         self.hbox = QtWidgets.QHBoxLayout()
         self.gbox = QtWidgets.QGroupBox()
