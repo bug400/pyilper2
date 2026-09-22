@@ -1605,7 +1605,7 @@ class cls_pildrive(cls_pildevbase):
                 frame = 0x540  # EOT
 
         elif self.__devt__ == 7:  # send max address
-            print("DDT 7")
+#           print("DDT 7")
             if self.__ptout__ == 0:
                 frame = (self.__nbe__ - 1) >> 8
                 self.__ptout__ += 1
