@@ -1554,15 +1554,15 @@ class HPTerminal:
     #   Dumb echo, if we exceed the wrapped part then issue a CR/LF
     #
     def dumb_echo(self, char):
-        #       print("dumb_echo ",char)
+        # print("dumb_echo ", char)
         if self.insert:
             self.scroll_line_right(self.cy, self.cx)
             self.poke(self.cy, self.cx, array.array("i", [self.attr | char]))
         else:
             oldwrappedlinelength = self.get_wrapped_linelength(self.cy)
-            #          print("dumb echo ",oldwrappedlinelength, self.w*2)
+            # print("dumb echo ", oldwrappedlinelength, self.w * 2)
             if oldwrappedlinelength == self.w * 2:
-                #             print("dumb_echo cr/lf")
+                print("dumb_echo cr/lf")
                 self.ctrl_CR()
                 self.ctrl_LF()
             self.poke(self.cy, self.cx, array.array("i", [self.attr | char]))
@@ -1633,9 +1633,31 @@ class HPTerminal:
         self.needsUpdate = False
 
     #
-    #   process output to display
+    # process printer output to display
     #
-    def process(self, t):
+    def processPrinter(self, t):
+        self.needsUpdate = True
+        if t == 0xD:  # CR
+            self.ctrl_CR()
+            return
+        elif t == 0xA:  # LF
+            self.ctrl_LF()
+            return
+        if t < 32:
+            return
+        if t > 127:
+            self.attr = CHAR_ATTRIB[self.charset]
+        else:
+            self.attr = CHAR_ATTRIB_NONE
+        cc = icharconv(t, self.charset)
+
+        self.poke(self.cy, self.cx, array.array("i", [self.attr | ord(cc)]))
+        self.cursor_right()
+
+    #
+    #   process terminal output to display
+    #
+    def processTerminal(self, t):
 
         self.needsUpdate = True
         #

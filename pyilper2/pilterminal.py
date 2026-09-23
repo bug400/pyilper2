@@ -107,7 +107,7 @@ class cls_tabterminal(cls_tabtermgeneric):
     #
     def out_device(self, items):
         for i in items:
-            self.guiobject.HPTerminal.process(i)
+            self.guiobject.HPTerminal.processTerminal(i)
 
 
 #

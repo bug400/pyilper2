@@ -83,7 +83,7 @@ class cls_tabprinter(cls_tabtermgeneric):
     #
     def out_device(self, items):
         for i in items:
-            self.guiobject.HPTerminal.process(i)
+            self.guiobject.HPTerminal.processPrinter(i)
             if i != 8 and i != 13:
                 self.cbLogging.logWrite(icharconv(i, self.charset))
             if i == 10:

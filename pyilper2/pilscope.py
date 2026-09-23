@@ -209,14 +209,14 @@ class cls_tabscope(cls_tabtermgeneric):
     def out_device(self, items):
         for s in items:
             l = len(s)
-            if self.scope_charpos + l >= self.guiobject.get_cols():
-                self.guiobject.HPTerminal.process(0x0D)
-                self.guiobject.HPTerminal.process(0x0A)
+            if self.scope_charpos + l > self.guiobject.get_cols():
+                self.guiobject.HPTerminal.ctrl_CR()
+                self.guiobject.HPTerminal.ctrl_LF()
                 self.cbLogging.logWrite("\n")
                 self.cbLogging.logFlush()
                 self.scope_charpos = 0
             for i in range(0, l):
-                self.guiobject.HPTerminal.process(ord(s[i]))
+                self.guiobject.HPTerminal.processPrinter(ord(s[i]))
             self.cbLogging.logWrite(s)
             self.scope_charpos += l
 
