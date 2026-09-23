@@ -472,12 +472,12 @@ class cls_ui(QtWidgets.QMainWindow):
             #
             if thisversion > oldversion:
                 self.releaseInfo(PILGLOBALS.Version)
-        #
-        #
-        # Do autostart of loop if configured
-        #
-        if PILCONFIG.get(self.name, "autostart"):
-            self.controller_start()
+            #
+            #
+            # Do autostart of loop if configured (not for first time use)
+            #
+            if PILCONFIG.get(self.name, "autostart"):
+                self.controller_start()
 
     #
     # This signal callback updates the interface status if the active checkbox of an interface is checked/unchecked.
