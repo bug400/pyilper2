@@ -1562,7 +1562,6 @@ class HPTerminal:
             oldwrappedlinelength = self.get_wrapped_linelength(self.cy)
             # print("dumb echo ", oldwrappedlinelength, self.w * 2)
             if oldwrappedlinelength == self.w * 2:
-                print("dumb_echo cr/lf")
                 self.ctrl_CR()
                 self.ctrl_LF()
             self.poke(self.cy, self.cx, array.array("i", [self.attr | char]))
@@ -1633,15 +1632,33 @@ class HPTerminal:
         self.needsUpdate = False
 
     #
-    # process printer output to display
+    # process printer output to display, simplified output to HPTerm, all controlcharacters except CR/LF are ignored
+    # The only valid escape sequence is ESC e (clear)
     #
     def processPrinter(self, t):
+        #
+        #      start of ESC sequence, set flag and return
+        #
+        if t == 27:
+            self.fesc = True
+            return
+        #
+        #      process escape sequences
+        #
+        if self.fesc:
+            if t == 101:
+                self.reset_soft()
+                self.reset_screen()
+            self.fesc = False
+            self.needsUpdate = True
+            return
+
         self.needsUpdate = True
         if t == 0xD:  # CR
-            self.ctrl_CR()
+            self.cx = 0
             return
         elif t == 0xA:  # LF
-            self.ctrl_LF()
+            self.cy = self.add_bufferline(self.cy)
             return
         if t < 32:
             return
@@ -1650,9 +1667,13 @@ class HPTerminal:
         else:
             self.attr = CHAR_ATTRIB_NONE
         cc = icharconv(t, self.charset)
-
+        print(self.cx, self.cy)
+        if self.cx == self.w:
+            print("line break")
+            self.cx = 0
+            self.cy = self.add_bufferline(self.cy)
         self.poke(self.cy, self.cx, array.array("i", [self.attr | ord(cc)]))
-        self.cursor_right()
+        self.cx += 1
 
     #
     #   process terminal output to display

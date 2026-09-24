@@ -5,47 +5,6 @@
 
 <h3 class="w3-text-teal" id="pyilper-configuration">pyILPER configuration</h3> 
 
-<h4 class="w3-text-teal" id="pil-box-checkbox">PIL-Box checkbox</h4>
-
-<p>Check this box if <em>pyILPER</em> is connected to a
-PIL-Box via a serial device. The name and the baud rate of the 
-serial device are configured here. See the setup section
-of the 
-<a class="w3-hover-black" href="https://github.com/bug400/pyilper/blob/master/INSTALL.md">installation guide</a> 
-for details.</p>
-
-<p>If you configure the serial device with the <em>change</em>, button another window opens where you can select or enter the name of the serial device the PIL-Box is connected to. The drop down list shows some recommendations for the device name but you are free to enter an arbitrary device name here.</p>
-
-<p>The baud rate must match the hardware configuration of
-the PIL-Box. See the PIL-Box documentation for details. If the baud rate is
-set to "Auto" <em>pyILPER</em> tries to determine the baud rate automatically.</p>
-
-<p>The "Enable IDY frames" option enables the PIL-Box to transmit 
-the IDY frames to <em>pyILPER</em>. This causes an increase of traffic on 
-the serial USB device. This option is enabled by default and required to operate the
-virtual keyboard of the terminal emulator with the HP-71B or the thermal printer
-HP-82162A with the HP-41C.</p>
-
-<p>The "autoreconnect" option enables the interface to (re)connect to the PIL-Box after the device has been plugged (back) in. Note: Autoreconnect does not work if the computer is running very slowly. In this case, you must reconnect manually.</p>
-
-
-<h4 class="w3-text-teal" id="hp-il-over-tcp-ip-checkbox">HP-IL over TCP/IP checkbox</h4>
-
-<p>Check this box to use 
-<a class="w3-hover-black" href="http://hp.giesselink.com/hpil.htm">virtual HP-IL over TCP/IP</a>. The configuration parameters are:</p>
-<ul class="w3-ul">
-<li>Port: the port to which the previous HP-IL device must connect</li>
-<li>Remote Host, Remote Port: the host and the port of the next
-virtual HP-IL device in the loop.
-</ul>
-
-<h4 class="w3-text-teal" id="tcp-ip-socket-server-checkbox">TCP/IP socket server (PIL-Box emulator) checkbox</h4>
-
-<p>Check this box to emulate a PIL-Box by means of a TCP/IP socket server. 
-This allows for the connection of 
-<a class="w3-hover-black" href="http://www.jeffcalc.hp41.eu/index.html">J-F Garnier's DOS calculator emulators</a> to pyILPER. The emulators must run in an appropriate virtual machine  that allows the redirection of the serial port communication to a TCP/IP socket server.  The server port must match the serial port redirection configuration of the virtual machine.</p>
-<p>Note: you must first start <em>pyILPER</em> (server) and then the virtual machine (client).</p>
-
 <h4 class="w3-text-teal" id="configuration-of-the-working-directory">Configuration of the working directory</h4>
 <p>This is the location of the log files for scope and the printer output 
 (q.v.). The default is the $HOME directory of the current user.</p>
@@ -65,6 +24,20 @@ OS), or the location can be found in the Windows registry.</li>
 
 <p>Therefore, the custom installation location must only be specified if the
 <em>LIFUTILS</em> were installed in a nonstandard way.</p>
+
+<h4 cloass="w3-text-teal" id="autostart">Autostart<h4>
+
+<p>TODO</p>
+
+<h4 class="w3-text-teal" id="set-the-qt-style">Set the Qt Style</h4>
+
+<p>The Qt framework used to implement <em>pyILPER</em> implements a number of styles to adapt the
+interface created with Qt to the system user interface. Qt applications use a default style for each
+operating system, which is defined by the Qt maintainers. Unfortunately, the control elements of the
+default style for Windows 11 in light mode are quite difficult to see. If you are not happy with the
+default style, use the <em>Fusion</em> style from the list of styles in the combo box. Other styles might
+be poorly maintained or have fewer features, like missing dark mode awareness.</p>
+
 
 <h4 class="w3-text-teal" id="configuration-of-the-terminal-scope-and-generic-printer-display">Configuration of the terminal, scope, and generic printer display</h4>
 <p>You can alter the font size of the display. This affects all tabs or windows of that type. This setting can be overridden by local settings.</p>
@@ -95,15 +68,6 @@ programs do not recognize the UTF-8 encoding of <em>pyILPER</em> log files
 correctly.  This option is only available on Windows. <b>Note:</b> 
 Since the BOM is inserted at the beginning of a file, all log files must be
 removed to have an effect when changing this option.</p>
-
-<h4 class="w3-text-teal" id="set-the-qt-style">Set the Qt Style</h4>
-
-<p>The Qt framework used to implement <em>pyILPER</em> implements a number of styles to adapt the
-interface created with Qt to the system user interface. Qt applications use a default style for each
-operating system, which is defined by the Qt maintainers. Unfortunately, the control elements of the
-default style for Windows 11 in light mode are quite difficult to see. If you are not happy with the 
-default style, use the <em>Fusion</em> style from the list of styles in the combo box. Other styles might 
-be poorly maintained or have fewer features, like missing dark mode awareness.</p>
 
 
 <h3 class="w3-text-teal" id="hp-il-device-configuration">HP-IL device configuration</h3>
@@ -175,10 +139,9 @@ the cursor is positioned between both parentheses.</td></tr>
 <p><em>Note:</em> The key combinations ALT-L and ALT-I are reserved and cannot 
 be used as a user-defined shortcut.</p>
 
-<h3 class="w3-text-teal" id="reconnect">Reconnect</h3>
+<h3 class="w3-text-teal" id="start-loop">Start Loop</h3>
 
-<p>Restarts the application if, for example, you forgot to plug in
-the PIL-Box when launching the application.</p>
+<p>TODO.</p>
 
 <h3 class="w3-text-teal" id="quit">Quit</h3>
 

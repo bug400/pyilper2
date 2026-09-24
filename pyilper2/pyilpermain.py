@@ -900,7 +900,7 @@ class cls_ui(QtWidgets.QMainWindow):
     # show startup info
     #
     def startupInfo(self):
-        self.showHelp("", "startup.html")
+        self.showHelp("", "firstrun.html")
 
     #
     #  show help windows for a certain document
