@@ -115,7 +115,7 @@ class cls_pilbox(cls_IOThread):
                     e.add_note(self.__name__ + ": cannot connect to PIL-Box")
                     raise e from e
                 try:
-                    self.sendCmd(cmd, PILGLOBALS.Tmout_Frm)
+                    self.sendCmd(cmd, PILGLOBALS.Tmout_Frm, True)
                     self.__baudrate__ = baudrate
                     break
                 except Exception as e:
