@@ -7,6 +7,8 @@ pyILPER version 2.x is the successor of pyILPER 1.x. Version 2.x allows you to u
 
 Version 1.x of pyILPER is no longer being developed; only bug fixes are being made.
 
+Since pyILPER 2 is a beta version, its use is recommended only for people with experience using version 1 of pyILPER.
+
 This document provides a concise overview of the changes in pyILPER 2.0 compared to version 1.9. There are only a few, but important, differences from version 1.x
 
 It is the result of a nearly two-year-long, comprehensive overhaul of the software.
@@ -59,15 +61,13 @@ In pyILPER 1.x the probes were always at a fixed position (after the interface a
 Devices
 -------
 
-There were no functional changes to the devices.
+New devices are now enabled by default.
 
 
 Software Status
 ---------------
 
-This is a development verision that is almost feature complete with the exception of an updated online help.
-
-Most system functions have been tested on Linux. On Windows and macOS only smoke tests were run.
+This is a development verision that is almost feature complete.
 
 
 Installing and Running the software
@@ -116,3 +116,13 @@ Performance
 The loop throughput of the pyILPER virtual loop of version 2 is almost identical the the throughput of version 1 with an identical interface/devices configuration.
 
 Each additional interface significantly slows down the virtual loop. For example, if the throughput of an interface is 2,000 frames/s, then the total throughput of the loop drops to approximately 500 frames/s, assuming all other overhead is negligible.
+
+Acknowledgements
+----------------
+
+Much code was taken from ILPER for Windows (Copyright (c) 2008-2013 
+J-F Garnier, Visual C++ version by Christoph Gießelink 2016). 
+The terminal emulator code was taken from the pyqterm console widget written
+by Henning Schroeder. The virtual TCP/IP support of pyILPER was significantly
+improved by Christoph Gießelink who also provided many other improvements. The virtual HP7470A plotter engine was derived from the HP2XX software (Heinz W. Werntges, Martin Kroeker). Parts of the HP82162A printer emulation were taken from Eric Smith's Nonpareil emulator.
+
