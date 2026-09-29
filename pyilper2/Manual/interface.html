@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>pyILPER Help</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="css/w3.css">
+<link rel="stylesheet" href="css/w3-theme-black.css">
+
+<style>
+html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif;}
+.w3-sidebar {
+  z-index: 3;
+  width: 250px;
+  top: 43px;
+  bottom: 0;
+  height: inherit;
+}
+</style>
+</head>
+<body>
+
+<!-- Navbar -->
+<div class="w3-top">
+  <div class="w3-bar w3-theme w3-top w3-left-align w3-large">
+    <a class="w3-bar-item w3-button w3-right w3-hide-large w3-hover-white w3-large w3-theme-l1" href="javascript:void(0)" onclick="w3_open()">&#9776;</a>
+    <a href="index.html" class="w3-bar-item w3-button w3-theme-l1">pyILPER</a>
+  </div>
+</div>
+
+<!-- Sidebar -->
+<nav class="w3-sidebar w3-bar-block w3-collapse w3-large w3-theme-l5 w3-animate-left" id="mySidebar">
+  <a href="javascript:void(0)" onclick="w3_close()" class="w3-right w3-xlarge w3-padding-large w3-button w3-hide-large" title="Close Menu">
+    x
+  </a>
+  <h4 class="w3-bar-item"><b>Menu</b></h4>
+  <a href="quickstart.html" class="w3-bar-item w3-button">Quick Start Guide</a>
+  <a href="features.html" class="w3-bar-item w3-button">pyILPER Features</a>
+  <a href="basics.html" class="w3-bar-item w3-button">The Basics</a>
+  <div class="w3-dropdown-hover">
+     <button class="w3-button">User Interface &#751;</button>
+     <div class="w3-dropdown-content w3-white w3-card-4">
+        <a href="userinterface.html" class="w3-bar-item w3-button">Overview</a>
+        <a href="filemenu.html" class="w3-bar-item w3-button">File menu</a>
+        <a href="utilitiesmenu.html" class="w3-bar-item w3-button">Utilities menu</a>
+        <a href="helpmenu.html" class="w3-bar-item w3-button">Help menu</a>
+        <a href="interface.html" class="w3-bar-item w3-button">Interface Tab</a>
+        <a href="drive.html" class="w3-bar-item w3-button">Drive Tab</a>
+        <a href="rawdrive.html" class="w3-bar-item w3-button">Raw Drive Tab</a>
+        <a href="printer.html" class="w3-bar-item w3-button">Generic Printer Tab</a>
+        <a href="terminal.html" class="w3-bar-item w3-button">Terminal Tab</a>
+        <a href="plotter.html" class="w3-bar-item w3-button">Plotter Tab</a>
+        <a href="hp82162a.html" class="w3-bar-item w3-button">HP82162A Tab</a>
+        <a href="hp2225b.html" class="w3-bar-item w3-button">HP2225B Tab</a>
+        <a href="scope.html" class="w3-bar-item w3-button">Scope Tab</a>
+     </div>
+  </div>
+  <div class="w3-dropdown-hover">
+     <button class="w3-button">Miscellaneous &#751;</button>
+     <div class="w3-dropdown-content w3-white w3-card-4">
+        <a href="releasenotes.html" class="w3-bar-item w3-button">Release Notes</a>
+        <a href="changelog.html" class="w3-bar-item w3-button">Change Log</a>
+        <a href="parameters.html" class="w3-bar-item w3-button">Command line parameters</a>
+        <a href="troubleshooting.html" class="w3-bar-item w3-button">Troubleshooting</a>
+        <a href="license.html" class="w3-bar-item w3-button">License</a>
+     </div>
+  </div>
+</nav>
+<!-- Overlay effect when opening sidebar on small screens -->
+<div class="w3-overlay w3-hide-large" onclick="w3_close()" style="cursor:pointer" title="close side menu" id="myOverlay"></div>
+
+<!-- Main content: shift it to the right by 250 pixels when the sidebar is visible -->
+<div class="w3-main" style="margin-left:250px">
+<div class="w3-row w3-padding-64">
+<div class="w3-twothird w3-container">
+
+<!-- Begin content --->
+<h2 class="w3-text-teal">Interface Tab</h2>
+
+<p>The interface tab provides the configuration data for an interface. There can be multiple interfaces at any location of the <em>pyILPER</em> loop, but take into account the performance aspects explained in the last chapter.</p>
+
+<p>Interfaces have four states that are indicated by a status light in the status bar: "inactive" (black), "disconnected" (red), "waiting for connection" (yellow), and "connected" (green). The loop goes only into the "Loop running..." state if all interfaces are connected.</p>
+
+<p>After the loop has started, each active interface goes into the "waiting for connection" state. It goes to a "connected" state if either a read and write network connection (TCP/IP, socket interface) was established or a PIL-Box serial device was found and initialized successfully.</p>
+
+
+<p>An interface can be of type <em>PIL-Box</em>, <em>TCP/IP</em>, or <em>socket</em>. The interface type is selected with the corresponding checkbox.</p>
+
+<h3 class="w3-text-teal" id="pil-box">PIL-Box Interface</h3>
+<h4 class="w3-text-teal" id="pil-box-configuration">PIL-Box Interface Configuration</h4>
+
+<p>The most important configuration parameters for the PIL-Box interface are the device name and the mode of operation.</p>
+
+<p>To enter or change the name of the serial device, press the <em>change</em> button. Another window opens where you can select or enter the name of the serial device the PIL-Box is connected to. The drop down list shows some recommendations for the device name but you are free to enter an arbitrary device name here.</p>
+
+<p>The baud rate must match the hardware configuration of the PIL-Box. See the PIL-Box documentation for details. If the baud rate is set to "Auto" <em>pyILPER</em> tries to determine the baud rate automatically. As a general rule, you can leave the setting on “Auto”. The PIL-Box tty speed of 9600 baud and its special protocol used at this baud rate are not supported anymore. </p>
+
+<p>The "Enable IDY frames" option enables the PIL-Box to transmit the IDY frames to <em>pyILPER</em>. This causes an increase of traffic on the serial USB device.
+This option is enabled by default and required to operate the virtual keyboard of the terminal emulator with the HP-71B or the thermal printer HP-82162A with the HP-41C. It is recommended that you leave the setting set to “enabled.” </p>
+
+<p>The "HP-IL controller connected to PIL-Box" option is essential to put the PIL-Box into the correct mode of operations. If the option is not set correctly, you will get HP-IL errors on the HP-IL controller. Thus, check this option if an HP-71, HP-75, or HP-41 is present in the HP-IL loop connected to the PIL-Box.</p>
+
+<p><b>Note:</b> If no tty device is specified, the start of the <em>pyILPER</em> loop will fail.</p>
+
+<h4 class="w3-text-teal">PIL-Box Interface Application Information</h4>
+
+<p>Recently, several microprocessor-based devices have been developed that implement the PIL-Box protocol and offer additional features such as HP-IL mass storage or displays. These can also be used with the PIL-Box interface.</p>
+
+<p>When using multiple devices of this type, care must be taken to specify the correct serial port. In the serial port selection window, additional information about the connected device—such as the device ID—is displayed, provided the operating system supports it.</p>
+
+<p>The Pil-Box interface operates in auto-reconnect mode. After the loop has been started and is in the “Waiting for connections...” state, the operating system is continuously queried to determine whether the serial device specified in the PIL-Box interface specification exists. Meanwhile, the indicator light of the interface is yellow. As soon as the serial device is recognized by the operating system, pyILPER connects to the PIL-Box. After the PIL-Box has been successfully initialized, the status light of the interface turns green and the status of the loop turns to "Loop running...".</p>
+
+<p>This means the following:</p>
+<ul class="w3-ul">
+<li>If the name of the serial interface is incorrect, the pyILPER loop remains in the “Waiting for connection(s)...” state. In that case, you must stop the loop and specify the correct serial device.</li>
+<li>If the device connected to the serial interface is not a PIL-Box, the pyILPER loop terminates with a connection error.</li>
+<li>It is possible to disconnect the PIL-Box while the pyILPER loop is running. The pyILPER loop then transitions from the “Loop running...” state to the “Waiting for connection(s)...” state. This simplifies the development of PIL-Box-compatible devices. However, a period of several seconds must elapse between disconnecting and reconnecting the USB connection, as there is a delay between when the serial device becomes visible for the operating system and when it is ready for operation.</li>
+</ul>
+
+<h3 class="w3-text-teal" id="tcp-ip">HP-IL Over TCP/IP Interface</h3>
+
+<h4 class="w3-text-teal" id="hp-il-over-tcp-ip-configuration">HP-IL Over TCP/IP Interface Configuration</h4>
+
+<p>To use this interface, you must be familiar with the concepts of the <a class="w3-hover-black" href="http://hp.giesselink.com/hpil.htm">virtual HP-IL over TCP/IP</a>.
+
+<p>The configuration parameters for this interface are:</p>
+<ul class="w3-ul">
+<li>Port: the port of the <em>pyILPER</em> program to which the previous HP-IL device in the virtual HP-IL over TCP/IP loop must connect</li>
+<li>Remote Host, Remote Port: the host name and the port number of the next virtual HP-IL over TCP/IP device in the loop.
+</ul>
+
+
+<h4 class="w3-text-teal">HP-IL Over TCP/IP Interface Application Information</h4>
+
+<p><em>pyILPER</em> supports all virtual HP-IL over TCP/IP devices and controllers published by <a class="w3-hover-black" href="https://hp.giesselink.com">Christoph Gie&szlig;elink</a>.</p>
+
+<p>You may connect his <a href="http://hp.giesselink.com/emu71.htm" class="w3-hover-black">HP-71B emulator</a> or his <a class="w3-hover-black" href="https://hp.giesselink.com/v41.htm">HP-41 emulator</a> with <em>pyILPER</em>.</p>
+
+<p>To connect EMU71 or V41 to <em>pyILPER</em>, you can leave the TCP/IP interface settings of <em>pyILPER</em> at their default values..</p>
+
+<p>Now configure the TCP/IP configuration parameters (remote host, remote port, and local port) of EMU71 or V41 properly. Follow the description in the program documentation.</p>
+
+<p>A valid configuration might look like this:</p>
+
+<table class="w3-table-all">
+<tr><th>Parameter</th><th>pyILPER</th><th>EMU71/V41</th></tr>
+<tr><td>local port</td><td>60001</td><td>60000</td></tr>
+<tr><td>remote host</td><td>localhost</td><td>localhost</td></tr>
+<tr><td>remote port</td><td>60000</td><td>60001</td></tr>
+</table>
+
+<p>Emu71 includes remote keyboard support. See the <a href="terminal.html" class="w3-hover-black">Terminal Tab documentation</a> on how to set it up.</p>
+
+<p>The TCP/IP interface operates in autoreconnect mode. After the loop has been started, the server part of the interface is initialized, and the interface waits for the arrival of a client frame. Meanwhile, the status light of the interface is yellow. Only when the preceding device in the virtual loop sends a frame the TCP/IP connection is fully established, the status light turns green, and the loop status turns to "Loop running...".</p>
+
+<p>The recommended procedure to connect Emu71 to <em>pyILPER</em> is the following:</p>
+
+<ul class="w3-ul">
+<li>Start the pyILPER loop. The status light of the interface turns yellow and the loop is in the "Waiting for connection(s)..." state</li>
+<li>Start Emu71 with the HP-IL module configured properly.</li>
+<li>Switch the calculator on and press the ATTN key until the interface status light turns to green and the loop status turns to "Loop running..."</li>
+</ul>
+
+<p>The recommended procedure to disconnect Emu71 from <em>pyILPER</em> is the following:</p>
+
+<ul class="w3-ul">
+<li>Switch Emu71 off and close the program.</li>
+<li>Close <em>pyILPER</em>.</li>
+</ul>
+
+<p><b>Note:</b> If the above sequence for startup and shutdown was not followed, the EMU71 may “freeze.” In this case, you will need to make several attempts to send data from the EMU71, such as pressing ATTN repeatedly or trying to execute “RESTORE IO” several times.</p>
+
+<h3 class="w3-text-teal" id="tcp-ip-socket-interface">TCP/IP Socket Interface</h3>
+<h4 class="w3-text-teal" id="tcp-ip-socket-interface-configuration">TCP/IP Socket Interface Configuration</h4>
+
+<p>This interface allows for the connection of
+<a class="w3-hover-black" href="http://www.jeffcalc.hp41.eu/index.html">J-F Garnier's DOS calculator emulators</a> to pyILPER. The emulators must run in an appropriate virtual machine  that allows the redirection of the serial port communication to a TCP/IP socket server.  The server port must match the serial port redirection configuration of the virtual machine.</p>
+<p>Note: You must first start <em>pyILPER</em> (server) and then the virtual machine (client).</p>
+
+<h4 class="w3-text-teal" id="tcp-ip-socket-interface-applicatoo-information">TCP/IP Socket Interface Application Information</h4>
+
+<p>The <a href="http://www.jeffcalc.hp41.eu/" class="w3-hover-black">HP-41, HP-71, and HP-75 emulators of J. F. Garnier</a> can be attached to <em>pyILPER</em> if they are executed on <a href="https://www.dosbox.com">DOSBox</a>.</p>
+
+<p>You need the <em>DOSBox</em> version 0.74-2 or later. Other versions will not work.</p>
+
+<p>Install the <em>DOSBox</em> software and apply the following change to the serial section of the <em>DOSBox</em> configuration file:</p>
+
+<p><code>serial1=nullmodem server:localhost port:59999 transparent:1 txdelay:0</code></p>
+
+<p>See the <em>DOSBox</em> documentation on how to locate the configuration file.</p>
+
+<p>Install your favorite <em>EMUxx</em> emulator(s) on <em>DOSBox</em>.</p>
+
+<p>Modify the <em>INI</em> file of the emulator. Remove all devices you do not need to be emulated by the <em>EMUxx</em> program. Insert the device:</p>
+
+<p><code>XIL COM1</code></p>
+
+
+<p>Start the <em>pyILPER loop</em>. The status light of the interface turns yellow, and the loop status is "Waiting for connection(s)...". Start the <em>DOSBox</em>. If everything is configured properly the status light of the interface turns to green and the loop status turns to "Loop running...". Now start the <em>EMUxx</em> program on <em>DOSBox</em>.
+
+<p>Note:</p>
+
+<ul class="w3-ul">
+<li>The <em>EMUxx</em> programs do not support sending IDY frames for asynchronous service requests. Therefore, the virtual keyboard will not work for the HP-71. It works for the HP-75 because this calculator does not use service requests to query the virtual keyboard. The function keys of the HP-82162A thermal printer do not work either.</li>
+<li>Always start <em>pyILPER</em> before the <em>DOSBox</em> program.</li>
+</ul>
+
+<h3 class="w3-text-teal" id="configurations-with-multiple-interfaces">Configurations with Multiple Interfaces</h3>
+
+<p>If your pyILPER configuration contains several interfaces, there are a few things to keep in mind. It is recommended that you activate the pyILPER virtual loop in the following order:</p>
+
+<ul class="w3-ul">
+<li>Connect all USB devices.</li>
+<li>Start the loop. Check whether all USB devices connect. If their status stays "connecting" then the serial device in the interface configuration does not exist.</li>
+<li>Start the TCP/IP virtual HP-IL devices and make them running.</li>
+<li>Start the HP-IL controller last! Please follow the instructions above regarding TCP/IP connections.</li>
+
+<h3 class="w3-text-teal" id="performance">Performance</h3>
+
+<p>The loop throughput of the pyILPER virtual loop of version 2 is almost identical the the throughput of version 1 with an identical interface/devices configuration.</p>
+
+<p>Each additional interface significantly slows down the virtual loop. For example, if the throughput of an interface is 2,000 frames/s, then the total throughput of a loop with four interfaces drops to approximately 500 frames/s, assuming all other overhead is negligible.</p>
+
+<!-- End content -->
+</div>
+</div>
+  <footer id="myFooter">
+    <div class="w3-container w3-theme-l1">
+      <p>Powered by <a href="https://www.w3schools.com/w3css/default.asp" target="_blank">w3.css</a></p>
+    </div>
+  </footer>
+<!-- END MAIN -->
+</div>
+
+<script>
+// Get the Sidebar
+var mySidebar = document.getElementById("mySidebar");
+
+// Get the DIV with overlay effect
+var overlayBg = document.getElementById("myOverlay");
+
+// Toggle between showing and hiding the sidebar, and add overlay effect
+function w3_open() {
+  if (mySidebar.style.display === 'block') {
+    mySidebar.style.display = 'none';
+    overlayBg.style.display = "none";
+  } else {
+    mySidebar.style.display = 'block';
+    overlayBg.style.display = "block";
+  }
+}
+
+// Close the sidebar with the close button
+function w3_close() {
+  mySidebar.style.display = "none";
+  overlayBg.style.display = "none";
+}
+</script>
+
+</body>
+</html>

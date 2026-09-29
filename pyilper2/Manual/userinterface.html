@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>pyILPER Help</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="css/w3.css">
+<link rel="stylesheet" href="css/w3-theme-black.css">
+
+<style>
+html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif;}
+.w3-sidebar {
+  z-index: 3;
+  width: 250px;
+  top: 43px;
+  bottom: 0;
+  height: inherit;
+}
+</style>
+</head>
+<body>
+
+<!-- Navbar -->
+<div class="w3-top">
+  <div class="w3-bar w3-theme w3-top w3-left-align w3-large">
+    <a class="w3-bar-item w3-button w3-right w3-hide-large w3-hover-white w3-large w3-theme-l1" href="javascript:void(0)" onclick="w3_open()">&#9776;</a>
+    <a href="index.html" class="w3-bar-item w3-button w3-theme-l1">pyILPER</a>
+  </div>
+</div>
+
+<!-- Sidebar -->
+<nav class="w3-sidebar w3-bar-block w3-collapse w3-large w3-theme-l5 w3-animate-left" id="mySidebar">
+  <a href="javascript:void(0)" onclick="w3_close()" class="w3-right w3-xlarge w3-padding-large w3-button w3-hide-large" title="Close Menu">
+    x
+  </a>
+  <h4 class="w3-bar-item"><b>Menu</b></h4>
+  <a href="quickstart.html" class="w3-bar-item w3-button">Quick Start Guide</a>
+  <a href="features.html" class="w3-bar-item w3-button">pyILPER Features</a>
+  <a href="basics.html" class="w3-bar-item w3-button">The Basics</a>
+  <div class="w3-dropdown-hover">
+     <button class="w3-button">User Interface &#751;</button>
+     <div class="w3-dropdown-content w3-white w3-card-4">
+        <a href="userinterface.html" class="w3-bar-item w3-button">Overview</a>
+        <a href="filemenu.html" class="w3-bar-item w3-button">File menu</a>
+        <a href="utilitiesmenu.html" class="w3-bar-item w3-button">Utilities menu</a>
+        <a href="helpmenu.html" class="w3-bar-item w3-button">Help menu</a>
+        <a href="interface.html" class="w3-bar-item w3-button">Interface Tab</a>
+        <a href="drive.html" class="w3-bar-item w3-button">Drive Tab</a>
+        <a href="rawdrive.html" class="w3-bar-item w3-button">Raw Drive Tab</a>
+        <a href="printer.html" class="w3-bar-item w3-button">Generic Printer Tab</a>
+        <a href="terminal.html" class="w3-bar-item w3-button">Terminal Tab</a>
+        <a href="plotter.html" class="w3-bar-item w3-button">Plotter Tab</a>
+        <a href="hp82162a.html" class="w3-bar-item w3-button">HP82162A Tab</a>
+        <a href="hp2225b.html" class="w3-bar-item w3-button">HP2225B Tab</a>
+        <a href="scope.html" class="w3-bar-item w3-button">Scope Tab</a>
+     </div>
+  </div>
+  <div class="w3-dropdown-hover">
+     <button class="w3-button">Miscellaneous &#751;</button>
+     <div class="w3-dropdown-content w3-white w3-card-4">
+        <a href="releasenotes.html" class="w3-bar-item w3-button">Release Notes</a>
+        <a href="changelog.html" class="w3-bar-item w3-button">Change Log</a>
+        <a href="parameters.html" class="w3-bar-item w3-button">Command line parameters</a>
+        <a href="troubleshooting.html" class="w3-bar-item w3-button">Troubleshooting</a>
+        <a href="license.html" class="w3-bar-item w3-button">License</a>
+     </div>
+  </div>
+</nav>
+<!-- Overlay effect when opening sidebar on small screens -->
+<div class="w3-overlay w3-hide-large" onclick="w3_close()" style="cursor:pointer" title="close side menu" id="myOverlay"></div>
+
+<!-- Main content: shift it to the right by 250 pixels when the sidebar is visible -->
+<div class="w3-main" style="margin-left:250px">
+<div class="w3-row w3-padding-64">
+<div class="w3-twothird w3-container">
+
+<!-- Begin content --->
+
+<h2 class="w3-text-teal">User Interface</h2>
+
+<p>This is a quick guide to accessing the documentation for <em>pyILPER's</em> controls. For beginner information, see the <a class="w3-hover-black" href="basics.html">information on the Basics</a>.</p>
+
+<h2 class="w3-text-teal">Menus</h2>
+<ul class="w3-ul">
+<li><a class="w3-hover-black" href="filemenu.html">File menu</a></li>
+<li><a class="w3-hover-black" href="utilitiesmenu.html">Utilities menu</a></li>
+<li><a class="w3-hover-black" href="helpmenu.html">Help menu</a></li>
+</ul>
+
+<h2 class="w3-text-teal">Tabs for Interfaces and Virtual Devices</h2>
+
+<ul class="w3-ul">
+<li><a class="w3-hover-black" href="interface.html">Interface</a></li>
+<li><a class="w3-hover-black" href="scope.html">Scope</a></li>
+<li><a class="w3-hover-black" href="printer.html">Printer</a></li>
+<li><a class="w3-hover-black" href="drive.html">Drive</a></li>
+<li><a class="w3-hover-black" href="rawdrive.html">Raw Drive </a></li>
+<li><a class="w3-hover-black" href="terminal.html">Terminal</a></li>
+<li><a class="w3-hover-black" href="plotter.html">HP7470A Plotter</a></li>
+<li><a class="w3-hover-black" href="hp82162a.html">HP82162A Thermal Printer</a></li>
+<li><a class="w3-hover-black" href="hp2225b.html">HP2225B ThinkJet Printer</a></li>
+</ul>
+
+<!-- End content -->
+</div>
+</div>
+  <footer id="myFooter">
+    <div class="w3-container w3-theme-l1">
+      <p>Powered by <a href="https://www.w3schools.com/w3css/default.asp" target="_blank">w3.css</a></p>
+    </div>
+  </footer>
+<!-- END MAIN -->
+</div>
+
+<script>
+// Get the Sidebar
+var mySidebar = document.getElementById("mySidebar");
+
+// Get the DIV with overlay effect
+var overlayBg = document.getElementById("myOverlay");
+
+// Toggle between showing and hiding the sidebar, and add overlay effect
+function w3_open() {
+  if (mySidebar.style.display === 'block') {
+    mySidebar.style.display = 'none';
+    overlayBg.style.display = "none";
+  } else {
+    mySidebar.style.display = 'block';
+    overlayBg.style.display = "block";
+  }
+}
+
+// Close the sidebar with the close button
+function w3_close() {
+  mySidebar.style.display = "none";
+  overlayBg.style.display = "none";
+}
+</script>
+
+</body>
+</html>

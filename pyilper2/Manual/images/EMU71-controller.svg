@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="588.89777"
+   height="469.47009"
+   viewBox="0 0 588.89777 469.47009"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="EMU71-controller.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="px"
+     inkscape:zoom="1.0462561"
+     inkscape:cx="283.39142"
+     inkscape:cy="321.62298"
+     inkscape:window-width="1920"
+     inkscape:window-height="1008"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1"
+     showgrid="false" />
+  <defs
+     id="defs1">
+    <marker
+       style="overflow:visible"
+       id="marker12"
+       refX="0"
+       refY="0"
+       orient="auto-start-reverse"
+       inkscape:stockid="Rounded arrow"
+       markerWidth="1"
+       markerHeight="1"
+       viewBox="0 0 1 1"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid">
+      <path
+         transform="scale(0.7)"
+         d="m -0.21114562,-4.1055728 6.42229122,3.21114561 a 1,1 90 0 1 0,1.78885438 L -0.21114562,4.1055728 A 1.236068,1.236068 31.717474 0 1 -2,3 v -6 a 1.236068,1.236068 148.28253 0 1 1.78885438,-1.1055728 z"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:none"
+         id="path12" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="RoundedArrow"
+       refX="0"
+       refY="0"
+       orient="auto-start-reverse"
+       inkscape:stockid="Rounded arrow"
+       markerWidth="1"
+       markerHeight="1"
+       viewBox="0 0 1 1"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid">
+      <path
+         transform="scale(0.7)"
+         d="m -0.21114562,-4.1055728 6.42229122,3.21114561 a 1,1 90 0 1 0,1.78885438 L -0.21114562,4.1055728 A 1.236068,1.236068 31.717474 0 1 -2,3 v -6 a 1.236068,1.236068 148.28253 0 1 1.78885438,-1.1055728 z"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:none"
+         id="path8" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker12-2"
+       refX="0"
+       refY="0"
+       orient="auto-start-reverse"
+       inkscape:stockid="Rounded arrow"
+       markerWidth="1"
+       markerHeight="1"
+       viewBox="0 0 1 1"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid">
+      <path
+         transform="scale(0.7)"
+         d="m -0.21114562,-4.1055728 6.42229122,3.21114561 a 1,1 90 0 1 0,1.78885438 L -0.21114562,4.1055728 A 1.236068,1.236068 31.717474 0 1 -2,3 v -6 a 1.236068,1.236068 148.28253 0 1 1.78885438,-1.1055728 z"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:none"
+         id="path12-4" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="RoundedArrow-0"
+       refX="0"
+       refY="0"
+       orient="auto-start-reverse"
+       inkscape:stockid="Rounded arrow"
+       markerWidth="1"
+       markerHeight="1"
+       viewBox="0 0 1 1"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid">
+      <path
+         transform="scale(0.7)"
+         d="m -0.21114562,-4.1055728 6.42229122,3.21114561 a 1,1 90 0 1 0,1.78885438 L -0.21114562,4.1055728 A 1.236068,1.236068 31.717474 0 1 -2,3 v -6 a 1.236068,1.236068 148.28253 0 1 1.78885438,-1.1055728 z"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:none"
+         id="path8-1" />
+    </marker>
+  </defs>
+  <g
+     inkscape:label="Ebene 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-676.42383,-217.63882)">
+    <rect
+       style="fill:none;stroke:#000000;stroke-opacity:1"
+       id="rect1-2"
+       width="296.02002"
+       height="166.25783"
+       x="812.5"
+       y="456.5" />
+    <ellipse
+       style="fill:none;stroke:#000000;stroke-width:0.667191;stroke-opacity:1"
+       id="path2"
+       cx="954.48938"
+       cy="392.58621"
+       rx="76.20504"
+       ry="28.407795" />
+    <path
+       sodipodi:type="star"
+       style="fill:none;stroke:#000000;stroke-opacity:1"
+       id="path3"
+       inkscape:flatsided="true"
+       sodipodi:sides="6"
+       sodipodi:cx="1257.8182"
+       sodipodi:cy="311.58719"
+       sodipodi:r1="125.78705"
+       sodipodi:r2="62.893524"
+       sodipodi:arg1="0.52359878"
+       sodipodi:arg2="1.0471976"
+       inkscape:rounded="0"
+       inkscape:randomized="0"
+       d="m 1366.753,374.48071 -108.9348,62.89353 -108.9347,-62.89353 0,-125.78705 108.9347,-62.89352 108.9348,62.89353 z"
+       inkscape:transform-center-x="4.219307"
+       inkscape:transform-center-y="-0.24394789"
+       transform="matrix(0.40463657,0.23361703,-0.23361703,0.40463657,516.34396,-151.15686)" />
+    <text
+       xml:space="preserve"
+       style="writing-mode:lr-tb;direction:ltr;fill:none;stroke:#000000;stroke-opacity:1"
+       x="869.76788"
+       y="477.89444"
+       id="text4"><tspan
+         sodipodi:role="line"
+         id="tspan4"
+         x="869.76788"
+         y="477.89444" /></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:37.3333px;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans';writing-mode:lr-tb;direction:ltr;fill:none;stroke:#000000;stroke-opacity:1"
+       x="878.37"
+       y="484.58496"
+       id="text5"><tspan
+         sodipodi:role="line"
+         id="tspan5"
+         x="878.37"
+         y="484.58496" /></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:37.3333px;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans';writing-mode:lr-tb;direction:ltr;fill:none;stroke:#000000;stroke-opacity:1"
+       x="843.0058"
+       y="482.6734"
+       id="text6"><tspan
+         sodipodi:role="line"
+         id="tspan6"
+         x="843.0058"
+         y="482.6734" /></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:37.3333px;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans';writing-mode:lr-tb;direction:ltr;fill:#000000;fill-opacity:1;stroke:#000000;stroke-opacity:1"
+       x="886.0163"
+       y="494.14288"
+       id="text7"><tspan
+         sodipodi:role="line"
+         id="tspan7"
+         x="886.0163"
+         y="494.14288">pyILPER</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:26.6667px;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans';writing-mode:lr-tb;direction:ltr;fill:#000000;fill-opacity:1;stroke:#000000;stroke-opacity:1"
+       x="872.63525"
+       y="538.10913"
+       id="text8"><tspan
+         sodipodi:role="line"
+         id="tspan8"
+         x="872.63525"
+         y="538.10913">Printer, Terminal,</tspan><tspan
+         sodipodi:role="line"
+         x="872.63525"
+         y="571.4425"
+         id="tspan9">Drive1, Drive2</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:26.6667px;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans';writing-mode:lr-tb;direction:ltr;fill:#000000;fill-opacity:1;stroke:#000000;stroke-opacity:1"
+       x="910.86682"
+       y="276.22299"
+       id="text11"><tspan
+         sodipodi:role="line"
+         id="tspan11"
+         x="910.86682"
+         y="276.22299">EMU71</tspan></text>
+    <path
+       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.765211;stroke-opacity:1;marker-start:url(#marker12);marker-end:url(#RoundedArrow)"
+       d="m 953.39941,326.71273 v 25.18466"
+       id="path11" />
+    <path
+       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.692535;stroke-opacity:1;marker-start:url(#marker12-2);marker-end:url(#RoundedArrow-0)"
+       d="m 954.7084,427.13445 v 20.62807"
+       id="path11-9" />
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:29.3333px;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans Italic';writing-mode:lr-tb;direction:ltr;fill:#000000;fill-opacity:1;stroke:#000000;stroke-opacity:1"
+       x="677.6543"
+       y="680.52167"
+       id="text15"><tspan
+         sodipodi:role="line"
+         id="tspan15"
+         x="677.6543"
+         y="680.52167">pyILPER emulating HP-IL devices for EMU71</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:29.3333px;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans';writing-mode:lr-tb;direction:ltr;fill:#000000;fill-opacity:1;stroke:#000000;stroke-opacity:1"
+       x="910.86682"
+       y="400.47552"
+       id="text16"><tspan
+         sodipodi:role="line"
+         id="tspan16"
+         x="910.86682"
+         y="400.47552">TCP/IP</tspan></text>
+  </g>
+</svg>

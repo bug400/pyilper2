@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>pyILPER Help</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="css/w3.css">
+<link rel="stylesheet" href="css/w3-theme-black.css">
+
+<style>
+html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif;}
+.w3-sidebar {
+  z-index: 3;
+  width: 250px;
+  top: 43px;
+  bottom: 0;
+  height: inherit;
+}
+</style>
+</head>
+<body>
+
+<!-- Navbar -->
+<div class="w3-top">
+  <div class="w3-bar w3-theme w3-top w3-left-align w3-large">
+    <a class="w3-bar-item w3-button w3-right w3-hide-large w3-hover-white w3-large w3-theme-l1" href="javascript:void(0)" onclick="w3_open()">&#9776;</a>
+    <a href="index.html" class="w3-bar-item w3-button w3-theme-l1">pyILPER</a>
+  </div>
+</div>
+
+<!-- Sidebar -->
+<nav class="w3-sidebar w3-bar-block w3-collapse w3-large w3-theme-l5 w3-animate-left" id="mySidebar">
+  <a href="javascript:void(0)" onclick="w3_close()" class="w3-right w3-xlarge w3-padding-large w3-button w3-hide-large" title="Close Menu">
+    x
+  </a>
+  <h4 class="w3-bar-item"><b>Menu</b></h4>
+  <a href="quickstart.html" class="w3-bar-item w3-button">Quick Start Guide</a>
+  <a href="features.html" class="w3-bar-item w3-button">pyILPER Features</a>
+  <a href="basics.html" class="w3-bar-item w3-button">The Basics</a>
+  <div class="w3-dropdown-hover">
+     <button class="w3-button">User Interface &#751;</button>
+     <div class="w3-dropdown-content w3-white w3-card-4">
+        <a href="userinterface.html" class="w3-bar-item w3-button">Overview</a>
+        <a href="filemenu.html" class="w3-bar-item w3-button">File menu</a>
+        <a href="utilitiesmenu.html" class="w3-bar-item w3-button">Utilities menu</a>
+        <a href="helpmenu.html" class="w3-bar-item w3-button">Help menu</a>
+        <a href="interface.html" class="w3-bar-item w3-button">Interface Tab</a>
+        <a href="drive.html" class="w3-bar-item w3-button">Drive Tab</a>
+        <a href="rawdrive.html" class="w3-bar-item w3-button">Raw Drive Tab</a>
+        <a href="printer.html" class="w3-bar-item w3-button">Generic Printer Tab</a>
+        <a href="terminal.html" class="w3-bar-item w3-button">Terminal Tab</a>
+        <a href="plotter.html" class="w3-bar-item w3-button">Plotter Tab</a>
+        <a href="hp82162a.html" class="w3-bar-item w3-button">HP82162A Tab</a>
+        <a href="hp2225b.html" class="w3-bar-item w3-button">HP2225B Tab</a>
+        <a href="scope.html" class="w3-bar-item w3-button">Scope Tab</a>
+     </div>
+  </div>
+  <div class="w3-dropdown-hover">
+     <button class="w3-button">Miscellaneous &#751;</button>
+     <div class="w3-dropdown-content w3-white w3-card-4">
+        <a href="releasenotes.html" class="w3-bar-item w3-button">Release Notes</a>
+        <a href="changelog.html" class="w3-bar-item w3-button">Change Log</a>
+        <a href="parameters.html" class="w3-bar-item w3-button">Command line parameters</a>
+        <a href="troubleshooting.html" class="w3-bar-item w3-button">Troubleshooting</a>
+        <a href="license.html" class="w3-bar-item w3-button">License</a>
+     </div>
+  </div>
+</nav>
+<!-- Overlay effect when opening sidebar on small screens -->
+<div class="w3-overlay w3-hide-large" onclick="w3_close()" style="cursor:pointer" title="close side menu" id="myOverlay"></div>
+
+<!-- Main content: shift it to the right by 250 pixels when the sidebar is visible -->
+<div class="w3-main" style="margin-left:250px">
+<div class="w3-row w3-padding-64">
+<div class="w3-twothird w3-container">
+
+<!-- Begin content --->
+<h2 class="w3-text-teal">The Basics</em></h2>
+
+<p>This page describes the basics of working with pyILPER.</p>
+
+<h3 class="w3-text-teal">User interface</h3>
+
+<p>The <em>pyILPER</em> user interface consists of the following main components:</p>
+<ul class="w3-ul">
+<li>A menu bar with the entries <em>File</em>, <em>Utilities</em>, and <em>Help</em></li>
+<li>A tab bar with tabs for each virtual HP-IL device or interface</li>
+<li>An <em>undock button</em> at the far right side of the tab bar</li>
+<li>The display and controls of the virtual HP-IL device currently in the foreground tab</li>
+<li>A status bar showing the status of the loop and the interfaces<li>
+</ul>
+
+
+<h4 class="w3-text-teal">Menus</h4>
+
+<p>The <a class="w3-hover-black href="filemenu.html"><em>File</em> menu</a> contains functions to configure and control <em>pyILPER</em>. There you'll find entries for the  <em>pyILPER configuration</em> as well as for starting and stopping the <em>pyILPER</em> loop. Use the <em>Quit</em> entry to exit the program.<p> 
+
+<p>The <a class="w3-hover-black" href="utilitymenu.html"><em>Utilities</em> menu</a> includes features that support working with <em>pyILPER</em>.</p>
+
+<p>The <a class="w-3-hover-black" href="helpmenu.html"><em>Help</em> menu</a> provides menu entries for the online help system and some technical and legal information</p>
+
+
+<h4 class="w3-text-teal">Tabs</h4>
+
+<p>The virtual devices and interfaces of <em>pyILPER</em> are contained in separate labeled pages. Click the corresponding tab of the device to bring the display and controls of the device or interface to the foreground.</p>
+
+<p>The <em>undock button</em> allows you to detach the display and controls from the main user interface and view them in a separate window. You can move this "floating" window to any location on the desktop, including to a separate monitor. If you close a "floating" window, it is reattached to the main user interface again.</p>
+
+<p>The <em>pyILPER</em> main window and the "floating" windows can be resized by clicking and dragging edges. The number of lines of scope, terminal, printer, or plotter output will increase or decrease accordingly. This is necessary for "floating" windows because they start with a minimum window size. The size and position of the windows are saved and restored when <em>pyILPER</em> restarts.</p>
+
+
+<h3 class="w3-text-teal">The <em>pyILPER</em> virtual loop</h3>
+
+<p>pyILPER establishes a virtual loop of emulated HP-IL devices, interfaces, and two scope probes. The loop can be started or stopped from the file menu. The loop has either the state "stopped", or "waiting for connections" or "running". In the pyILPER configuration window, you can configure the loop to start automatically.</p>
+
+<p>The order of the tabs in the <em>pyILPER</em> tab bar determines the order in which the frames are processed. The <em>Virtual HP-IL Device configuration</em> entry in the <em>File</em> menu allows you to reorder the the tabs. In addition, additional devices or interfaces can be added to or removed from the tabbar.</p>
+
+<img class="w3-image" src="images/loop.svg">
+
+<h3 class="w3-text-teal">Interfaces</h3>
+
+<p>Interfaces can be configured at an arbitrary position in the loop in the "Virtual HP-IL devices configuration" window. Each interface has its own tab, where it is <a href="w3-hover-black src="interface.html">configured</a>. Please note that <b>each additional interface will slow down the throughput of the loop considerably</b>. An interface can be configured as a PIL box interface, a TCP/IP interface, or a socket interface.</p>
+
+<p>Interfaces have four states that are indicated by a status light in the status bar: "inactive" (black), "disconnected" (red), "waiting for connection" (yellow), and "connected" (green). The loop goes only into the "running" state if all interfaces are connected.</p>
+
+<p>After the loop has started, each active interface goes into the "waiting for connection" state. It goes to the "connected" state if either a read and write network connection (TCP/IP, Socket interface) was established or a PIL-Box serial device was found and initialized successfully.</p>
+
+<p>A TCP/IP interface is connected only after the first frame has been sent to the remote host. Therefore, you should generate some traffic on the loop (e.g., RESTORE IO on the HP-71 or powering the HP-41 on and off) to bring the TCP/IP interfaces to the “connected” state.</p>
+
+<p>An interface can be deactivated (bridged) with the <em>Device enabled</em> checkbox if the loop is stopped.</p>
+
+<p><b>Note</b>: You must always (re)configure the loop by the controller if you enable or disable an interface.</p>
+
+
+<h3 class="w3-text-teal">Scope and Probes</h3>
+
+<p>The scope is always the first tab that cannot be moved or deleted. By default, there are two probe devices, "Probe1" and "Probe2" which have no tab. The probes can be seen either in the "Virtual HP-IL device status" window or the "Virtual HP-IL device configuration". The position of the probes can be moved, but they cannot be deleted. The probes are activated in the scope tab. Frames captured by "Probe1" are shown in uppercase letters, and frames captured by "Probe2" are shown in lowercase letters.</p>
+
+<p>This makes it possible to capture frames at any point in the <em>pyILPER</em> loop.</p>
+
+<h3 class="w3-text-teal">Devices</h3>
+
+<h4 class="w3-text-teal">Basic configuration</h4>
+
+<p>If you start <em>pyILPER</em> for the first time, you get a graphical user interface with some menu entries and a tab for several virtual HP-IL devices:</p>
+<ul class="w3-ul">
+<li><a class="w3-hover-black" href="scope.html">Scope</a>: display HP-IL frames; this is not a "real" HP-IL device</li>
+<li><a class="w3-hover-black" href="interface.html">Interface1</a>: interface to a PIL-Box</li>
+<li><a class="w3-hover-black" href="printer.html">Printer</a>: generic printer</li>
+<li><a class="w3-hover-black" href="terminal.html">Terminal</a>: HP-IL display and keyboard</li>
+<li><a class="w3-hover-black" href="drive.html">Drive1</a>: HP-IL drive 1</li>
+<li><a class="w3-hover-black" href="drive.html">Drive2</a>: HP-IL drive 2</li>
+<li><a class="w3-hover-black" href="plotter.html">Plotter</a>: HP-7470A plotter</li>
+</ul>
+
+<p>You'll need to take <a class="w3-hover-black" href="terminal.html"><em>additional steps</em></a> if you want to use the terminal's keyboard.</p>
+
+<p>There are other virtual HP-IL devices, which are not available in the default configuration:</p>
+<ul class="W3-ul">
+<li><a cleass="w3-hover-black" href="hp82162a.html">HP-82162A thermal printer</a></li>
+<li><a cleass="w3-hover-black" href="hp2225b.html">HP-2225B Thinkjet printer</a></li>
+<li><a cleass="w3-hover-black" href="rawdrive.html">Raw drive emulation for HP Portable Plus</a></li>
+</ul>
+
+<p>The <em>Virtual HP-IL Device configuration</em> entry in the <em>File</em> menu allows you to add, remove, or reorder virtual HP-IL device tabs.</p>
+
+<h4 class="w3-text-teal">Enabling and disabling devices</h4>
+
+<p>A device can be enabled or disabled with the <em>Device enabled</em> checkbox, even while the loop is running. Disabling a device does not break the loop. It only removes the device out of the loop.</p>
+
+<p>The drive tab has controls that are only active if the device is disabled or the loop is stopped.</p>
+
+<p><b>Note</b>: You must always (re)configure the loop by the controller if you enable or disable a device:</p>
+
+
+<h4 class="w3-text-teal">Logging information</h4>
+
+<p>Some devices support logging, e.g., of HP-IL frames, print output, or plot commands. This output is always written to a file in the pyILPER working directory. The name of the log file consists of the name of the device tab followed by the extension <em>.log</em>. Each time logging is enabled, the output is appended to the existing file. The start of each new output is marked by a timestamp.</p>
+
+
+<h4 class="w3-text-teal">Printing information</h4>
+
+<p>Some devices allow you to save a print or plot output as a PDF file. The PDF output is used to generate a print or plot output that closely resembles the output from the original device. Direct printing to a printer is not supported.</p>
+
+<h3 class="w3-text-teal">(Re)configure the loop by an HP-IL controller</h3>
+
+<p>Depending on the HP-IL controller, the configuration is performed as follows:</p>
+
+<ul class="w3-ul">
+<li>HP-41: switch the calculator OFF and ON.</li>
+<li>HP-71: issue an <code>RESET HPIL @ RESTORE IO @ CLEAR</code></li>
+<li>HP-75: do an <code>ASSIGN IO</code>.</li>
+</ul>
+
+<p>The <em>Virtual HP-IL device status</em> entry in the <em>Utilities</em> menu shows which devices are active and which HP-IL addresses are assigned to them.</p>
+
+
+
+<h3 class="w3-text-teal">Using <em>pyILPER</em> stand-alone</h3>
+
+<p>If you would like to use <em>pyILPER</em> stand-alone without a connection to a real or emulated calculator, set up the program with no interface. Then you can use the <a href="drive.html" class="w3-hover-black">virtual drive</a> to manage the content of LIF image files.</p>
+<!-- End content -->
+</div>
+</div>
+  <footer id="myFooter">
+    <div class="w3-container w3-theme-l1">
+      <p>Powered by <a href="https://www.w3schools.com/w3css/default.asp" target="_blank">w3.css</a></p>
+    </div>
+  </footer>
+<!-- END MAIN -->
+</div>
+
+<script>
+// Get the Sidebar
+var mySidebar = document.getElementById("mySidebar");
+
+// Get the DIV with overlay effect
+var overlayBg = document.getElementById("myOverlay");
+
+// Toggle between showing and hiding the sidebar, and add overlay effect
+function w3_open() {
+  if (mySidebar.style.display === 'block') {
+    mySidebar.style.display = 'none';
+    overlayBg.style.display = "none";
+  } else {
+    mySidebar.style.display = 'block';
+    overlayBg.style.display = "block";
+  }
+}
+
+// Close the sidebar with the close button
+function w3_close() {
+  mySidebar.style.display = "none";
+  overlayBg.style.display = "none";
+}
+</script>
+
+</body>
+</html>

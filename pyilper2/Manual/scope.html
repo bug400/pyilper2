@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>pyILPER Help</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="css/w3.css">
+<link rel="stylesheet" href="css/w3-theme-black.css">
+
+<style>
+html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif;}
+.w3-sidebar {
+  z-index: 3;
+  width: 250px;
+  top: 43px;
+  bottom: 0;
+  height: inherit;
+}
+</style>
+</head>
+<body>
+
+<!-- Navbar -->
+<div class="w3-top">
+  <div class="w3-bar w3-theme w3-top w3-left-align w3-large">
+    <a class="w3-bar-item w3-button w3-right w3-hide-large w3-hover-white w3-large w3-theme-l1" href="javascript:void(0)" onclick="w3_open()">&#9776;</a>
+    <a href="index.html" class="w3-bar-item w3-button w3-theme-l1">pyILPER</a>
+  </div>
+</div>
+
+<!-- Sidebar -->
+<nav class="w3-sidebar w3-bar-block w3-collapse w3-large w3-theme-l5 w3-animate-left" id="mySidebar">
+  <a href="javascript:void(0)" onclick="w3_close()" class="w3-right w3-xlarge w3-padding-large w3-button w3-hide-large" title="Close Menu">
+    x
+  </a>
+  <h4 class="w3-bar-item"><b>Menu</b></h4>
+  <a href="quickstart.html" class="w3-bar-item w3-button">Quick Start Guide</a>
+  <a href="features.html" class="w3-bar-item w3-button">pyILPER Features</a>
+  <a href="basics.html" class="w3-bar-item w3-button">The Basics</a>
+  <div class="w3-dropdown-hover">
+     <button class="w3-button">User Interface &#751;</button>
+     <div class="w3-dropdown-content w3-white w3-card-4">
+        <a href="userinterface.html" class="w3-bar-item w3-button">Overview</a>
+        <a href="filemenu.html" class="w3-bar-item w3-button">File menu</a>
+        <a href="utilitiesmenu.html" class="w3-bar-item w3-button">Utilities menu</a>
+        <a href="helpmenu.html" class="w3-bar-item w3-button">Help menu</a>
+        <a href="interface.html" class="w3-bar-item w3-button">Interface Tab</a>
+        <a href="drive.html" class="w3-bar-item w3-button">Drive Tab</a>
+        <a href="rawdrive.html" class="w3-bar-item w3-button">Raw Drive Tab</a>
+        <a href="printer.html" class="w3-bar-item w3-button">Generic Printer Tab</a>
+        <a href="terminal.html" class="w3-bar-item w3-button">Terminal Tab</a>
+        <a href="plotter.html" class="w3-bar-item w3-button">Plotter Tab</a>
+        <a href="hp82162a.html" class="w3-bar-item w3-button">HP82162A Tab</a>
+        <a href="hp2225b.html" class="w3-bar-item w3-button">HP2225B Tab</a>
+        <a href="scope.html" class="w3-bar-item w3-button">Scope Tab</a>
+     </div>
+  </div>
+  <div class="w3-dropdown-hover">
+     <button class="w3-button">Miscellaneous &#751;</button>
+     <div class="w3-dropdown-content w3-white w3-card-4">
+        <a href="releasenotes.html" class="w3-bar-item w3-button">Release Notes</a>
+        <a href="changelog.html" class="w3-bar-item w3-button">Change Log</a>
+        <a href="parameters.html" class="w3-bar-item w3-button">Command line parameters</a>
+        <a href="troubleshooting.html" class="w3-bar-item w3-button">Troubleshooting</a>
+        <a href="license.html" class="w3-bar-item w3-button">License</a>
+     </div>
+  </div>
+</nav>
+<!-- Overlay effect when opening sidebar on small screens -->
+<div class="w3-overlay w3-hide-large" onclick="w3_close()" style="cursor:pointer" title="close side menu" id="myOverlay"></div>
+
+<!-- Main content: shift it to the right by 250 pixels when the sidebar is visible -->
+<div class="w3-main" style="margin-left:250px">
+<div class="w3-row w3-padding-64">
+<div class="w3-twothird w3-container">
+
+<!-- Begin content --->
+
+<h2 class="w3-text-teal">Scope Tab</h2>
+
+<p>This page is under construction</p>
+
+<h3 class="w3-text-teal">Description</h3>
+<p>The scope can display incoming and outgoing HP-IL frames as HP-IL mnemonics.
+Incoming frames are those frames that are read by the communication interface before being processed by the virtual HP-IL devices.
+Outgoing frames are those frames that were processed by the virtual HP-IL devices before they were sent to the communications interface. 
+Incoming frames are displayed in uppercase; outgoing frames are displayed in lowercase.
+By default, only incoming frames are displayed.
+The output of the scope can be logged to a file. Text selected with the mouse can be copied
+to the system clipboard.</p>
+
+<h3 class="w3-text-teal">Device controls</h3>
+<ul class="w3-ul">
+<li><em>Device enabled</em> checkbox: If this box is checked, the frames will be displayed by the screen
+and written to the log file (if activated). Since the scope is not an addressable
+HP-IL device, the HP-IL loop does not need to be reconfigured when the scope
+is disabled or enabled.
+</li>
+<li><em>Log Scope</em> checkbox: Activates writing the output of the scope to 
+the file <em>Scope.log</em> in the <em>pyILPER</em> working directory. Output 
+is always appended to that file. A time stamp in the file marks the start 
+and the end of each logging. The log file is closed automatically on
+program termination.</li>
+<li><em>Tag Logfile</em> button. This allows you to tag (write a comment) to the
+scope log file. The button opens a prompt window to enter the tag text. The tag text is 
+inserted with a time stamp exactly at the moment you pressed the <em>OK</em> button of the
+prompt window.</li>
+</ul>
+
+<h3 class="w3-text-teal">Tab configuration menu</h3>
+<ul class="w3-ul">
+<li><em>Terminal width</em>: Switches between an 80-column and a 120-column output 
+Note: Toggling this option will clear the display.</li>
+<li><em>Color scheme</em>: choose a black, amber, green, or "paper" color scheme.</li>
+<li><em>Font size</em>: Set the font size of the scope output.
+If <em>Default</em> is selected, the setting of the <em>pyILPER</em>
+configuration is used.</li>
+<li><em>Scrollup buffer</em>: alter the number of lines of the display scroll buffer. Note: changing this value clears the display.</li>
+<li><em>Log buffering</em>: enable or disable buffering of the log file. If log buffering is off, the log file output is flushed to disk after an end of line
+is encountered. This allows for watching the log file output but may decrease
+the execution speed of <em>pyILPER</em> considerably.</li>
+<li><em>Show IDY frames</em>: Activates the output of IDY frames. 
+This option is only useful if firmware version 1.6 is installed on the PIL-Box.</li>
+<li><em>Display mode</em>: show mnemonic only, show hex code only, or show both mnemonic and hex code.</li>
+<li><em>Log mode</em>: selects if inbound traffic (uppercase letters), 
+outbound traffic (lowercase letters), or both inbound/outbound traffic is 
+logged.</li>
+</ul>
+<!-- End content -->
+</div>
+</div>
+  <footer id="myFooter">
+    <div class="w3-container w3-theme-l1">
+      <p>Powered by <a href="https://www.w3schools.com/w3css/default.asp" target="_blank">w3.css</a></p>
+    </div>
+  </footer>
+<!-- END MAIN -->
+</div>
+
+<script>
+// Get the Sidebar
+var mySidebar = document.getElementById("mySidebar");
+
+// Get the DIV with overlay effect
+var overlayBg = document.getElementById("myOverlay");
+
+// Toggle between showing and hiding the sidebar, and add overlay effect
+function w3_open() {
+  if (mySidebar.style.display === 'block') {
+    mySidebar.style.display = 'none';
+    overlayBg.style.display = "none";
+  } else {
+    mySidebar.style.display = 'block';
+    overlayBg.style.display = "block";
+  }
+}
+
+// Close the sidebar with the close button
+function w3_close() {
+  mySidebar.style.display = "none";
+  overlayBg.style.display = "none";
+}
+</script>
+
+</body>
+</html>
