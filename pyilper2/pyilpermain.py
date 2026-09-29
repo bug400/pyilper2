@@ -138,11 +138,11 @@ class cls_ui(QtWidgets.QMainWindow):
                     [PILGLOBALS.Tab_Scope, "Scope"],
                     [PILGLOBALS.Tab_Interface, "Interface1"],
                     [PILGLOBALS.Tab_Probe, "Probe1"],
-                    [PILGLOBALS.Tab_Printer, "Printer1"],
+                    [PILGLOBALS.Tab_Printer, "Printer"],
                     [PILGLOBALS.Tab_Terminal, "Terminal"],
-                    [PILGLOBALS.Tab_Plotter, "Plotter"],
                     [PILGLOBALS.Tab_Drive, "Drive1"],
                     [PILGLOBALS.Tab_Drive, "Drive2"],
+                    [PILGLOBALS.Tab_Plotter, "Plotter"],
                     [PILGLOBALS.Tab_Probe, "Probe2"],
                 ],
             )
@@ -900,7 +900,7 @@ class cls_ui(QtWidgets.QMainWindow):
     # show startup info
     #
     def startupInfo(self):
-        self.showHelp("", "firstrun.html")
+        self.showHelp("", "quickstart.html")
 
     #
     #  show help windows for a certain document

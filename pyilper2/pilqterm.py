@@ -1667,9 +1667,7 @@ class HPTerminal:
         else:
             self.attr = CHAR_ATTRIB_NONE
         cc = icharconv(t, self.charset)
-        print(self.cx, self.cy)
         if self.cx == self.w:
-            print("line break")
             self.cx = 0
             self.cy = self.add_bufferline(self.cy)
         self.poke(self.cy, self.cx, array.array("i", [self.attr | ord(cc)]))

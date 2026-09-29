@@ -78,12 +78,12 @@ class cls_pilglobals:
         #     pySerial minimum version
         #
         self.PyserialRequiredMajor = 3
-        self.PyserialRequiredMinor = 2
+        self.PyserialRequiredMinor = 5
         #
         #     PySide6 minimum version
         #
         self.PysideRequiredMajor = 6
-        self.PysideRequiredMinor = 3
+        self.PysideRequiredMinor = 8
         #
         #     Thread crash reasons
         #
