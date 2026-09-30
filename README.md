@@ -35,7 +35,7 @@ pyILPER creates a virtual loop of emulated HP-IL devices, interfaces, and two sc
 Interfaces
 ----------
 
-Interfaces can be configured at an arbitrary position in the loop in the "Virtual HP-IL devices configuration" window. Each interface has its onw tab, where it is configured. Please note that <b>each additional interface will slow down the throughput of the loop considerably</b>. As before, the interface types PIL-Box. TCP/IP and socket are available. The PIL-Box interface has an additional configuration option, that tells the box whether to operate in controller on or controller off mode.
+Interfaces can be configured at an arbitrary position in the loop in the "Virtual HP-IL devices configuration" window. Each interface has its onw tab, where it is configured. Please note that each additional interface will slow down the throughput of the loop considerably. As before, the interface types PIL-Box. TCP/IP and socket are available. The PIL-Box interface has an additional configuration option, that tells the box whether to operate in controller on or controller off mode.
 
 The PIL-Box tty speed of 9600 baud and its special protocol used at this baudrate is not supported any more.
 
@@ -79,7 +79,7 @@ Installing and Running the software
 
 - Unpack the zip file and go to the top-level directory of the unpacked package
 
-- run 
+Now run from the command line: 
 
      python -m pyilper2 -v
 
@@ -91,31 +91,33 @@ The configuration of pyILPER2 is entirely separated from the configuration of ve
 
 Now run the program:
 
-     pyilper -m pyiper2
+     pyilper -m pyilper2
 
-If you did not have a pyilper 2.0 configuration before, a default configuration with one interface of type PIL-Box is created. pyILPER will start with a runtime error message, that the serial device of the PIL-Box has not been configured. Enter the device name in der Interface tab and start the loop from the file menu.
+If you did not have a pyilper 2.0 configuration before, a default configuration with one interface of type PIL-Box is created. pyILPER will show some quick start information about how to configure the program for first-time use. Follow the installation steps as described and start the loop from the file menu.
 
 
 Configuration with Multiple Interfaces
 --------------------------------------
 
-If your pyILPER configuration contains several interfaces, there are a few thins to keep in mind. It is recommended that you activate the pyILPER virtual loop in the following order:
+If your pyILPER configuration contains several interfaces, there are a few things to keep in mind. It is recommended that you activate the pyILPER virtual loop in the following order:
 
 - Connect all USB devices
 
 - Start the loop. Check, whether all USB devices connect. If their status stays "connecting" then the serial device in the interface configuration does not exist.
 
-- start the TCP/IP virtual HP-IL devices and make them running.
+- Start any programs for  virtual HP-IL over TCP/IP devices (e.g. IlVideo80.exe) and press their START button.
 
-- start the HP-IL controller last! Please follow the instructions above regarding TCP/IP connections.
+- Start the HP-IL controller last! Please follow the instructions above regarding TCP/IP connections.
 
 
 Performance
 -----------
 
-The loop throughput of the pyILPER virtual loop of version 2 is almost identical the the throughput of version 1 with an identical interface/devices configuration.
+The loop throughput of the pyILPER virtual loop of version 2 is the same as that of version 1 with an identical interface/devices configuration.
 
-Each additional interface significantly slows down the virtual loop. For example, if the throughput of an interface is 2,000 frames/s, then the total throughput of the loop drops to approximately 500 frames/s, assuming all other overhead is negligible.
+Each additional interface significantly slows down the virtual loop. Every frame sent by an interface takes a certain amount of time (travel time) to be fully received. This travel time adds up for each interface.  For example, if the throughput of a PIL-Box device is 2,000 frames/s, the travel time for each frame is 0.5 ms. If you have 4 interfaces of this type, the travel time sums up to 2 ms. This will reduce the maximum speed of the pyILPER virtual loop to approximately 500 frames/s, assuming all other overhead is negligible.
+
+This is different with the (real) HP-IL loop. Here, the HP-IL chip built into each device in the loop can determine, after receiving just 3 bits of a frame, whether it can begin forwarding the frame to the next device. This reduces the time lag introduced by devices in the loop considerably.
 
 Acknowledgements
 ----------------

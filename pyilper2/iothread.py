@@ -133,7 +133,7 @@ class cls_IOThread(threading.Thread):
     #  Note: sendCmd is also used for automatic detection of then baud rate
     #  In this case, the serial device must not be closed
     #
-    def sendCmd(self, cmdfrm, tmout, doNotCloseOnError=False):
+    def sendCmd(self, cmdfrm, tmout, closeOnError=True):
         hbyt, lbyt = self.disassemble_frame(cmdfrm)
         try:
             self.__ioDevice__.writePilBoxFrame(lbyt, hbyt)
@@ -142,19 +142,18 @@ class cls_IOThread(threading.Thread):
             e.add_note(self.__name__ + ": i/o error in sendCMD")
             raise e from e
         if bytrx is None:
-            if not doNotCloseOnError:
+            if closeOnError:
                 self.__ioDevice__.close()
             raise AppException(self.__name__ + ": timeout getting response of command")
-
         try:
             tst = ord(bytrx)
         except (ValueError, TypeError):
-            if not doNotCloseOnError:
+            if closeOnError:
                 self.__ioDevice__.close()
             raise AppException(self.__name__ + ": illegal return value for command")
         if tst != lbyt:
             print("pilacm: return value mismatch %x %x" % (tst, lbyt))
-            if not doNotCloseOnError:
+            if closeOnError:
                 self.__ioDevice__.close()
             raise AppException(self.__name__ + ": illegal return value for command")
         print(
