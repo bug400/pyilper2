@@ -78,20 +78,24 @@ html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif;}
 
 <h2 class="w3-text-teal">Scope Tab</h2>
 
-<p>This page is under construction</p>
-
 <h3 class="w3-text-teal">Description</h3>
-<p>The scope can display incoming and outgoing HP-IL frames as HP-IL mnemonics.
-Incoming frames are those frames that are read by the communication interface before being processed by the virtual HP-IL devices.
-Outgoing frames are those frames that were processed by the virtual HP-IL devices before they were sent to the communications interface. 
-Incoming frames are displayed in uppercase; outgoing frames are displayed in lowercase.
-By default, only incoming frames are displayed.
+<p>The scope displays HP-IL frames that can be captured at up to two different points along the <a class="w3-hover-black" href="basics.html#pyilper-virtual-loop"><em>pyILPER</em> virtual loop</a>.
+
+<p>These data-capturing devices are called <em>Probe1</em> and <em>Probe2</em>. The following diagram shows the probes at their default location.</p>
+
+<img class="w3-image" src="images/loop.svg">
+
+<p>The probes do not have a tab in the tab bar. Their position can be moved
+in the <a class="w3-hover-black" href="filemenu.html#hp-il-device-configuration">HP-IL device configuration</a> function of the file menu</p>
+
+<p>Frames captured by <em>Probe1</em> are displayed in uppercase; frames captured by <em>Probe2</em> are displayed in lowercase.
+By default, only frames captured by <em>Probe1</em> are displayed.
 The output of the scope can be logged to a file. Text selected with the mouse can be copied
 to the system clipboard.</p>
 
 <h3 class="w3-text-teal">Device controls</h3>
 <ul class="w3-ul">
-<li><em>Device enabled</em> checkbox: If this box is checked, the frames will be displayed by the screen
+<li><em>Device enabled</em> checkbox: If this box is checked, the captured frames will be displayed by the screen
 and written to the log file (if activated). Since the scope is not an addressable
 HP-IL device, the HP-IL loop does not need to be reconfigured when the scope
 is disabled or enabled.
@@ -122,9 +126,8 @@ the execution speed of <em>pyILPER</em> considerably.</li>
 <li><em>Show IDY frames</em>: Activates the output of IDY frames. 
 This option is only useful if firmware version 1.6 is installed on the PIL-Box.</li>
 <li><em>Display mode</em>: show mnemonic only, show hex code only, or show both mnemonic and hex code.</li>
-<li><em>Log mode</em>: selects if inbound traffic (uppercase letters), 
-outbound traffic (lowercase letters), or both inbound/outbound traffic is 
-logged.</li>
+<li><em>Log mode</em>: selects if only frames captured by <em>Probe1</em> (uppercase letters),
+only frames captured by <em>Probe2</em> (lowercase letters), or frames from both probes are displayed.</li>
 </ul>
 <!-- End content -->
 </div>

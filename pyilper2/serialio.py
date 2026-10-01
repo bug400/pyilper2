@@ -70,6 +70,8 @@ class cls_serialIO:
             )
             self.__isOpen__ = True
             time.sleep(0.5)
+            self.__ser__.reset_input_buffer()
+            self.__ser__.reset_output_buffer()
         except Exception as e:
             self.__ser__ = None
             e.add_note("cannot open serial device")
@@ -108,7 +110,7 @@ class cls_serialIO:
 
     def flushInput(self):
         try:
-            self.__ser__.flushInput()
+            self.__ser__.reset_input_buffer()
         except Exception as e:
             self.close()
             e.add_note("cannot reset serial device")

@@ -78,8 +78,6 @@ html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif;}
 
 <h2 class="w3-text-teal">File Menu Entries</h2>
 
-<p>This page is under construction</p>
-
 <h3 class="w3-text-teal" id="pyilper-configuration">pyILPER configuration</h3> 
 
 <h4 class="w3-text-teal" id="configuration-of-the-working-directory">Configuration of the working directory</h4>
@@ -92,19 +90,17 @@ html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif;}
 order:</p>
 
 <ul class="w3-ul">
-<li>They are installed at the custom <em>LIFUTILS</em> location.</li>
-<li>They can be called because the <em>PATH</em> environment variable is set 
-respectively.</li>
-<li>They are installed at the default location /usr (Linux) or /usr/local (mac 
-OS), or the location can be found in the Windows registry.</li>
+<li>At the custom <em>LIFUTILS</em> location.</li>
+<li>In directories that are specified in the system search path.</li>
+<li>At system default locations /usr (Linux) or /usr/local (macOS), or the location found in the Windows registry.</li>
 </ul>
 
 <p>Therefore, the custom installation location must only be specified if the
 <em>LIFUTILS</em> were installed in a nonstandard way.</p>
 
-<h4 cloass="w3-text-teal" id="autostart">Autostart<h4>
+<h4 class="w3-text-teal" id="autostart">Autostart</h4>
 
-<p>TODO</p>
+<p>Check this option to start the <em>pyILPER</em> automatically when <em>pyILPER</em> launches. This option is enabled by default.</p>
 
 <h4 class="w3-text-teal" id="set-the-qt-style">Set the Qt Style</h4>
 
@@ -133,9 +129,9 @@ be poorly maintained or have fewer features, like missing dark mode awareness.</
 <p>You can set the font size of the directory listing. This affects all tabs or windows of that type. This setting can be overridden by local settings.</p>
 
 <h4 class="w3-text-teal" id="configuration-of-the-papersize">Configuration of the paper size</h4>
-<p>You may choose "A4" or "letter" format. This controls the paper size of
+<p>You may choose the "A4" or the "letter" format. This controls the paper size of
 PDF output and the paper size setting of the virtual HP7470A plotter.
-A restart is required for the changes take to effect.</p>
+A restart is required for the changes to take effect.</p>
 
 <h4 class="w3-text-teal" id="utf-8-encoding-options">UTF-8 encoding option</h4>
 
@@ -154,14 +150,14 @@ removed to have an effect when changing this option.</p>
 <tr><th>Device name</th><th>Device type</th></tr>
 <tr><td>Scope</td><td><a class="w3-hover-black" href="scope.html"><em>Scope</em></a></td></tr>
 <tr><td>Printer1</td><td><a cloass="w3-hover-black" href="printer.html"><em>Generic Printer</em></a></td></tr>
-<tr><td>Terminal1</td><td><a class="w4-hover-black" href="terminal.html"><em>Terminal</em></a></td></tr>
-<tr><td>Plotter1</td><td><a class="w4-hover-black" href="plotter.html"><em>Plotter</em></a></td></tr>
-<tr><td>Drive1</td><td><a class="w4-hover-black" href="drive.html"><em>Drive</em></a></td></tr>
-<tr><td>Drive2</td><td><a class="w4-hover-black" href="drive.html"><em>Drive</em></a></td></tr>
+<tr><td>Terminal1</td><td><a class="w3-hover-black" href="terminal.html"><em>Terminal</em></a></td></tr>
+<tr><td>Plotter1</td><td><a class="w3-hover-black" href="plotter.html"><em>Plotter</em></a></td></tr>
+<tr><td>Drive1</td><td><a class="w3-hover-black" href="drive.html"><em>Drive</em></a></td></tr>
+<tr><td>Drive2</td><td><a class="w3-hover-black" href="drive.html"><em>Drive</em></a></td></tr>
 </table>
 
 <p>With the device configuration dialog, you can add or delete virtual
-HP-IL devices and change the position of their tab. To create a new device 
+HP-IL devices and change the position of their tab. To create a new device,
 press the <em>Add</em> button, select the desired device type,
 and assign a <b>unique</b> name. The device name must begin with a letter 
 followed by up to 9 letters or digits. The device name is shown on the tab. 
@@ -171,12 +167,17 @@ name of the log file in the current working directory.</p>
 <p>To remove or change the position of a virtual HP-IL device, select
 the device from the list and click the appropriate buttons.</p>
 
-<p>The position of the device tabs is corresponding to the position of the 
-device in the loop inside of <em>pyILPER</em>.</p>
+<p>The position of the device tabs corresponds to the position of the
+device in the <a class="w3-hover-black" href="basics.html#pyilper-virtual-loop"><em>pyILPER</em> virtual loop</a>.</p>
 
-<p><b>Note: </b>The scope tab cannot be removed. If the configuration of 
-virtual HP-IL devices  was changed, you have to restart the
-application for the changes take to effect.</p>
+<p>Special rules apply for the following items:</p>
+
+<ul class="w3-ul">
+<li>The <a class="w3-hover-black" href="scope.html"><em>Scope</em></a> cannot be changed at all</li>
+<li>The <a class="w3-hover-black" href="scope.html"><em>Scope</em></a> probes <em>Probe1</em> and <em>Probe2</em> can be moved but not deleted.</li>
+</ul>
+
+<p>If the configuration of virtual HP-IL devices  was changed, you have to restart the application for the changes to take effect.</p>
 
 <h3 class="w3-text-teal" id="plotter-pen-configuration">Plotter pen configuration</h3>
 
@@ -218,7 +219,11 @@ be used as a user-defined shortcut.</p>
 
 <h3 class="w3-text-teal" id="start-loop">Start Loop</h3>
 
-<p>TODO.</p>
+<p>Starts the <a class="w3-hover-black" href="basics.html#pyilper-virtual-loop"><em>pyILPER</em> virtual loop</a>.</p>
+
+<h3 class="w3-text-teal" id="stop-loop">Stop Loop</h3>
+
+<p>Stops the <a class="w3-hover-black" href="basics.html#pyilper-virtual-loop"><em>pyILPER</em> virtual loop</a>.</p>
 
 <h3 class="w3-text-teal" id="quit">Quit</h3>
 

@@ -152,7 +152,7 @@ class cls_IOThread(threading.Thread):
                 self.__ioDevice__.close()
             raise AppException(self.__name__ + ": illegal return value for command")
         if tst != lbyt:
-            print("pilacm: return value mismatch %x %x" % (tst, lbyt))
+            print("sendCmd: return value mismatch %x %x" % (tst, lbyt))
             if closeOnError:
                 self.__ioDevice__.close()
             raise AppException(self.__name__ + ": illegal return value for command")
