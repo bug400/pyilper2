@@ -37,6 +37,7 @@ import os
 import shutil
 import argparse
 from json import JSONDecodeError
+from pathlib import Path
 from .pyilpermain import main
 from .pilglobals import PILGLOBALS
 from .pilconfig import cls_pilconfig, PILCONFIG
@@ -61,6 +62,27 @@ def migrateConfig(args):
 
     if inp != "YES":
         print("cancelled")
+        return
+    #
+    # make backup copy of pyilper config file
+    #
+    try:
+        filename = buildconfigfilename(
+            PILGLOBALS.StandardConfigDir,
+            "pyilper",
+            PILGLOBALS.ConfigVersion,
+            args.instance,
+            PILGLOBALS.Production,
+        )[0]
+        if not Path(filename).exists():
+            print("No pyilper 1.9 configuration found")
+            return
+        backupfilename = filename + ".bak"
+        shutil.copy(filename, backupfilename)
+    except OSError as e:
+        print(
+            "Error creating backup copy of pyILPER2 confuguration file: " + e.strerror
+        )
         return
     #
     # copy files
@@ -93,6 +115,10 @@ def migrateConfig(args):
 
         except OSError as e:
             print("Error copying file " + from_filename + ": " + e.strerror)
+            try:
+                shutil.copy(backupfilename, filename)
+            except Exception:
+                pass
             return
 
         print(from_filename)
@@ -112,7 +138,10 @@ def migrateConfig(args):
         #
         # check version of old configuration must be of 1.9
         #
-        oldversion = decode_pyILPERVersion(PILCONFIG.get("pyilper", "version"))
+        oldversion = decode_pyILPERVersion(PILCONFIG.get("pyilper", "version", "0.0.0"))
+        if oldversion == 0:
+            print("no valid configuration files found for version 1.9.0")
+            return
         if oldversion < 10900:
             print("cannot migrate pyilper configuration from versions < 1.9.0")
             return
@@ -121,7 +150,10 @@ def migrateConfig(args):
         #
         # migrate tab configuration
         #
-        tabconfig = PILCONFIG.get(oldName, "tabconfig")
+        tabconfig = PILCONFIG.get(oldName, "tabconfig", "")
+        if tabconfig == "":
+            print("no valid configuration files found for version 1.9.0")
+            return
         newTabconfig = [[0, "Scope"], [1, "Interface1"], [9, "Probe1"]]
         for t in tabconfig:
             tabid = t[0]
@@ -135,7 +167,7 @@ def migrateConfig(args):
         #
         # migrate interface config
         #
-        for k in [
+        for oldkey in [
             "if_pilbox_device",
             "if_pilbox_baudrate",
             "if_pilbox_idyframe",
@@ -144,15 +176,17 @@ def migrateConfig(args):
             "if_tcpip_remotehost",
             "if_socket_serverport",
         ]:
-            subk = k.split("if_")
-            value = PILCONFIG.get("if", subk[1])
-            PILCONFIG.put("Interface1", k, value)
-        baudrate = PILCONFIG.get("Interface1", "if_pilbox_baudrate")
+            newkey = "Interface1_" + oldkey
+            PILCONFIG.migrateKey(oldkey, newkey)
+        #
+        #       9600 baud not supported any more
+        #
+        baudrate = PILCONFIG.get("Interface1", "if_pilbox_baudrate", 115200)
         if baudrate == 9600:
             PILCONFIG.put("Interface1", "if_pilbox_baudrate", 115200)
         PILCONFIG.put("Interface1", "if_pilbox_controllermode", False)
         PILCONFIG.put("Interface1", "active", True)
-        interfaceid = PILCONFIG.get(oldName, "mode")
+        interfaceid = PILCONFIG.get(oldName, "mode", 0)
         PILCONFIG.put("Interface1", "interface_id", interfaceid)
         #
         # migrate remaining pyILPER config
@@ -171,8 +205,9 @@ def migrateConfig(args):
             "papersize",
             "position",
         ]:
-            value = PILCONFIG.get(oldName, k)
-            PILCONFIG.put(newName, k, value)
+            oldkey = oldName + "_" + k
+            newkey = newName + "_" + k
+            PILCONFIG.migrateKey(oldkey, newkey)
         #
         # remove old keys
         #
@@ -180,11 +215,19 @@ def migrateConfig(args):
         PILCONFIG.delKeys("if")
 
         PILCONFIG.save()
-    except JSONDecodeError as ex:
-        print(f"JSON decode error: {ex.msg} at {ex.lineno}:{ex.colno}")
-
-    except OSError as e:
-        print("Error reading or writing migrated configuration ")
+    #
+    #   exception handling, restore previous pyilper2 config
+    #
+    except Exception as ex:
+        if type(ex).__class__ == JSONDecodeError:
+            print(f"JSON decode error: {ex.msg} at {ex.lineno}:{ex.colno}")
+        else:
+            print("Error migrating configuration " + repr(ex))
+        try:
+            shutil.copy(backupfilename, filename)
+            print("previous pyilper2 configuration restored")
+        except Exception:
+            pass
         return
 
     print(
