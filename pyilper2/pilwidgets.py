@@ -705,7 +705,9 @@ class cls_tabtermgeneric(cls_tabgeneric):
             T_INTEGER,
             [1000, 2000, 5000, 10000],
         )
-
+        #
+        # add status widget
+        #
         self.statuswidget = QtWidgets.QLabel("")
         self.statuswidget.setText("Display size :")
         self.add_statuswidget(self.statuswidget)

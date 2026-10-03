@@ -213,16 +213,12 @@ def migrateConfig(args):
         #
         PILCONFIG.delKeys("pyilper")
         PILCONFIG.delKeys("if")
-
         PILCONFIG.save()
     #
     #   exception handling, restore previous pyilper2 config
     #
     except Exception as ex:
-        if type(ex).__class__ == JSONDecodeError:
-            print(f"JSON decode error: {ex.msg} at {ex.lineno}:{ex.colno}")
-        else:
-            print("Error migrating configuration " + repr(ex))
+        print("Error migrating configuration " + repr(ex))
         try:
             shutil.copy(backupfilename, filename)
             print("previous pyilper2 configuration restored")

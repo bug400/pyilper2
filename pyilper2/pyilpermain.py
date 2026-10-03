@@ -158,7 +158,6 @@ class cls_ui(QtWidgets.QMainWindow):
                 lastTab = PILCONFIG.get(self.name, "active_tab")
 
             self.tabConfig = PILCONFIG.get(self.name, "tabconfig")
-            tabConfigChanged = False
             #
             # version check, warn user if the configuration files are of a newer
             # version
@@ -342,6 +341,7 @@ class cls_ui(QtWidgets.QMainWindow):
             #
             # For interfaces the initial interface status is created (disconnected/deactivated interface)
             #
+            tabEntriesRemoved = False
             for t in self.tabConfig:
                 id = t[0]
                 #
@@ -350,7 +350,7 @@ class cls_ui(QtWidgets.QMainWindow):
                 if id not in self.tabSpecifications.keys():
                     print(f"deleting tab with non existing id {id}")
                     del self.tabConfig[id]
-                    tabConfigChanged = True
+                    tabEntriesRemoved = True
                     continue
                 #
                 # now build data structures
@@ -409,17 +409,15 @@ class cls_ui(QtWidgets.QMainWindow):
             for key in removeKeys:
                 print(f"remove {key}")
                 PILCONFIG.remove(key)
-            if removeKeys:
-                self.tabConfigChanged = True
 
             #
             # store changed tabconfig, if tabs of non existing tab types were removed
             #
-            if tabConfigChanged:
+            if tabEntriesRemoved:
                 lastTab = 0
-                PILCONFIG.put(self.name, "tabconfigchanged", True)
                 PILCONFIG.put(self.name, "tabconfig", self.tabConfig)
                 PILCONFIG.put(self.name, "active_tab", 0)
+                tabConfigChanged = True
 
             #
             # status bar and idicator widget
@@ -474,10 +472,17 @@ class cls_ui(QtWidgets.QMainWindow):
                 self.releaseInfo(PILGLOBALS.Version)
             #
             #
-            # Do autostart of loop if configured (not for first time use)
+            # Do autostart of loop if configured , but not if the tab config changed
             #
-            if PILCONFIG.get(self.name, "autostart"):
-                self.controller_start()
+            if tabConfigChanged:
+                self.showInfo(
+                    "Your configuration of virtual devices was changed."
+                    " Carefully review the settings of new interfaces and devices."
+                    " Start the loop manually and do a reconfiguration of the loop by the HP-IL controller immediately."
+                )
+            else:
+                if PILCONFIG.get(self.name, "autostart"):
+                    self.controller_start()
 
     #
     # This signal callback updates the interface status if the active checkbox of an interface is checked/unchecked.

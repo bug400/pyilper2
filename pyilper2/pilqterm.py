@@ -1174,6 +1174,7 @@ class HPTerminal:
         self.win.scrollbar.setSingleStep(1)
         self.win.scrollbar.setPageStep(self.view_h)
         self.saved_cursortype = CURSOR_OVERWRITE
+        self.needsUpdate = True
 
     #
     #   enable: start update timer (one shot timer)

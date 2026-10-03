@@ -57,6 +57,7 @@ As before, the scope is always the first tab that cannot be moved or deleted. By
 
 In pyILPER 1.x the probes were always at a fixed position (after the interface and after the last device).
 
+The scope now has a button to clear the display.
 
 Devices
 -------
