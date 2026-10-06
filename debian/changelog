@@ -1,0 +1,334 @@
+pyilper (1.9.0) trixie; urgency=medium
+
+  * production 
+
+ -- trixie <achim@trillian>  Fri, 01 May 2026 20:58:40 +0200
+
+pyilper (1.9.0~beta4) trixie; urgency=medium
+
+  * use default browser if no QtWebkit or QtWebengine bindings were found
+
+ -- trixie <achim@trillian>  Wed, 22 Apr 2026 07:41:43 +0200
+
+pyilper (1.9.0~beta3) trixie; urgency=medium
+
+  * improved documentation
+  * improved python and python packages version check
+
+ -- trixie <achim@trillian>  Sun, 19 Apr 2026 15:01:22 +0200
+
+pyilper (1.9.0~beta2) trixie; urgency=medium
+
+  * exit on -v option
+  * move config dir on first run of 1.9.0 version (Windows only) 
+
+ -- trixie <achim@trillian>  Sun, 19 Apr 2026 14:54:13 +0200
+
+pyilper (1.9.0~beta1) trixie; urgency=medium
+
+  * make autoreconnect configurable 
+  * command line parameters are now only accepted if pyILPER is called as a module
+  * Fixed shortcut configration file name. The production version always used the file of a test version.
+  * show additional information about serial devices in tty selection window
+
+ -- trixie <achim@trillian>  Wed, 25 Mar 2026 08:55:38 +0100
+
+pyilper (1.9.0.dev7) trixie; urgency=medium
+
+  * autoreconnect for non network devices
+  * pluggable interfaces and tabs 
+  * bug fix idy handling of pilbox interface (regression error)
+
+ -- trixie <achim@trillian>  Fri, 20 Mar 2026 08:24:12 +0100
+
+pyilper (1.9.0.dev6) trixie; urgency=medium
+
+  * refactoring of global variables 
+
+ -- trixie <achim@trillian>  Mon, 16 Mar 2026 08:36:02 +0100
+
+pyilper (1.9.0.dev5) trixie; urgency=medium
+
+  * fixed escape sequence processing in terminal emulation 
+
+ -- trixie <achim@trillian>  Sat, 14 Mar 2026 09:50:40 +0100
+
+pyilper (1.9.0.dev4) trixie; urgency=medium
+
+  * removed an experimental feature 
+
+ -- trixie <achim@trillian>  Mon, 01 Sep 2025 14:51:53 +0200
+
+pyilper (1.9.0.dev3) trixie; urgency=medium
+
+  * Qt style configurable
+  * prevent opening command window when invoking lifutils (Windows only)
+
+ -- trixie <achim@trillian>  Wed, 27 Aug 2025 22:00:48 +0200
+
+pyilper (1.9.0.dev2) bookworm; urgency=medium
+
+  * refactoring of queues and locks 
+  * minimum Python version is now 3.7
+  * Thinkjet printer: bug fixes and page processing improvements
+
+ -- bookworm <achim@trillian>  Sat, 21 Dec 2024 09:31:56 +0100
+
+pyilper (1.8.10) bookworm; urgency=medium
+
+  * now requires LIFUTILS 2.0.0
+  * add HP-41 FOCAL source code compile and import to disk (Drive Tab)
+  * add selection of more xrom files for HP-41 FOCAL compile and decompile (Drive Tab)
+
+ -- bookworm <achim@trillian>  Sun, 13 Oct 2024 13:05:21 +0200
+
+pyilper (1.8.9) bookworm; urgency=medium
+
+  * Fix: do not enable logging, if open logfile fails.
+  * HP 82162A line spacing fix (contributed by Christoph Gießelink).
+  * Added /dev/tty/ACMxx to PIL-Box device dropdown list for Linux.
+
+ -- bookworm <achim@trillian>  Wed, 11 Sep 2024 13:49:29 +0200
+
+pyilper (1.8.8) bookworm; urgency=medium
+
+  * online manual reformatted 
+  * PyPi packaging optimized
+  * fixed Pyside6 deprecation warnings
+  * force plotter background to be always white
+
+ -- bookworm <achim@trillian>  Wed, 17 Jan 2024 15:27:49 +0100
+
+pyilper (1.8.7) bookworm; urgency=medium
+
+  * 1.8.7 release 
+  * fixed cursor width problem which was detected on DEBIAN bookworm
+
+ -- focal <achim@trillian>  Sat, 26 Aug 2023 19:09:22 +0200
+
+pyilper (1.8.7a1) bullseye; urgency=medium
+
+  * 1.8.7 alpha1
+  * HP82162A improvements 
+
+ -- focal <achim@trillian>  Sun, 29 Jan 2023 10:53:48 +0100
+
+pyilper (1.8.6) bullseye; urgency=medium
+
+  * 1.8.6 release 
+
+ -- focal <achim@trillian>  Thu, 20 Oct 2022 12:39:09 +0200
+
+pyilper (1.8.6~beta2) bullseye; urgency=medium
+
+  * enabled PySide6 language binding in addition to PyQt5
+  * tty device selection combo box improved 
+
+ -- focal <achim@trillian>  Fri, 29 Jul 2022 14:09:44 +0200
+
+pyilper (1.8.6~beta1) focal; urgency=medium
+
+  * remove deprecated language features which are errors under Python 3.10
+  * improve shutdown of plotter subprocess
+  * enable python 3.10
+
+ -- focal <achim@trillian>  Sat, 16 Apr 2022 20:47:12 +0200
+
+pyilper (1.8.5) focal; urgency=medium
+
+  * release version 
+
+ -- focal <achim@trillian>  Mon, 17 Jan 2022 13:40:14 +0100
+
+pyilper (1.8.5~beta1) focal; urgency=medium
+
+  * beta version
+  * new virtual raw drive device tab added
+  * fixed crash when pasting text in the terminal
+  * configuration file version check on startup
+  * tab title text color problem (macOS Big Sur) fixed
+  * pyILPER command line parameters documented in online manual
+  * new function to exchange config files between devel/beta and production versions (start with command line parameter)
+
+ -- focal <achim@trillian>  Sun, 28 Nov 2021 20:38:03 +0100
+
+pyilper (1.8.4) focal; urgency=medium
+
+  * Plotter Tab: activate ENTER key after having digitized or entered a coordinate
+
+ -- bionic <achim@trillian>  Tue, 02 Mar 2021 09:13:34 +0100
+
+pyilper (1.8.3) bionic; urgency=medium
+
+  * disable right clicks into an empty directory listing in the drive tab
+  * left click on a selected row in the directory listing of the drive tab now deselects it
+  * fix a bug that the file management controls in the drive tab were not disabled if no valid version of the <i>LIFUTILS</i> was installed.<
+  * fix a bug that not all errormessages of lifutils are shown in the graphical user interface
+
+ -- bionic <achim@trillian>  Wed, 29 Apr 2020 11:54:26 +0200
+
+pyilper (1.8.2) bionic; urgency=medium
+
+  * Python 3.8 compatibility 
+  * Corrected the drive name to "HP9114B" in the drive type selection box of the drive tab (hint from Christoph Gießelink)
+  * Fixed wrong address view for addresses > 15 and changed device # address view to HP71 style in the virtual HP-IL device status window (courtesy by Christoph Gießelink)
+  * Clear device buffers on LIF Image file change and clear disk drive status after successful reading or writing (hint from Christoph Gießelink)
+
+ -- bionic <achim@trillian>  Mon, 03 Feb 2020 10:12:05 +0100
+
+pyilper (1.8.1) bionic; urgency=medium
+
+  * added/improved HP-75 text and lex file support in the file management functions of the drive tab
+
+ -- bionic <achim@trillian>  Fri, 31 May 2019 13:39:08 +0200
+
+pyilper (1.8.0) bionic; urgency=medium
+
+  * added HP2225 thermal printer emulator
+  * added HP-75 terminal and keyboard support
+  * refactoring in lifexec: moved to the subprocess.run interface
+  * minimum required Python version is now 3.5
+
+ -- bionic <achim@trillian.trilldom.lan>  Sun, 30 Dec 2018 12:24:08 +0100
+
+pyilper (1.7.2-ubuntu1) bionic; urgency=medium
+
+  * production 
+
+ -- trusty <achim@trillian.trilldom.lan>  Mon, 20 Aug 2018 08:43:17 +0200
+
+pyilper (1.7.2~beta2) bionic; urgency=medium
+
+  *  beta 1
+
+ -- trusty <achim@trillian.trilldom.lan>  Sat, 04 Aug 2018 10:06:22 +0200
+
+pyilper (1.6.0-ubuntu1) xenial; urgency=medium
+
+  * production
+
+ -- trusty <achim@trillian>  Mon, 27 Nov 2017 12:06:11 +0100
+
+pyilper (1.6.0~beta3) xenial; urgency=medium
+
+  * third beta of 1.6.0 
+
+ -- trusty <achim@trillian>  Sun, 12 Nov 2017 19:44:51 +0100
+
+pyilper (1.6.0~beta2) xenial; urgency=medium
+
+  * second beta of 1.6.0
+
+ -- trusty <achim@trillian>  Thu, 05 Oct 2017 17:16:59 +0200
+
+pyilper (1.6.0~beta1) xenial; urgency=medium
+
+  * first beta of 1.6.0
+
+ -- trusty <achim@trillian>  Sun, 01 Oct 2017 10:05:36 +0200
+
+pyilper (1.5.0~ubuntu1) xenial; urgency=medium
+
+  * new online manual 
+
+ -- trusty <achim@trillian>  Thu, 16 Mar 2017 20:39:36 +0100
+
+pyilper (1.5.0~beta1) xenial; urgency=medium
+
+  * transition to qt5 
+
+ -- trusty <achim@trillian>  Fri, 03 Feb 2017 09:40:03 +0100
+
+pyilper (1.4.0~ubuntu1) xenial; urgency=medium
+
+  * production release 
+  * bugfix in piltcpip.py
+  * enabled python 3.6
+  * new experimental version of PILTERM
+  * updated release notes and startup doku
+ -- trusty <achim@trillian>  Sun, 01 Jan 2017 21:07:36 +0100
+
+pyilper (1.4.0~beta2) xenial; urgency=medium
+
+  * bug fixes (see pyplotter.py)
+
+ -- trusty <achim@trillian>  Sat, 05 Nov 2016 07:00:34 +0100
+
+pyilper (1.4.0~beta1) xenial; urgency=medium
+
+  * multiple instances support
+  * add, remove and change position of virtual HP-IL devices
+  * virtual HP7470A plotter HP-IL device added
+  * pen configuration added
+
+ -- trusty <achim@trillian>  Wed, 19 Oct 2016 19:30:46 +0200
+
+pyilper (1.3-4ubuntu1) wily; urgency=medium
+
+  * version 1.3.4 
+
+ -- trusty <achim@trillian>  Tue, 05 Apr 2016 18:24:33 +0200
+
+pyilper (1.3-3ubuntu0) wily; urgency=medium
+
+  * version 1.3.3 
+
+ -- trusty <achim@trillian>  Sat, 20 Feb 2016 19:16:30 +0100
+
+pyilper (1.3-1ubuntu2) wily; urgency=medium
+
+  * version 1.3.1 
+
+ -- trusty <achim@trillian>  Mon, 30 Nov 2015 08:07:29 +0100
+
+pyilper (1.3-0ubuntu1)  wily; urgency=medium
+
+  * version 1.3.0 
+
+ -- trusty <achim@trillian>  Sun, 29 Nov 2015 19:25:00 +0100
+
+pyilper (1.2-3ubuntu2) wily; urgency=medium
+
+  * enabled Python 3.5, doku updates
+
+ -- trusty <achim@trillian>  Sun, 08 Nov 2015 18:54:43 +0100
+
+pyilper (1.2-2ubuntu1) wily; urgency=medium
+
+  * documentation updates
+  * syntax updates
+  * various bug fixes 
+
+ -- trusty <achim@trillian>  Sat, 10 Oct 2015 10:37:07 +0200
+
+pyilper (1.2-1ubuntu1) trusty; urgency=medium
+
+  * support for virtual HP-IL over TCP/IP
+    pyilpermain.py, pilwidtets.py, piltcpipthread.py, piltcpip.py
+  * new configuration window
+    pyilpermain.py, pilwidgets.py
+
+ -- trusty <trusty@localhost>  Mon, 08 Jun 2015 08:11:03 +0200
+
+pyilper (1.2-0ubuntu1) trusty; urgency=medium
+
+  * gui completely rewritten:
+    __init__.py, pyilpermain.py, pilwidgets.py, pilqterm.py, lifutils.py
+  * pildrive.py: getMediumInfo removed
+  * charset conversion HP-71 to unicode
+  * various fixes in libqterm.py
+
+ -- trusty <trusty@localhost>  Wed, 20 May 2015 11:54:12 +0200
+
+pyilper (1.1-1ubuntu1) trusty; urgency=medium
+
+  * corrected file length in lifutils.py
+  * new LIF directory widget
+
+ -- trusty <trusty@localhost>  Sat, 09 May 2015 17:57:47 +0200
+
+pyilper (1.1-0ubuntu1) trusty; urgency=low
+
+  *  New release. 
+
+ -- precise <precise@slatibartfass.fritz.box>  Sun, 18 Nov 2012 08:35:08 +0100

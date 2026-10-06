@@ -1,7 +1,7 @@
 /debian/pyilper.debhelper*
 /debian/pyilper.substvars
 /debian/files
-/debian/pyilper/
+/debian/pyilper2/
 /build/
 /test/
 /.vscode
