@@ -1,8 +1,8 @@
 [Desktop Entry]
-Name=pyILPER
+Name=pyILPER2
 Comment=Virtual HP-IL devices for PIL-BOX
-Exec=pyilper
-Icon=hpil
+Exec=pyilper2
+Icon=hpil-pyilper2
 GenericName=Virtual HP-IL devices
 GenericName[de]=Virtuelle HP-IL Geräte
 Terminal=false

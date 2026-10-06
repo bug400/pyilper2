@@ -1,12 +1,12 @@
-Source: pyilper
+Source: pyilper2
 Section: kde
 Priority: optional
 Maintainer: Joachim Siebold <bug400@gmx.de>
-Build-Depends: debhelper (>= 9), dh-python, python3 (>=3.6)
+Build-Depends: debhelper (>= 9), dh-python, pybuild-plugin-pyproject python3-hatchling, python3 (>=3.11)
 Standards-Version: 3.9.2
 
-Package: pyilper
+Package: pyilper2
 Architecture: all
-Depends: ${misc:Depends}, python3 (>=3.6), python3-serial, python3-pyside6.qtcore, python3-pyside6.qtgui, python3-pyside6.qtwidgets, python3-pyside6.qtwebenginewidgets 
-Description: pyILPER
+Depends: ${misc:Depends}, python3 (>=3.11), python3-serial(>=3.5), python3-pyside6.qtcore, python3-pyside6.qtgui, python3-pyside6.qtwidgets, python3-pyside6.qtwebenginewidgets 
+Description: pyILPER2
  This package contains an utility to emulate HPIL-Devices (2 disk drives, printer, terminal, scope) for the PIL-BOX
