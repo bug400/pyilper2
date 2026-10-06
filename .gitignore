@@ -14,5 +14,4 @@ pyilper2/pyilper2.code-workspace
 /pyilper.egg-info/
 *.pyc
 *.swp
-*.png
 *~

@@ -74,7 +74,7 @@ This is a development verision that is almost feature complete.
 Installing and Running the software
 -----------------------------------
 
-- Download the zip file
+- Download the zip file (green Code button)
 
 - Create a Python virtual environment with the software listed above
 

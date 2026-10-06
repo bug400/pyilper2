@@ -297,7 +297,7 @@ class cls_piltcpip_config(cls_ConfigInterfaceGeneric):
         self.glayout = QtWidgets.QGridLayout()
         self.lbltxt3 = QtWidgets.QLabel("In Port:")
         self.glayout.addWidget(self.lbltxt3, 0, 0)
-        self.lbltxt4 = QtWidgets.QLabel("Out TCP/IP Adress:")
+        self.lbltxt4 = QtWidgets.QLabel("Out TCP/IP Address:")
         self.glayout.addWidget(self.lbltxt4, 1, 0)
         self.lbltxt5 = QtWidgets.QLabel("Out Port:")
         self.glayout.addWidget(self.lbltxt5, 2, 0)
