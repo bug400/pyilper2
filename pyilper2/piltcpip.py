@@ -26,15 +26,9 @@
 # virtual HP-IL loop
 #
 
-
-import sys
-import time
-import threading
-import queue
-import signal
-import os
 import select
 import socket
+import struct
 
 from .pilglobals import PILGLOBALS
 
@@ -77,6 +71,10 @@ class cls_piltcpip(cls_IOThread):
 
         self.serverlist = []
         self.clientlist = []
+        #
+        # socket option for forced close to be compatible with EMU71 etc. Set linger time to zero.
+        #
+        self.lingerOpt = struct.pack("ii", 1, 0)
 
     #
     #  Connect to Network
@@ -99,6 +97,7 @@ class cls_piltcpip(cls_IOThread):
                 continue
             try:
                 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                s.setsockopt(socket.SOL_SOCKET, socket.SO_LINGER, self.lingerOpt)
                 s.bind(sa)
                 s.listen(1)
                 self.serverlist.append(s)
@@ -121,6 +120,9 @@ class cls_piltcpip(cls_IOThread):
             af, socktype, proto, canonname, sa = res
             try:
                 self.outsocket = socket.socket(af, socktype, proto)
+                self.outsocket.setsockopt(
+                    socket.SOL_SOCKET, socket.SO_LINGER, self.lingerOpt
+                )
             except OSError as msg:
                 self.outsocket = None
                 continue
@@ -229,7 +231,7 @@ class cls_piltcpip(cls_IOThread):
             # read frame from Network
             #
             while True:
-                result = self.read(1.0)
+                result = self.read(PILGLOBALS.Tcpip_Tmout_Frm)
                 if self.__stopEvent__.is_set():
                     break
                 if result == cls_piltcpip.RET_TIMEOUT:
@@ -293,11 +295,11 @@ class cls_piltcpip_config(cls_ConfigInterfaceGeneric):
 
         self.intvalidator = QtGui.QIntValidator()
         self.glayout = QtWidgets.QGridLayout()
-        self.lbltxt3 = QtWidgets.QLabel("Port:")
+        self.lbltxt3 = QtWidgets.QLabel("In Port:")
         self.glayout.addWidget(self.lbltxt3, 0, 0)
-        self.lbltxt4 = QtWidgets.QLabel("Remote host:")
+        self.lbltxt4 = QtWidgets.QLabel("Out TCP/IP Adress:")
         self.glayout.addWidget(self.lbltxt4, 1, 0)
-        self.lbltxt5 = QtWidgets.QLabel("Remote port:")
+        self.lbltxt5 = QtWidgets.QLabel("Out Port:")
         self.glayout.addWidget(self.lbltxt5, 2, 0)
         self.edtPort = QtWidgets.QLineEdit()
         self.glayout.addWidget(self.edtPort, 0, 1)

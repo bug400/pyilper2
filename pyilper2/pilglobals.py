@@ -148,9 +148,7 @@ class cls_pilglobals:
         #
         #     TCP/IP communication
         #
-        self.Com_Tmout_Read = 0.1  # time out for read
-        self.Com_Tmout_Ack = 1
-        self.Com_Tmout_Write = 1
+        self.Tcpip_Tmout_Frm = 1.0  # time out for read frame
 
         #
         #     Tab ids

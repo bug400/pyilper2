@@ -28,12 +28,7 @@
 #
 
 
-import sys
-import time
 import threading
-import queue
-import signal
-import os
 import select
 import socket
 
@@ -228,7 +223,7 @@ class cls_pilsocket(cls_IOThread):
             # read frame from Network
             #
             while True:
-                result = self.read(1.0)
+                result = self.read(PILGLOBALS.Tcpip_Tmout_Frm)
                 if self.__stopEvent__.is_set():
                     break
                 if result == self.RET_TIMEOUT:
@@ -323,7 +318,7 @@ class cls_pilsocket_config(cls_ConfigInterfaceGeneric):
 
         self.intvalidator = QtGui.QIntValidator()
         self.glayout = QtWidgets.QGridLayout()
-        self.lbltxt3 = QtWidgets.QLabel("Port:")
+        self.lbltxt3 = QtWidgets.QLabel("In/Out Port:")
         self.glayout.addWidget(self.lbltxt3, 0, 0)
         self.edtPort = QtWidgets.QLineEdit()
         self.glayout.addWidget(self.edtPort, 0, 1)

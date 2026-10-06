@@ -3,6 +3,7 @@
 /debian/files
 /debian/pyilper/
 /build/
+/test/
 /.vscode
 /pyilper2/Manual.src/
 /pyilper2/pyilper2-code.workspace

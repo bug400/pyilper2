@@ -77,14 +77,16 @@ html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif;}
 <!-- Begin content --->
 <h2 class="w3-text-teal">Interface Tab</h2>
 
-<p>The interface tab provides the configuration data for an interface. There can be multiple interfaces at any location of the <em>pyILPER</em> loop, but take into account the performance aspects explained in the last chapter.</p>
+<p>Pyilper version 2 supports <a class="w3-hover-black" href="features.html#multiple-interfaces">multiple interfaces</a> simultaneously, allowing different real and emulated HP-IL controllers or devices to be combined into a single virtual loop via the various interface types.</p>
+
+<p>Each interface has its own tab, that provides the configuration data for the interface. There can be multiple interfaces at any location of the <em>pyILPER</em> loop, but take into account the performance aspects explained in the last chapter.</p>
 
 <p>Interfaces have four states that are indicated by a status light in the status bar: "inactive" (black), "disconnected" (red), "waiting for connection" (yellow), and "connected" (green). The loop goes only into the "Loop running..." state if all interfaces are connected.</p>
 
 <p>After the loop has started, each active interface goes into the "waiting for connection" state. It goes to a "connected" state if either a read and write network connection (TCP/IP, socket interface) was established or a PIL-Box serial device was found and initialized successfully.</p>
 
 
-<p>An interface can be of type <em>PIL-Box</em>, <em>TCP/IP</em>, or <em>socket</em>. The interface type is selected with the corresponding checkbox.</p>
+<p>An interface can be of type <a class="w3-hover-black" href="#pil-box"><em>PIL-Box</em></a>, <a class="w3-hover-black" href="#tcp-ip"><em>TCP/IP</em></a>, or <a class="w3-hover-black" href="#tcp-ip-socket-interface"><em>socket</em></a>. The interface type is selected with the corresponding checkbox.</p>
 
 <h3 class="w3-text-teal" id="pil-box">PIL-Box Interface</h3>
 <h4 class="w3-text-teal" id="pil-box-configuration">PIL-Box Interface Configuration</h4>
@@ -125,8 +127,8 @@ This option is enabled by default and required to operate the virtual keyboard o
 
 <p>The configuration parameters for this interface are:</p>
 <ul class="w3-ul">
-<li>Port: the port of the <em>pyILPER</em> program to which the previous HP-IL device in the virtual HP-IL over TCP/IP loop must connect</li>
-<li>Remote Host, Remote Port: the host name and the port number of the next virtual HP-IL over TCP/IP device in the loop.
+<li>In Port: the port of the <em>pyILPER</em> program to which the previous HP-IL device in the virtual HP-IL over TCP/IP loop must connect</li>
+<li>Out TCP/IP Address, Out Port: the host name and the port number of the next virtual HP-IL over TCP/IP device in the loop.
 </ul>
 
 
@@ -138,37 +140,36 @@ This option is enabled by default and required to operate the virtual keyboard o
 
 <p>To connect EMU71 or V41 to <em>pyILPER</em>, you can leave the TCP/IP interface settings of <em>pyILPER</em> at their default values..</p>
 
-<p>Now configure the TCP/IP configuration parameters (remote host, remote port, and local port) of EMU71 or V41 properly. Follow the description in the program documentation.</p>
+<p>Now configure the TCP/IP configuration parameters (Out TCP/IP Address, Out Port, and In Port) of EMU71 or V41 properly. Follow the description in the program documentation.</p>
 
 <p>A valid configuration might look like this:</p>
 
 <table class="w3-table-all">
 <tr><th>Parameter</th><th>pyILPER</th><th>EMU71/V41</th></tr>
-<tr><td>local port</td><td>60001</td><td>60000</td></tr>
-<tr><td>remote host</td><td>localhost</td><td>localhost</td></tr>
-<tr><td>remote port</td><td>60000</td><td>60001</td></tr>
+<tr><td>In Port</td><td>60001</td><td>60000</td></tr>
+<tr><td>Out TCP/IP Address</td><td>localhost</td><td>localhost</td></tr>
+<tr><td>Out Port</td><td>60000</td><td>60001</td></tr>
 </table>
 
-<p>Emu71 includes remote keyboard support. See the <a href="terminal.html" class="w3-hover-black">Terminal Tab documentation</a> on how to set it up.</p>
+<p>EMU71 includes remote keyboard support. See the <a href="terminal.html" class="w3-hover-black">Terminal Tab documentation</a> on how to set it up.</p>
 
 <p>The TCP/IP interface operates in autoreconnect mode. After the loop has been started, the server part of the interface is initialized, and the interface waits for the arrival of a client frame. Meanwhile, the status light of the interface is yellow. Only when the preceding device in the virtual loop sends a frame the TCP/IP connection is fully established, the status light turns green, and the loop status turns to "Loop running...".</p>
 
-<p>The recommended procedure to connect Emu71 to <em>pyILPER</em> is the following:</p>
+<p>The recommended procedure to connect EMU71 to <em>pyILPER</em> is the following:</p>
 
 <ul class="w3-ul">
 <li>Start the pyILPER loop. The status light of the interface turns yellow and the loop is in the "Waiting for connection(s)..." state</li>
-<li>Start Emu71 with the HP-IL module configured properly.</li>
-<li>Switch the calculator on and press the ATTN key until the interface status light turns to green and the loop status turns to "Loop running..."</li>
+<li>Start EMU71 with the HP-IL module configured properly.</li>
+<li>Switch EMU71 on and enter "RESTORE IO". The interface status light turns to green and the loop status turns to "Loop running..."</li>
 </ul>
 
-<p>The recommended procedure to disconnect Emu71 from <em>pyILPER</em> is the following:</p>
+<p>The recommended procedure to disconnect EMU71 from <em>pyILPER</em> is the following:</p>
 
 <ul class="w3-ul">
-<li>Switch Emu71 off and close the program.</li>
+<li>Switch EMU71 off and close the program.</li>
 <li>Close <em>pyILPER</em>.</li>
 </ul>
 
-<p><b>Note:</b> If the above sequence for startup and shutdown was not followed, the EMU71 may “freeze.” In this case, you will need to make several attempts to send data from the EMU71, such as pressing ATTN repeatedly or trying to execute “RESTORE IO” several times.</p>
 
 <h3 class="w3-text-teal" id="tcp-ip-socket-interface">TCP/IP Socket Interface</h3>
 <h4 class="w3-text-teal" id="tcp-ip-socket-interface-configuration">TCP/IP Socket Interface Configuration</h4>
@@ -187,7 +188,7 @@ This option is enabled by default and required to operate the virtual keyboard o
 
 <p><code>serial1=nullmodem server:localhost port:59999 transparent:1 txdelay:0</code></p>
 
-<p>See the <em>DOSBox</em> documentation on how to locate the configuration file.</p>
+<p>See the <em>DOSBox</em> documentation on how to locate the configuration file. The port number must match the <em>In/Out Port</em> configuration of the <em>pyILPER</em> socket interface.</p>
 
 <p>Install your favorite <em>EMUxx</em> emulator(s) on <em>DOSBox</em>.</p>
 
