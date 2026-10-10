@@ -25,8 +25,6 @@
 # pilterminal.py: virtual terminal with keyboard support (gui and HP-IL device)
 #
 
-import threading
-import array
 from .pilconfig import PILCONFIG
 from .pilwidgets import cls_tabtermgeneric, T_STRING
 from .pilkeymap import KEYBOARD_TYPE_HP71, keyboardtypes

@@ -27,7 +27,18 @@ import pathlib
 from .pilglobals import PILGLOBALS
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from .lifcore import *
+from .lifcore import (
+    set_lifutils_path,
+    LIFUTILS_UUID,
+    LIFUTILS_REQUIRED_VERSION,
+    add_path,
+    getLifString,
+    getLifInt,
+    get_finfo_type,
+    get_finfo_name,
+    EXTENSION_XROMS,
+    ALLDEVICE_XROM,
+)
 from .pilcore import decode_version
 from .pilcharconv import barrconv
 from .pilpdf import cls_pdfprinter

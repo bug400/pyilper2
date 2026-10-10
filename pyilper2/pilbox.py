@@ -281,7 +281,7 @@ class cls_pilbox(cls_IOThread):
             print(self.__name__ + ": reader error exit")
         finally:
             self.setStatus(self.STAT_DISCONNECTED)
-            return
+        return
 
     #
     #  frame writer. Note: this method is called from the controller thread

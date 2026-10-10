@@ -38,8 +38,8 @@ from .pilwidgets import cls_tabgeneric, T_STRING, T_INTEGER, O_DEFAULT
 from .pilconfig import PILCONFIG
 from .pilcharconv import CHARSET_HP71, charsets
 from .pilcore import cls_Tab_Spec
-from .lifutils import cls_LifFile, cls_LifDir, getLifInt, putLifInt
-from .lifcore import *
+from .lifutils import cls_LifFile, cls_LifDir, getLifInt
+from .lifcore import get_finfo_name, get_finfo_type, putLifInt
 from .lifexec import (
     cls_lifpack,
     cls_lifpurge,
@@ -48,7 +48,6 @@ from .lifexec import (
     cls_lifimport,
     cls_lifview,
     cls_liflabel,
-    check_lifutils,
     cls_lifbarcode,
 )
 from .pilpdf import cls_pdfprinter, cls_textItem

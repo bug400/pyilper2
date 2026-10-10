@@ -36,6 +36,7 @@ import sys
 import os
 import shutil
 import argparse
+import warnings
 from json import JSONDecodeError
 from pathlib import Path
 from .pyilpermain import main
@@ -403,4 +404,5 @@ def start():
 
 if __name__ == "__main__":
     rc = 1
+    warnings.simplefilter("default")
     start()

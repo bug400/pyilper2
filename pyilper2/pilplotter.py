@@ -28,8 +28,6 @@
 
 import sys
 import subprocess
-import threading
-import array
 
 from .pilglobals import PILGLOBALS
 from PySide6 import QtCore, QtGui, QtPrintSupport, QtWidgets

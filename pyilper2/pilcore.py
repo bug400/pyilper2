@@ -23,7 +23,6 @@
 #
 import re
 import os
-import shutil
 
 from dataclasses import dataclass
 from .pilglobals import PILGLOBALS

@@ -21,7 +21,6 @@
 # pilglobals.py: global constants for pyILPER.
 # Note: some constants are set on parsing of program parameters (see setArgs)
 #
-import os
 import platform
 import sys
 from PySide6 import QtGui, QtCore

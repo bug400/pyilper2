@@ -27,11 +27,8 @@
 #
 
 import datetime
-import re
-import sys
 import functools
 import copy
-from pathlib import Path
 
 from .pilglobals import PILGLOBALS
 from PySide6 import QtCore, QtGui, QtWidgets
@@ -39,9 +36,7 @@ from PySide6 import QtCore, QtGui, QtWidgets
 if PILGLOBALS.Has_Webengine:
     from PySide6 import QtWebEngineWidgets
 
-from .pilcore import *
 from .pilqterm import QScrolledTerminalWidget
-from .pilcharconv import CHARSET_HP71, charsets
 from .pilconfig import PILCONFIG
 
 #

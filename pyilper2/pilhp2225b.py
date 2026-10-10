@@ -25,7 +25,6 @@
 # pilhp2225b.py: virtual HP2225B printer (gui and HP-IL device)
 #
 import copy
-import threading
 import re
 from math import floor, ceil
 from .pilglobals import PILGLOBALS

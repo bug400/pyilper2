@@ -31,15 +31,13 @@
 #
 
 import array
-import threading
-import time
 
 from .pilglobals import PILGLOBALS
 
 
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from .pilcharconv import icharconv, CHARSET_HP71, CHARSET_HP75, CHARSET_HP41
+from .pilcharconv import icharconv, CHARSET_HP71
 from .shortcutconfig import (
     SHORTCUTCONFIG,
     SHORTCUT_EXEC,
@@ -47,7 +45,7 @@ from .shortcutconfig import (
     SHORTCUT_INSERT,
 )
 from .pilconfig import PILCONFIG
-from .pilkeymap import *
+from .pilkeymap import KEYBOARD_ALT, KEYBOARD_SHIFT, KEYBOARD_CTRL, keyboard_lookup
 
 CURSOR_OFF = 0
 CURSOR_INSERT = 1

@@ -28,7 +28,6 @@
 #
 #
 import copy
-import threading
 import re
 from .pilglobals import PILGLOBALS
 from PySide6 import QtCore, QtWidgets, QtGui

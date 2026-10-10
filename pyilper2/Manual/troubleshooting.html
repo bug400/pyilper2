@@ -77,104 +77,146 @@ html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif;}
 <!-- Begin content --->
 <h2 class="w3-text-teal">Troubleshooting</h2>
 
-<b>This page is under construction</b>
+<p>On this page, you'll find suggestions for solving problems, organized into the following categories:</p>
+<ul class="w3-ul">
+<li><a class="w3-hover-black" href="#program-start">Program Start</a></li>
+<li><a class="w3-hover-black" href="#loop-start">Loop start</a></li>
+<li><a class="w3-hover-black" href="#pil-box-interface">PIL-Box Interface</a></li>
+<li><a class="w3-hover-black" href="#tcp-ip-interface">TCP/IP Interface</a></li>
+<li><a class="w3-hover-black" href="#general-errors">General Application Errors</a></li>
+<li><a class="w3-hover-black" href="#terminal">Terminal</a></li>
+<li><a class="w3-hover-black" href="#drive">Drive</a></li>
+<li><a class="w3-hover-black" href="#thermoprinter">HP82162A Thermal Printer</a></li>
+<li><a class="w3-hover-black" href="#plotter">HP7470A Plotter</a></li>
+</ul>
 
-<h3 class="w3-text-teal">Program does not start, exists unexpectedly or controls do not work</h3>
+<h3 class="w3-text-teal" id="program-start">Program Start</h3>
 
-<p>In this case, you must run the program from the command line using:</p>
+<p><em>Program does not start or crashes unexpectedly</em></p>
+
+<p>Most problems are related to corrupted configuration files.You can find this out very easily by starting pyilper with the default configuration and a new instance: </p>
+<pre>
+python -m pyilper2 --clean --instance temp
+</pre>
+<p>This creates a new default configuration for the instance <em>temp</em>, which does not affect your current configuration.</p>
+
+<p>If this does not help, you need to check the error messages <em>pyILPER</em> writes to standard error. Run the program from the command line:</p>
 <pre>
 python -m pyilper2
 </pre>
 
-<p>This is how error messages are displayed in the console. There are two types of error messages to distinguish between</p>
+<p>Watch for messages displayed on the console. There are two types of error messages to distinguish between</p>
 <ul class="w3-ul">
 <li>Python errors: A Python error message (traceback) can be recognized by a structured text output in the terminal, which usually begins with the line `Traceback (most recent call last):`. Python provides detailed information about where (file, line number) and what type of error occurred. This error message is usually caused by a programming error in <em>pyILPER</em> or configuration file problems (see below).</li>
 <li>Other errors: Other error messages that can mean all sorts of things usually indicate installation problems or incompatibilities of the Python or Qt software and your operating system.</li>
 </ul>
+<p>
+<p>It is known that older versions of display drivers crash <em>pyILPER</em> at startup if the program tries to run the internal web browser. Try to start <em>pyILPER</em> with:</p>
+<pre>
+python -m pyilper2 --use-system-browser
+</pre>
+<p>This option instructs <em>pyILPER</em> to use the system default web browser instead of the integrated PySide6 browser.</p>
 
-<h3 class="w3-text-teal">Configuration file problems</h3>
+<p>In any other case, issue an error report on GitHub</p>
 
-<p>Crashes at the start of the program are often caused by a corrupted 
-configuration file. In this case the configuration file must be
-deleted.  The location of the file is platform dependent:</p>
+<p><em>Error message: Cannot change to working directory</em></p>
 
+<p>The application did not succeed in changing the working directory to the configured file path. Check the path and permissions.</p>
+
+<p><em>Error message: Your configuration files are of the pyILPER version: XXX that is newer than the version you are running. The program might crash or misbehave. Do you want to continue?</em></p>
+
+<p>You probably downgraded <em>pyILPER</em> to an older version. The current configuration files might contain data that are not compatible with the running version. To avoid problems, you should reset the configuration files. See the section above.</p>
+
+<h3 class="w3-text-teal" id="loop-start">Loop Start</h3>
+
+<p>If the loop terminates with an error message when it starts or remains in the “waiting for connections” state, the cause is incorrect or incomplete interface configurations. Please read the instructions for the interfaces below.</p>
+
+<h3 class="w3-text-teal" id="pil-box-interface">PIL-Box Interface</h3>
+
+<p><em>The status light for the PIL-Box interface stays "yellow"</em></p>
+
+<p>The serial device you specified in the interface settings does not exist. Please check at the operating system level whether the device specified in the configuration is active.</p>
+
+<p><em>The connection to the PIL-Box is terminated with an error message</em></p>
+
+<p>Errors like <em>baudrate mismatch</em> or <em>cannot reset device</em> indicate access issues with the interface. It is possible that another process is already using it.</p>
+
+<p>A <em>timeout</em> error indicates that the connected device is either not a Pil-Box or that the connected Pil-Box is taking too long to become operational.</p>
+
+<h3 class="w3-text-teal" id="tcp-ip-interface">TCP/IP Interface</h3>
+
+<p><em>The loop does not start with the error message TCP/IP: cannot bind to port</em></p>
+
+<p>The port number you specified as <em>In Port</em> is probably used by another program.</p>
+
+<p><em>I started all my Virtual HP-IL over TCP/IP programs, but the status of the interfaces stays "yellow"</em></p>
+
+<p>That's normal. Generate some network traffic, for example, by performing a “restore io.” That's what establishes the network connections.</p>
+
+<p><em>Generating network traffic results in a HP-IL loop timeout</em></p>
+
+<p>There is something wrong with the configuration of the TCP/IP interfaces in <em>pyILPER</em> or the other Virtual HP/IL over TCP/IP programs. See the
+<a class="w3-hover-black" href="https://hp.giesselink.com/HPIL/ILPer/ILPer.htm">Virtual HP-IL Example</a> for a working configuration, and carefully check
+the TCP/IP connection parameters of <b>all</b> programs that are components of the TCP/IP loop.</p>
+
+
+<h3 class="w3-text-teal" id="general-errors">General application error messages</h3>
+
+<p><em>Error messages related to log file processing</em></p>
+
+<p>Log files are created in the <em>pyILPER</em> working directory. They are named after the corresponding tab and end with “.log.” Please check the disk space and access permissions for the log file and the <em>pyILPER</em> working directory.</p>
+
+<p><em>Error messages related to reading or writing configuration files</em></p>
+
+<p>The locations of the configuration files are:</p>
 <table class="w3-table-all">
 <tr><th>Platform</th><th>Directory</th></tr>
-<tr><td>LINUX</td><td>$HOME/.config/pyilper2</td></tr>
+<tr><td>LINUX</td><td>$HOME/.config/pyilper</td></tr>
 <tr><td>Windows</td><td>%HOMEDRIVE%%HOMEPATH%\pyilper2_config</td></tr>
-<tr><td>Mac OS X</td><td>$HOME/Library/Application Support/pyilper2</td></tr>
+<tr><td>Mac OS X</td><td>$HOME/Library/Application Support/pyilper</td></tr>
 <tr><td>Other</td><td>$HOME</td></tr>
 </table>
 
-<p>The name of the configuration file is pyilper<em>n</em>, where <em>n</em> is
-the version number of the configuration file. The version number of the file is increased every time if the layout of the configuration file of a new <em>pyILPR</em> version changes. In this case, <em>pyILPER</em> must be configured again.</p>
-
-<p>If the program does not start at all, you should delete the configuration file and check the file permissions of the configuration directory.</p>
-
-<p>You can invoke <em>pyILPER</em> with the <em>--clean</em> option in initializing the configuration file with default values as well.</p>
-
-<h3 class="w3-text-teal">Main application error messages</h3>
-
-<p><code>Cannot connect to PIL-Box </code><br>
-The application did not succeed in initializing the PIL-Box.
-Check if the PIL-Box is connected to the correct port and if the baud rate
-is configured according to the PIL-Box jumper setting. Check also 
-if the correct port is specified in the program configuration.</p>
-
-<p><code>Cannot create configuration path</code><br>
-The application did not succeed in creating the directory
-for the configuration file (see above). Check the path and
-permissions.</p>
-
-<p><code>Cannot read configuration file></code><br>
-The application could not read the configuration file. Check the
-file permissions. If the permissions are correct, purge the file.</p>
-
-<p><code>Cannot write default configuration</code><br>
-The application did not succeed in creating the configuration file.
-Check path and permissions.</p>
-
-<p><code>Cannot write to configuration file></code><br>
-The application did not succeed in writing to the configuration file.
-Check path and permissions.</p>
-
-<p><code>Cannot change to working directory</code><br>
-The application did not succeed in changing the working
-directory to the configured file path. Check the path and permissions.
-
-<p><code>Cannot close xxx log file</code><br>
-The application did not succeed in closing the printer or
-scope log file</p>
-
-<p><code>Cannot open xxx log file</code><br>
-The application did not succeed in opening the printer or
-scope log file. Check path and permissions of the working directory.
-
-<p><code>Cannot write to xxx log file</code><br>
-The application did not succeed in  writing to the printer or
-scope log file. Check file and directory permissions.</p>
-
-<p><code>PIL-Box disconnected after error (Status line message)</code><br>
-The application was terminated due to a runtime error. These may
-be caused by various reasons. See additional error information.</p>
-
-<p><code>File does not contain a LIF type 1 medium with valid layout
-information. Using default layout.</code><br>
-The LIF image file does not contain a properly initialized header
-with valid layout information. The default layout is used.</p>
-
-<p><b>Warning!</b> If the default layout does not match the
-current medium, data corruption may occur!</p>
-
-<p><code>Your configuration files are of pyILPER version: XXX that is newer than the version you are running. The program might crash or mishehave. Do you want to continue?</code><br>
-You probably downgraded <em>pyILPER</em> to an older version. The current configuration files might contain data that are not compatible with the running version. To avoid problems, you should reset the configuration files. See the chapter above.</p>
+<p>Please check the disk space and access permissions for the files in the directory mentioned above.</p>
 
 
-<h3 class="w3-text-teal">HP82162A Thermal Printer</h3>
+<h3 class="w3-text-teal" id="terminal">Terminal</h3>
 
-<p><code>There is no print output from V41 or a HP-41 connected to a PIL-Box and/or the function keys of the printer tab do not work.</code></p>
+<p><em>The HP-71 keyboard does not work</em></p>
 
-<p>Always place the tab of the HP82162A termal printer directly after the Interface tab, to which the HP-41 controller is connected. If a HP-41 controller is connected to a PIL-Box, make shure, that the <em>Enable IDY Frames</em> option is set.</p>
+<p>If you use the PIL-Box interface, you must check the <em>Enable IDY frames</em> option. In addition, the program <em>PILTERM</em> must be run. See the <a class="w3-hover-black" href="terminal.html">documentation about the terminal</a> for details.</p>
+
+<h3 class="w3-text-teal" id="drive">Drive</h3>
+
+<p><em>The File Management Controls are disabled</em></p>
+
+<p>You need to install the required version of the <a class="w3-hover-black" href="https://github.com/bug400/lifutils"><em>LIFUTILS</em></a>. In addition the <em>Device enabled</em> option must be unchecked. This is a safety measure to prevent HP-IL and LIFUTILS operations from being performed simultaneously on a LIF image file.</p>
+
+<p><em>Error message: File does not contain a LIF type 1 medium</em></p>
+
+<p>A LIF1 file header is missing, and therefore the file is not opened. If you are certain that this is a LIF1 image despite the missing headers, you can
+<a class="w3-hover-black" href="utilitiesmenu.html#fix-header-of-lif-image-files">repair the header</a> of this file. Be sure to make a backup copy first.</p>
+
+<p>Warning message:  File does not contain a LIF type 1 medium with valid layout information. Using default layout.</em></p>
+<p>The LIF image file does not contain a properly initialized header with valid layout information. The default layout is used.</p>
+
+<p><b>Warning!</b> If the default layout does not match the current medium, data corruption may occur! It is recommended to
+<a class="w3-hover-black" href="utilitiesmenu.html#fix-header-of-lif-image-files">fix the header on a copy of the file.</a></p>
+
+
+<h3 class="w3-text-teal" id="thermoprinter">HP82162A Thermal Printer</h3>
+
+<p><em>There is no print output from V41 or an HP-41 connected to a PIL-Box and/or the function keys of the printer tab do not work.</em></p>
+
+<p>Always place the tab of the HP82162A termal printer directly after the Interface tab, to which the HP-41 controller is connected. If an HP-41 controller is connected to a PIL-Box, make sure that the <em>Enable IDY Frames</em> option is set.</p>
+
+<h3 class="w3-text-teal" id="plotter">Plotter</h3>
+
+<p><em>The status light of the plotter stays red</em></p>
+
+<p>You need to install the required version of the <a class="w3-text-teal" href="https://github.com/bug400/lifutils"><em>LIFUTILS</em></a> that contains the backend program to run the plotter.</p>
+
+
 
 <!-- End content -->
 </div>

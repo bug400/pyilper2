@@ -27,7 +27,7 @@
 import os
 from .pilglobals import PILGLOBALS
 from .pilcore import AppException
-from .lifcore import *
+from .lifcore import getLifInt, getLifString, getLifDateTime, get_finfo_type
 
 
 class cls_LifDir:

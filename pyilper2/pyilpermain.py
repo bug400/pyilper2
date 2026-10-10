@@ -72,7 +72,6 @@ class cls_ui(QtWidgets.QMainWindow):
     sig_ControllerTerminated = QtCore.Signal(str, Exception)  # must be class variable!!
     sig_UpdateInterfaceActive = QtCore.Signal(int, bool)
 
-    #   def __init__(self, parent, version, instance):
     def __init__(self, parent):
         super().__init__()
         self.controller = None
@@ -166,9 +165,9 @@ class cls_ui(QtWidgets.QMainWindow):
             thisversion = decode_pyILPERVersion(PILGLOBALS.Version)
             if thisversion < oldversion:
                 reply = self.showWarningWithCancel(
-                    "Your configuration files are of pyILPER version "
+                    "Your configuration files are of the pyILPER version "
                     + +PILCONFIG.get(self.name, "version")
-                    + " which is newer than the version you are running. The program might crash or mishehave. Do you want to continue?"
+                    + " which is newer than the version you are running. The program might crash or misbehave. Do you want to continue?"
                 )
                 if reply == QtWidgets.QMessageBox.Cancel:
                     sys.exit(1)

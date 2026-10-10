@@ -64,12 +64,8 @@
 #                exit controlthread
 #
 
-import sys
-import time
 import threading
 import queue
-import os
-import traceback
 from dataclasses import dataclass
 from .pilglobals import PILGLOBALS
 
