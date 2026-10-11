@@ -91,8 +91,12 @@ html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif;}
 <p>The output of the generic printer is shown on the display and can be
 logged to a file. Selected text can be copied to the system clipboard.</p>
 
-<p>The virtual generic printer does not support any escape sequences.
-Character mapping can be configured.</p>
+<p>The virtual generic printer does not support any escape sequences.</p>
+
+The printer can be configured for various character sets  (HP-41, HP-71, HP-75 or Roman-8). 
+See the documentation of the <a class="w3-hover-black" href="terminal.html#character-sets"><em>Terminal Tab</em></a>.</p>
+
+<p>The printer screen is cleared by sending an HP-IL device clear command.</p>
 
 <h3 class="w3-text-teal">Device controls</h3>
 
@@ -116,8 +120,7 @@ configuration is used.</li>
 <li><em>Log buffering</em>: enable or disable buffering of the log file. If log buffering is off, the log file output is flushed to disk after an end of line
 is encountered. This enables watching the log file output but may decrease
 the execution speed of <em>pyILPER</em> considerably.</li>
-<li><em>Character set</em>: select the character set that is emulated.
-See the documentation of the <a class="w3-hover-black" href="terminal.html"><em>Terminal Tab</em></a>.</li>
+<li><em>Character set</em>: select the character set that is emulated.</li>
 </ul>
 <!-- End content -->
 </div>
