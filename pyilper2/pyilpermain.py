@@ -569,6 +569,11 @@ class cls_ui(QtWidgets.QMainWindow):
 
         except Exception as e:
             e.add_note("controller initialization failed")
+            try:
+                for tab in self.tabWidgetList:
+                    tab.disable()
+            except:
+                pass
             self.showException(e)
             self.controller = None
 
@@ -819,7 +824,7 @@ class cls_ui(QtWidgets.QMainWindow):
         elif ex.__class__ == JSONDecodeError:
             txt += f"JSON decode error: {ex.msg} at {ex.lineno}:{ex.colno}"
         else:
-            txt += type(ex).__name__
+            txt += repr(ex)
         if errMsgPrefix is not None:
             txt = errMsgPrefix + ": " + txt
         tb = ex.__traceback__
