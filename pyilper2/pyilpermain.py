@@ -835,6 +835,7 @@ class cls_ui(QtWidgets.QMainWindow):
         msgBox.setIcon(QtWidgets.QMessageBox.Icon.Critical)
         msgBox.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Close)
         msgBox.setText(txt)
+        msgBox.setWindowTitle("Error")
         msgBox.setDetailedText(tbTxt)
         msgBox.exec()
         msgBox.destroy()
@@ -847,6 +848,7 @@ class cls_ui(QtWidgets.QMainWindow):
         msgBox.setIcon(QtWidgets.QMessageBox.Icon.Warning)
         msgBox.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Close)
         msgBox.setText(txt)
+        msgBox.setWindowTitle("Warning")
         msgBox.exec()
         msgBox.destroy()
 
@@ -861,6 +863,7 @@ class cls_ui(QtWidgets.QMainWindow):
             | QtWidgets.QMessageBox.StandardButton.Cancel
         )
         msgBox.setText(txt)
+        msgBox.setWindowTitle("Warning")
         ret = msgBox.exec()
         msgBox.destroy()
         return ret
@@ -873,6 +876,7 @@ class cls_ui(QtWidgets.QMainWindow):
         msgBox.setIcon(QtWidgets.QMessageBox.Icon.Information)
         msgBox.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Close)
         msgBox.setText(txt)
+        msgBox.setWindowTitle("Information")
         msgBox.exec()
         msgBox.destroy()
 
@@ -884,6 +888,7 @@ class cls_ui(QtWidgets.QMainWindow):
         msgBox.setIcon(QtWidgets.QMessageBox.Icon.Critical)
         msgBox.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Close)
         msgBox.setText(txt)
+        msgBox.setWindowTitle("Error")
         msgBox.exec()
         msgBox.destroy()
 

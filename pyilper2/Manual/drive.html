@@ -80,49 +80,67 @@ html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif;}
 <h3 class="w3-text-teal">Description</h3>
 
 <p>This virtual device emulates either an HP82161A cassette drive, an
-HP9114B disk drive, or a virtual HDRIVE1 device to access files on a LIF image file.</p>
+HP9114B disk drive (without the SS/80 command set), or a virtual HDRIVE1 device to access files on an LIF image file.</p>
 
 <p>The directory listing of the current LIF image file is displayed on the
 tab. The listing is updated if the drive has been idle for 3 seconds. 
 The column headers can be checked to get a sorted list of the directory.</p>
 
-<p>The virtual devices have the following HP-IL configuration:</p>
+<p>The virtual devices have the following HP-IL configuration and their supported LIF image file layouts. A layout describes internal characteristics of a LIF image files and thus also the total capacity.</p>
 
 <table class="w3-table-all">
-<tr><th>Device Type</th><th>Accessory ID</th><th>Default Address</th><th>Device ID</th><th>Standard Capacity</th></tr>
-<tr><td>HP82161A</td><td>0x10</td><td>0x02</td><td>&nbsp;</td><td>131.072 Bytes</td></tr>
-<tr><td>HP9114B</td><td>0x10</td><td>0x02</td><td>HP9114B</td><td>630.784 Bytes</td></tr>
-<tr><td>HDRIVE1</td><td>0x10</td><td>0x02</td><td>HDRIVE1</td><td>655.360 Bytes</td></tr>
+<tr><th rowspan="2">Device Type</th><th rowspan="2">Accessory ID</th><th rowspan="2">Default Address</th><th rowspan="2">Device ID</th><th colspan="2">LIF Image file layout</th></tr>
+<tr><td>Name</td><td>Capacity</td></tr>
+<tr><td>HP82161A</td><td>0x10</td><td>0x02</td><td>&nbsp;</td><td>cass</td><td><b>131.072 Bytes</b></td></tr>
+<tr><td>HP9114B</td><td>0x10</td><td>0x02</td><td>HP9114B</td><td>Disk</td><td><b>630.784 Bytes</b></td></tr>
+<tr><td>HDRIVE1</td><td>0x10</td><td>0x02</td><td>HDRIVE1</td><td>HDRIVE1</td><td><b>655.360 Bytes</b></td></tr>
+<tr><td colspan=4></td><td>cass</td><td>131.072 Bytes</td></tr>
+<tr><td colspan=4></td><td>Disk</td><td>655.360 Bytes</td></tr>
+<tr><td colspan=4></td><td>HDRIVE2</td><td>2 MB</td></tr>
+<tr><td colspan=4></td><td>HDRIVE4</td><td>4 MB</td></tr>
+<tr><td colspan=4></td><td>HDRIVE8</td><td>8 MB</td></tr>
+<tr><td colspan=4></td><td>HDRIVE16</td><td>16 MB</td></tr>
 </table>
 
-<p>If a nonexistent file is mounted to the virtual drive, it must be
-initialized by the HP-IL controller first. The resulting LIF image file
-is initialized with the standard capacity of the current device type</p>
+<h3 class="w3-text-teal">Specifying the Drive Type</h3>
 
-<p>In most cases you should apply the HDRIVE1 drive type.
-Apply the HP9114B drive type if you use software that requires compatibility 
+<p>The drive type is selected from the checkbox group. If another drive type is enabled, the currently used LIF image file is unmounted.
+Please run a <code>RESTORE IO</code> command so that the controller is aware of the change in drive type.</p>
+
+<p>In most cases you should apply the HDRIVE1 drive type, since it supports the most LIF image file sizes. Apply the HP9114B drive type if you use software that requires compatibility
 with that device. Use the HP82161A drive type if the controller is an HP-41.</p>
 
-<p>Note: the HP-41 can only access the first 130K bytes of
-larger disk media.</p>
+<h3 class="w3-text-teal">Mounting LIF image files</h3>
 
-<p>Note: <em>pyILPER</em> requires a valid LIF header when mounting existing LIF 
-image files including:</p>
+<p><em>pyILPER</em> requires a valid LIF header when mounting existing LIF
+image files. The LIF header specifies the layout of the LIF image file. A valid LIF header includes:</p>
 
 <ul class="w3-ul">
 <li>The LIF identifier 0x800 at offset 0</li>
 <li>The media size information (number of tracks per surface,
-number of surfaces, number of blocks per track) starting at offset 24</li>
+number of surfaces, and number of blocks per track) starting at offset 24</li>
 </ul>
-<p>If you mount a LIF image file with incorrect header information you
-get a warning and the default medium size of the current drive type is
-used. In this case you have to select the proper drive type.
-Otherwise the image file may become corrupted. </p>
 
-<p>If a LIF image medium is initialized by an HP-41 module or an 
-HP-71B with an early HP-IL module, the virtual drive of <em>pyILPER</em> will fix the header information.</p>
+<p>If the LIF file header is missing or incomplete, the mount of the file will be rejected. Invalid LIF headers result from the file having been created
+either with the HP-41 or with faulty versions of the HP-71 IL module. In this case, you should create a backup file and repair the header using the
+<a class="w3-hover-black" href=“utilitiesmenu.html#fix-header-of-lif-image-files"><em>Fix Header of LIF Image Files</em></a> function in the <em>Utilities</em> menu.</p>
 
-<p><b>Warning:</b>Be extremely careful with <em>PRINTER IS, DISPLAY IS</em>, and <em>KEYBOARD IS</em> commands in relation to the current loop configuration. See the caveat below.</p>
+<p>For each drive type, only LIF image files with the layouts listed in the table above can be mounted.</p>
+
+<p>Note: the HP-41 can only access the first 130K bytes of larger disk media. The documentation of the <em>HP9114B</em> disk drive includes a <em>FOCAL</em> program
+that allows you to access content larger than 130K bytes.</p>
+
+<h3 class="w3-text-teal">Initializing LIF image files</h3>
+
+<p>It is generally recommended that you let <em>pyILPER</em> create empty LIF image files with the <a class="w3-hover-black" href="utilitiesmenu.html#initialize-lif-image-files"><em>Initialize LIF Image Files</em></a> function of the <em>Utilities</em> menu. This allows you to generate all LIF image file layouts listed in the table above.</p>
+
+<p>If you want to initialize a LIF image file using an HP-IL controller, the resulting LIF image file
+is initialized with the standard layout of the current device type (shown in bold in the table above).</p>
+
+<p>The process is as follows (HP-71): select the desired drive type, enter a non-existing file name as the LIF image file, and do a <code>RESTORE IO</code> and initialize the medium from the controller.</p>
+
+<p><em>pyILPER</em> takes care that incorrectly generated LIF image file headers are corrected automatically.</p>
+
 
 <h3 class="w3-text-teal">Device Controls</h3>
 
@@ -130,7 +148,7 @@ HP-71B with an early HP-IL module, the virtual drive of <em>pyILPER</em> will fi
 
 <ul class="w3-ul">
 <li>LIF image file <em>Change</em> button: mount a disk file that contains the 
-image of a LIF file. If a nonexistent file was specified, the medium
+image of an LIF file. If a nonexistent file was specified, the medium
 must be initialized by the controller. Note: the file is only
 opened by <em>pyILPER</em> during HP-IL read or write operations. </li>
 
@@ -139,7 +157,7 @@ emulated (see above). The LIF image file must be reopened after the
 drive type was changed.</li>
 
 <li><em>Device enabled</em>: If checked, the virtual HP-IL drive is
-available and can be used as an HP-IL device. The HP-IL loop must always be reconfigured after activation or deactivation.<(li>
+available and can be used as an HP-IL device. The HP-IL loop must always be reconfigured after activation or deactivation.<li>
 </ul>
 
 <h3 class="w3-text-teal">Tab configuration menu</h3>
@@ -154,10 +172,14 @@ See the documentation of the <a class="w3-hover-black" href="terminal.html"><em>
 
 <h3 class="w3-text-teal">File Management Functions</h3>
 
-<p>If <em>pyILPER</em> detects a compatible version of  the
-<a class="w3-hover-black" href="https://github.com/bug400/lifutils/releases/LIFUTILS"><em>LIFUTILS</em></a>
-(at least Version 2.0.0 is required) at launch, the drive tab enables 
-the following buttons:</p>
+<p>are a convenient way to edit LIF image files and the files stored within them. The features are only enabled if both a compatible version of the
+<a class="w3-hover-black" href="https://github.com/bug400/lifutils/releases/LIFUTILS"><em>LIFUTILS</em></a> (at least Version 2.0.0 is required)
+are installed and the drive is not active. A drive is inactive if either the loop has stopped or the <em>Device enabled</em> checkbox is unchecked.
+This ensures that HP-IL commands and file management functions are not executed simultaneously.</p>
+
+<p>To use the LIF image file management functions, it is recommended that you know the basics about LIF image files, LIF files, and the <a class="w3-hover-black" href="https://github.com/bug400/lifutils/LIFUTILS">LIFUTILS</a>. Reading the LIFUTILS tutorial is a good starting point.</p>
+
+<h3 class="w3-text-teal">File Management Functions for the mounted LIF Image File</h3>
 
 <ul class="w3-ul">
 <li><em>Pack</em> the mounted LIF image file (very fast!)</li>
@@ -167,7 +189,18 @@ image file</li>
 <li><em>Directory Listing</em> outputs the directory listing to a PDF file</li>
 </ul>
 
-<p>File context menu (right mouse button click on selected file in the directory listing):</p>
+<p>For the <em>Import</em> function there are a number of preprocessing options to prepare a wide variety of file types for import into a LIF image file:
+
+<ul class="w3-ul">
+<li>Convert ASCII text files to formats compatible with HP-41, HP-71, and the HP-75</li>
+<li>Convert HP-41 ROM files to HEPAX, Eramco MLDL-OS, and the HP41-CL format</li>
+<li>Process HP-41 FOCAL raw files</li>
+<li>Compile HP-41 FOCAL source files</li>
+</ul>
+
+<h3 class="w3-text-teal">File Management functions for files stored in the LIF Image File</h3>
+
+<p>Use the file context menu (right mouse button click on selected file in the directory listing) to execute the following functions:</p>
 
 <ul class="w3-ul">
 <li><em>Purge</em> the selected file</li>
@@ -180,27 +213,20 @@ the proper character set must be configured in the configuration menu.</li>
 PDF file.</li>
 </ul>
 
-<p>To avoid data corruption, the virtual drive must be deactivated (Device 
-enabled check box unchecked) in order to use the file management functions.</p>
+<p>For the <em>Export</em> there are the following post-processing options depending on the file type:</p>
+
+<ul class="w3-ul">
+<li>Conversion of HP-41, HP-71, or HP-75 text files to ASCII text files</li>
+<li>Unpacking HEPAX or ERAMCO MLDL-OS ROM files</li>
+<li>Create raw instead of LIF files</li>
+</ul>
 
 <p>The LIF image file management functions only support file names that 
-contain letters and digits. Unfortunately, the HP-41 IL-Module is less strict,
+contain letters and digits. Unfortunately, the HP-41 IL-module is less strict,
 and file names may contain other characters. You can rename these files 
 to proper LIF file names.</p>
 
-<p>To use the LIF image file management functions, it is recommended that you know the basics about LIF image files, LIF files, and the <a class="w3-hover-black" href="https://github.com/bug400/lifutils/LIFUTILS">LIFUTILS</a>. Reading the LIFUTILS tutorial is a good starting point.</p>
 
-<h3 class="w3-text-teal">Caveat</h3>
-
-<p>Before adding or (reenabling) a virtual drive, be sure to reset any
-<em>DISPLAY IS, PRINTER IS</em> or <em>KEYBOARD IS</em> assignments before
-issuing a <em>RESTORE IO</em> to assign a new address to the new virtual
-drive. In the worst-case scenario, the virtual drive might become the current display, printer,
-or keyboard device, which can result in data corruption.</p>
-
-<p>If you notice any strange things, e.g. the calculator beeps and displays 
-mixed-up characters, shut down <em>pyILPER</em> immediately! Then reset
-all device assignments and start <em>pyILPER</em> again.</p>
 
 <!-- End content -->
 </div>

@@ -28,6 +28,7 @@
 import time
 import threading
 import os
+from pathlib import Path
 
 from .pilglobals import PILGLOBALS
 
@@ -514,10 +515,12 @@ class cls_DriveWidget(QtWidgets.QWidget):
     #
     def enable(self):
         self.isEnabled = True
-        did, aid = DRIVEGLOBALS.deviceinfo[self.drivetype]
+        did, aid, defaultMedium = DRIVEGLOBALS.deviceinfo[self.drivetype]
         self.pildevice.setdevice(did, aid)
-        status, tracks, surfaces, blocks = self.lifMediumCheck(self.filename, True)
-        if not status:
+        if self.filename == "":
+            return
+        mt = self.lifMediumCheck(self.filename, self.drivetype, True)
+        if mt == DRIVEGLOBALS.MEDIUM_UNKNOWN:
             self.filename = ""
             PILCONFIG.put(self.name, "filename", self.filename)
             #
@@ -526,8 +529,11 @@ class cls_DriveWidget(QtWidgets.QWidget):
             except Exception as e:
                 e.add_note("Cannot store pyILPER configuration")
                 self.mainUI.showException(e)
-
-        self.pildevice.sethdisk(self.filename, tracks, surfaces, blocks)
+        else:
+            tracks = DRIVEGLOBALS.mediainfo[mt][1]
+            surfaces = DRIVEGLOBALS.mediainfo[mt][2]
+            blocks = DRIVEGLOBALS.mediainfo[mt][3]
+            self.pildevice.sethdisk(self.filename, tracks, surfaces, blocks)
         self.lblFilename.setText(self.filename)
         self.lifdir.setFileName(self.filename)
         self.toggle_controls()
@@ -595,11 +601,19 @@ class cls_DriveWidget(QtWidgets.QWidget):
         flist = self.get_lifFilename()
         if flist is None:
             return
-        status, tracks, surfaces, blocks = self.lifMediumCheck(flist[0], False)
-        if status:
+        mt = self.lifMediumCheck(flist[0], self.drivetype, False)
+        if mt != DRIVEGLOBALS.MEDIUM_UNKNOWN:
             self.filename = flist[0]
+            tracks = DRIVEGLOBALS.mediainfo[mt][1]
+            surfaces = DRIVEGLOBALS.mediainfo[mt][2]
+            blocks = DRIVEGLOBALS.mediainfo[mt][3]
+            if self.pildevice is not None:
+                self.pildevice.sethdisk(self.filename, tracks, surfaces, blocks)
+
+        if self.filename == "":
+            self.lifdir.clear()
         else:
-            self.filename = ""
+            self.lifdir.refresh()
         PILCONFIG.put(self.name, "filename", self.filename)
         #
         try:
@@ -608,14 +622,8 @@ class cls_DriveWidget(QtWidgets.QWidget):
             e.add_note("Cannot store pyILPER configuration")
             self.mainUI.showException(e)
 
-        if self.pildevice is not None:
-            self.pildevice.sethdisk(self.filename, tracks, surfaces, blocks)
         self.lblFilename.setText(self.filename)
         self.lifdir.setFileName(self.filename)
-        if self.filename == "":
-            self.lifdir.clear()
-        else:
-            self.lifdir.refresh()
         self.toggle_controls()
 
     def do_drivetypeChanged(self):
@@ -639,7 +647,7 @@ class cls_DriveWidget(QtWidgets.QWidget):
                 "Drive type changed. You have to reopen the LIF image file"
             )
 
-        did, aid = DRIVEGLOBALS.deviceinfo[self.drivetype]
+        did, aid, defaultMedium = DRIVEGLOBALS.deviceinfo[self.drivetype]
         #
         try:
             PILCONFIG.save()
@@ -759,58 +767,118 @@ class cls_DriveWidget(QtWidgets.QWidget):
             return dialog.selectedFiles()
 
     #
-    #  Check lif image file, returns status, tracks, surfaces, blocks
-    #  If valid LIF1 medium and medium is compatible to device:
-    #     return True, tracks, surfaces, blocks of medium
-    #  else:
-    #     return False and default layout of device
+    #  Check lif image file layout, returns a medium type
+    #  and its compatibility to the current drive type
+    #  If the file does not exist, or has no valid header inforation the function
+    #  returns  MEDIUM_UNKNOWN
     #
-    def lifMediumCheck(self, filename, quiet):
-        defaultmedium = self.getDefaultMedium(self.drivetype)
+    #  For HP82161A and HP9114B drives the layout of the LIF image file m u s t
+    #  match the layout of either a Cassette Medium or a 640 KB disk
+    #
+    #  For the HDRIVE1 and FDRIVE1 types the function returns the layout type of the
+    #  LIF image file
+    #
+    #  If the quiet flag is set, no error messages are displayed.
+    #
+    def lifMediumCheck(self, filename, drivetype, quiet):
+
+        defaultMedium = DRIVEGLOBALS.deviceinfo[drivetype][2]
         def_name, def_tracks, def_surfaces, def_blocks = DRIVEGLOBALS.mediainfo[
-            defaultmedium
+            defaultMedium
         ]
-        status, tracks, surfaces, blocks = self.getMediumInfo(filename)
-        if status == 0:  # medium info found
-            return [True, tracks, surfaces, blocks]
-        elif status == 1:  # file dos not exist or cannot be opened
-            return [True, def_tracks, def_surfaces, def_blocks]
-        elif status == 2:
+        status, mt = self.getMediumInfo(filename)
+        #
+        # Medium layout found
+        #
+        if status == DRIVEGLOBALS.MEDIUMCHECK_OK:
             #
-            if not quiet:
-                self.mainUI.showError("File does not contain a LIF typ 1 medium")
-            return [False, def_tracks, def_surfaces, def_blocks]
-        elif status == 3:
+            # unsupported layout
             #
+            if mt == DRIVEGLOBALS.MEDIUM_UNKNOWN:
+                if not quiet:
+                    self.mainUI.showError("LIF image file has an unsupported layout.")
+            else:
+                #
+                # drive types HP8161A and HP9114B expect only the default LIF mediumi
+                #
+                if defaultMedium != DRIVEGLOBALS.MEDIUM_HDRIVE1:
+                    if mt != defaultMedium:
+                        if not quiet:
+                            self.mainUI.showError(
+                                f'Expected LIF image file type "{def_name}" for this drive type.'
+                            )
+                        mt = DRIVEGLOBALS.MEDIUM_UNKNOWN
+
+        #
+        # File does not exist or cannot be read
+        #
+        elif status == DRIVEGLOBALS.MEDIUMCHECK_FILE_NOT_FOUND:
+            mt = defaultMedium
+        #
+        # File can not be read
+        #
+        elif status == DRIVEGLOBALS.MEDIUMCHECK_FILE_READ_ERROR:
             if not quiet:
-                self.mainUI.showWarning(
-                    "File does not contain a LIF type 1 medium with valid layout information. Using default layout of current drive type."
+                self.mainUI.showError("File cannot be read.")
+            mt = DRIVEGLOBALS.MEDIUM_UNKNOWN
+        #
+        # File can be read but has no LIF1 descriptor
+        #
+        elif status == DRIVEGLOBALS.MEDIUMCHECK_NO_LIF_FILE:
+            if not quiet:
+                self.mainUI.showError("File is not a LIF1 file.")
+            mt = DRIVEGLOBALS.MEDIUM_UNKNOWN
+        #
+        # The LIF1 layout information is invalid
+        #
+        elif (
+            status == DRIVEGLOBALS.MEDIUMCHECK_NO_VALID_LAYOUT
+        ):  # LIF1 file with no layout information
+            if not quiet:
+                self.mainUI.showError(
+                    "The LIF image file has an invalid layout information. Fix the header and try again."
                 )
 
-            return [True, def_tracks, def_surfaces, def_blocks]
+            mt = DRIVEGLOBALS.MEDIUM_UNKNOWN
+
+        return mt
 
     #
-    # get media info from lif header
+    # get media info from lif header, returns [diagnostics, medium layout found]
     #
     def getMediumInfo(self, filename):
 
         #
-        #     read lif file header
+        # check, if file exists
+        #
+        if not Path(filename).exists():
+            return [
+                DRIVEGLOBALS.MEDIUMCHECK_FILE_NOT_FOUND,
+                DRIVEGLOBALS.MEDIUM_UNKNOWN,
+            ]
+        #
+        # read lif file header
         #
         try:
             if PILGLOBALS.isWindows:
                 fd = os.open(filename, os.O_RDONLY | os.O_BINARY)
             else:
                 fd = os.open(filename, os.O_RDONLY)
-        except OSError:
-            return [1, 0, 0, 0]  # file does not exist or cannot be opened
-        try:
             b = os.read(fd, 256)
             os.close(fd)
         except OSError:
-            return [1, 0, 0, 0]  # file read error
+            return [
+                DRIVEGLOBALS.MEDIUMCHECK_FILE_READ_ERROR,
+                DRIVEGLOBALS.MEDIUM_UNKNOWN,
+            ]
+        #
+        # Header too short
+        #
         if len(b) < 256:
-            return [2, 0, 0, 0]  # not lif type 1 file
+            return [
+                DRIVEGLOBALS.MEDIUMCHECK_NO_LIF_FILE,
+                DRIVEGLOBALS.MEDIUM_UNKNOWN,
+            ]  # not lif type 1 file
         #
         #     do we have a LIF type 1 file
         #
@@ -818,24 +886,24 @@ class cls_DriveWidget(QtWidgets.QWidget):
         dirstart = getLifInt(b, 8, 4)
         #     if not(lifmagic == 0x8000 and dirstart == 2):
         if not (lifmagic == 0x8000):
-            return [2, 0, 0, 0]  #  no lif type 1 file
+            return [
+                DRIVEGLOBALS.MEDIUMCHECK_NO_LIF_FILE,
+                DRIVEGLOBALS.MEDIUM_UNKNOWN,
+            ]  #  no lif type 1 file
         #
         #     get medium layout
         #
         tracks = getLifInt(b, 24, 4)
         surfaces = getLifInt(b, 28, 4)
         blocks = getLifInt(b, 32, 4)
-        if (tracks == surfaces) and (surfaces == blocks):
-            return [3, 0, 0, 0]  # no valid media layout information
-        return [0, tracks, surfaces, blocks]
-
-    def getDefaultMedium(self, device):
-        if device == DRIVEGLOBALS.DEV_CASS:
-            return DRIVEGLOBALS.MEDIUM_CASS
-        if device == DRIVEGLOBALS.DEV_DISK:
-            return DRIVEGLOBALS.MEDIUM_DISK
-        if device == DRIVEGLOBALS.DEV_HDRIVE1:
-            return DRIVEGLOBALS.MEDIUM_HDRIVE1
+        #
+        # compare medium layout to known formats
+        #
+        for mt in DRIVEGLOBALS.mediainfo.keys():
+            mName, mTracks, mSurfaces, mBlocks = DRIVEGLOBALS.mediainfo[mt]
+            if tracks == mTracks and surfaces == mSurfaces and blocks == mBlocks:
+                return [DRIVEGLOBALS.MEDIUMCHECK_OK, mt]
+        return [DRIVEGLOBALS.MEDIUMCHECK_NO_VALID_LAYOUT, DRIVEGLOBALS.MEDIUM_UNKNOWN]
 
 
 #
@@ -1683,12 +1751,6 @@ class cls_driveglobals:
         self.DEV_HDRIVE1 = 2
         self.DEV_FDRIVE1 = 3
 
-        self.deviceinfo = {}
-        self.deviceinfo[self.DEV_CASS] = ["", 0x10]
-        self.deviceinfo[self.DEV_DISK] = ["HP9114B", 0x10]
-        self.deviceinfo[self.DEV_HDRIVE1] = ["HDRIVE1", 0x10]
-        self.deviceinfo[self.DEV_FDRIVE1] = ["FDRIVE1", 0x10]
-
         # Medium types
         self.MEDIUM_CASS = 0
         self.MEDIUM_DISK = 1
@@ -1698,6 +1760,18 @@ class cls_driveglobals:
         self.MEDIUM_HDRIVE8 = 5
         self.MEDIUM_HDRIVE16 = 6
         self.MEDIUM_UNKNOWN = -1
+
+        self.MEDIUMCHECK_FILE_NOT_FOUND = 1
+        self.MEDIUMCHECK_FILE_READ_ERROR = 2
+        self.MEDIUMCHECK_NO_LIF_FILE = 3
+        self.MEDIUMCHECK_NO_VALID_LAYOUT = 4
+        self.MEDIUMCHECK_OK = 0
+
+        self.deviceinfo = {}
+        self.deviceinfo[self.DEV_CASS] = ["", 0x10, self.MEDIUM_CASS]
+        self.deviceinfo[self.DEV_DISK] = ["HP9114B", 0x10, self.MEDIUM_DISK]
+        self.deviceinfo[self.DEV_HDRIVE1] = ["HDRIVE1", 0x10, self.MEDIUM_HDRIVE1]
+        self.deviceinfo[self.DEV_FDRIVE1] = ["FDRIVE1", 0x10, self.MEDIUM_HDRIVE1]
 
         self.mediainfo = {}
         self.mediainfo[self.MEDIUM_CASS] = ["HP82161A Cassette", 2, 1, 256]

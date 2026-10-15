@@ -190,19 +190,34 @@ the TCP/IP connection parameters of <b>all</b> programs that are components of t
 
 <p><em>The File Management Controls are disabled</em></p>
 
-<p>You need to install the required version of the <a class="w3-hover-black" href="https://github.com/bug400/lifutils"><em>LIFUTILS</em></a>. In addition the <em>Device enabled</em> option must be unchecked. This is a safety measure to prevent HP-IL and LIFUTILS operations from being performed simultaneously on a LIF image file.</p>
+<p>You need to install the required version of the <a class="w3-hover-black" href="https://github.com/bug400/lifutils"><em>LIFUTILS</em></a>. In addition, the <em>Device enabled</em> option must be unchecked. This is a safety measure to prevent HP-IL and LIFUTILS operations from being performed simultaneously on a LIF image file.</p>
 
-<p><em>Error messages: File does not contain a LIF type 1 medium</em> and <em>XXXXX</em></p>
+<p><em>Error message: File cannot be read</em></p>
 
-<p>A LIF1 file header is missing, and therefore the file is not opened. If you are certain that this is a LIF1 image despite the missing headers, you can
+<p>The first 256 bytes of the file could not be read. Either the file permissions prevent reading or the file is too short.</p>
+
+<p><em>Error message: File is not a LIF1 file.</em></p>
+
+<p>The LIF identifier 0x800 at offset 0 is missing. This can happen, for example, if the file was created using an HP-41. You can
 <a class="w3-hover-black" href="utilitiesmenu.html#fix-header-of-lif-image-files">repair the header</a> of this file. Be sure to make a backup copy first.</p>
 
-<p>Warning message:  File does not contain a LIF type 1 medium with valid layout information. Using default layout.</em></p>
-<p>The LIF image file does not contain a properly initialized header with valid layout information. The default layout is used.</p>
+<p><em>Error message: The LIF image file has an invalid layout information. Fix the header and try again.</em></p>
 
-<p><b>Warning!</b> If the default layout does not match the current medium, data corruption may occur! It is recommended to
-<a class="w3-hover-black" href="utilitiesmenu.html#fix-header-of-lif-image-files">fix the header on a copy of the file.</a></p>
+<p>The file was likely initialized by an HP-71 with IL-module revision 1a.
+<a class="w3-hover-black" href="utilitiesmenu.html#fix-header-of-lif-image-files">Repair the header</a> of this file. Be sure to make a backup copy first.</p>
 
+<p><em>Error message: LIF image file has an unsupported layout.</em></p>
+<p>The layout information found in the LIF header of the file does not match the supported layouts shown in the table of the <a class="w3-hover-black" id="drive.html">documentation
+for the <em>Drive</em></a>. It may be possible to open the file using the <a class="w3-hover-black" href="hdrive.html"><em>Raw Drive</em></a>.</p>
+
+<p><em>Error message: Expected LIF image file type XXXX for this drive type.</em></p>
+
+<p>The currently selected drive type only supports LIF image file layouts of type XXXX. Use the drive type <em>HDRIVE1</em> instead.</p>
+
+<p><em>Error message of the Pack function: corrupted medium: overlapping files</em>.</p>
+
+<p>In the directory of the LIF image file are at least two files that use the same disk sector. The file cannot be packed. You can use the <em>LIFSTAT</em> program of the
+<a class="w3-text-teal" href="https://github.com/bug400/lifutils"><em>LIFUTILS</em></a> to examine the LIF image file and extract the undamaged files.</p>
 
 <h3 class="w3-text-teal" id="thermoprinter">HP82162A Thermal Printer</h3>
 
