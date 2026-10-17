@@ -1113,7 +1113,9 @@ class cls_HP82162aView(QtWidgets.QGraphicsView):
             if k == self.lb_anz:
                 break
             item_args = cls_hp82162a_line.from_hp82162a_line(self.lb[k])
-            item = cls_hp82162a_line(item_args[0], item_args[1], self.pdfpixelsize)
+            item = cls_hp82162a_line(
+                item_args[0], item_args[1], self.pdfpixelsize, self.printcolor
+            )
             self.pdfprinter.print_item(item)
             k += 1
         self.pdfprinter.end()
