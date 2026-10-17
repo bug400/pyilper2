@@ -125,7 +125,7 @@ html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif;}
 
 <p>After the loop has started, each active interface goes into the "waiting for connection" state. It goes to the "connected" state if either a read and write network connection (TCP/IP, Socket interface) was established or a PIL-Box serial device was found and initialized successfully.</p>
 
-<p>A TCP/IP interface is connected only after the first frame has been sent to the remote host. Therefore, you should generate some traffic on the loop (e.g., RESTORE IO on the HP-71 or powering the HP-41 on and off) to bring the TCP/IP interfaces to the “connected” state.</p>
+<p>A TCP/IP interface is connected only after the first frame has been sent to the remote host. Therefore, you should generate some traffic on the loop (e.g., <code>RESTORE IO</code> on the HP-71 or powering the HP-41 on and off) to bring the TCP/IP interfaces to the “connected” state.</p>
 
 <p>An interface can be deactivated (bridged) with the <em>Device enabled</em> checkbox if the loop is stopped.</p>
 

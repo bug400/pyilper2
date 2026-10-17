@@ -86,7 +86,7 @@ html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif;}
 <li><a class="w3-hover-black" href="#general-errors">General Application Errors</a></li>
 <li><a class="w3-hover-black" href="#terminal">Terminal</a></li>
 <li><a class="w3-hover-black" href="#drive">Drive</a></li>
-<li><a class="w3-hover-black" href="#thermoprinter">HP82162A Thermal Printer</a></li>
+<li><a class="w3-hover-black" href="#thermal-printer">HP82162A Thermal Printer</a></li>
 <li><a class="w3-hover-black" href="#plotter">HP7470A Plotter</a></li>
 </ul>
 
@@ -105,7 +105,7 @@ python -m pyilper2 --clean --instance temp
 python -m pyilper2
 </pre>
 
-<p>Watch for messages displayed on the console. There are two types of error messages to distinguish between</p>
+<p>Watch for messages displayed on the console. There are two types of error messages to distinguish between:</p>
 <ul class="w3-ul">
 <li>Python errors: A Python error message (traceback) can be recognized by a structured text output in the terminal, which usually begins with the line `Traceback (most recent call last):`. Python provides detailed information about where (file, line number) and what type of error occurred. This error message is usually caused by a programming error in <em>pyILPER</em> or configuration file problems (see below).</li>
 <li>Other errors: Other error messages that can mean all sorts of things usually indicate installation problems or incompatibilities of the Python or Qt software and your operating system.</li>
@@ -129,7 +129,7 @@ python -m pyilper2 --use-system-browser
 
 <h3 class="w3-text-teal" id="loop-start">Loop Start</h3>
 
-<p>If the loop terminates with an error message when it starts or remains in the “waiting for connections” state, the cause is incorrect or incomplete interface configurations. Please read the instructions for the interfaces below.</p>
+<p>If the loop terminates with an error message when it starts or remains in the “waiting for connections” state, the cause are incorrect or incomplete interface configurations. Please read the instructions for the interfaces below.</p>
 
 <h3 class="w3-text-teal" id="pil-box-interface">PIL-Box Interface</h3>
 
@@ -151,7 +151,7 @@ python -m pyilper2 --use-system-browser
 
 <p><em>I started all my Virtual HP-IL over TCP/IP programs, but the status of the interfaces stays "yellow"</em></p>
 
-<p>That's normal. Generate some network traffic, for example, by performing a “restore io.” That's what establishes the network connections.</p>
+<p>That's normal. Generate some network traffic, for example, by performing a <code>RESTORE IO</code> on the HP-71. That's what establishes the network connections.</p>
 
 <p><em>Generating network traffic results in a HP-IL loop timeout</em></p>
 
@@ -171,9 +171,9 @@ the TCP/IP connection parameters of <b>all</b> programs that are components of t
 <p>The locations of the configuration files are:</p>
 <table class="w3-table-all">
 <tr><th>Platform</th><th>Directory</th></tr>
-<tr><td>LINUX</td><td>$HOME/.config/pyilper</td></tr>
+<tr><td>LINUX</td><td>$HOME/.config/pyilper2</td></tr>
 <tr><td>Windows</td><td>%HOMEDRIVE%%HOMEPATH%\pyilper2_config</td></tr>
-<tr><td>Mac OS X</td><td>$HOME/Library/Application Support/pyilper</td></tr>
+<tr><td>Mac OS X</td><td>$HOME/Library/Application Support/pyilper2</td></tr>
 <tr><td>Other</td><td>$HOME</td></tr>
 </table>
 
@@ -186,11 +186,15 @@ the TCP/IP connection parameters of <b>all</b> programs that are components of t
 
 <p>If you use the PIL-Box interface, you must check the <em>Enable IDY frames</em> option. In addition, the program <em>PILTERM</em> must be run. See the <a class="w3-hover-black" href="terminal.html">documentation about the terminal</a> for details.</p>
 
+<p><em>The display of the <em>REVERSI</em> game is partially incorrect</em></p>
+
+<p>Set the print line length to infinity with <code>PWIDTH INF</code>.</p>
+
 <h3 class="w3-text-teal" id="drive">Drive</h3>
 
 <p><em>The File Management Controls are disabled</em></p>
 
-<p>You need to install the required version of the <a class="w3-hover-black" href="https://github.com/bug400/lifutils"><em>LIFUTILS</em></a>. In addition, the <em>Device enabled</em> option must be unchecked. This is a safety measure to prevent HP-IL and LIFUTILS operations from being performed simultaneously on a LIF image file.</p>
+<p>You need to install the required version of the <a class="w3-hover-black" href="https://github.com/bug400/lifutils"><em>LIFUTILS</em></a>. In addition, the <em>Device enabled</em> option must be unchecked or the loop must be stopped. This is a safety measure to prevent HP-IL and LIFUTILS operations from being performed simultaneously on a LIF image file.</p>
 
 <p><em>Error message: File cannot be read</em></p>
 
@@ -208,7 +212,7 @@ the TCP/IP connection parameters of <b>all</b> programs that are components of t
 
 <p><em>Error message: LIF image file has an unsupported layout.</em></p>
 <p>The layout information found in the LIF header of the file does not match the supported layouts shown in the table of the <a class="w3-hover-black" id="drive.html">documentation
-for the <em>Drive</em></a>. It may be possible to open the file using the <a class="w3-hover-black" href="hdrive.html"><em>Raw Drive</em></a>.</p>
+for the <em>Drive</em></a>.</p>
 
 <p><em>Error message: Expected LIF image file type XXXX for this drive type.</em></p>
 
@@ -219,7 +223,7 @@ for the <em>Drive</em></a>. It may be possible to open the file using the <a cla
 <p>In the directory of the LIF image file are at least two files that use the same disk sector. The file cannot be packed. You can use the <em>LIFSTAT</em> program of the
 <a class="w3-text-teal" href="https://github.com/bug400/lifutils"><em>LIFUTILS</em></a> to examine the LIF image file and extract the undamaged files.</p>
 
-<h3 class="w3-text-teal" id="thermoprinter">HP82162A Thermal Printer</h3>
+<h3 class="w3-text-teal" id="thermal-printer">HP82162A Thermal Printer</h3>
 
 <p><em>There is no print output from V41 or an HP-41 connected to a PIL-Box and/or the function keys of the printer tab do not work.</em></p>
 
@@ -232,6 +236,9 @@ for the <em>Drive</em></a>. It may be possible to open the file using the <a cla
 <p>You need to install the required version of the <a class="w3-text-teal" href="https://github.com/bug400/lifutils"><em>LIFUTILS</em></a> that contains the backend program to run the plotter.</p>
 
 
+<p><em>Graphic elements are malformed or missing</em></p>
+
+<p>If you use <code>PRINT</code> to output data to the plotter than it's probably the print line width setting that inserts <em>CR/LF</em> into longer lines. Set either the line length to infinity with <code>PWIDTH INF</code> or use the <code>OUTPUT</code> command instead of <code>PRINT</em>.</p>
 
 <!-- End content -->
 </div>

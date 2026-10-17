@@ -119,6 +119,10 @@ This option is enabled by default and required to operate the virtual keyboard o
 <li>It is possible to disconnect the PIL-Box while the pyILPER loop is running. The pyILPER loop then transitions from the “Loop running...” state to the “Waiting for connection(s)...” state. This simplifies the development of PIL-Box-compatible devices. However, a period of several seconds must elapse between disconnecting and reconnecting the USB connection, as there is a delay between when the serial device becomes visible for the operating system and when it is ready for operation.</li>
 </ul>
 
+<h4 class="w3-text-teal">PIL-Box Troubleshooting</h4>
+
+<p>See the <a class="w3-hover-black" href="troubleshooting.html#pil-box-interface"><em>Troubleshooting section for the PIL-Box Interface</em></a>.</p>
+
 <h3 class="w3-text-teal" id="tcp-ip">HP-IL Over TCP/IP Interface</h3>
 
 <h4 class="w3-text-teal" id="hp-il-over-tcp-ip-configuration">HP-IL Over TCP/IP Interface Configuration</h4>
@@ -160,7 +164,7 @@ This option is enabled by default and required to operate the virtual keyboard o
 <ul class="w3-ul">
 <li>Start the pyILPER loop. The status light of the interface turns yellow and the loop is in the "Waiting for connection(s)..." state</li>
 <li>Start EMU71 with the HP-IL module configured properly.</li>
-<li>Switch EMU71 on and enter "RESTORE IO". The interface status light turns to green and the loop status turns to "Loop running..."</li>
+<li>Switch EMU71 on and enter <code>RESTORE IO</code>. The interface status light turns to green and the loop status turns to "Loop running..."</li>
 </ul>
 
 <p>The recommended procedure to disconnect EMU71 from <em>pyILPER</em> is the following:</p>
@@ -169,6 +173,10 @@ This option is enabled by default and required to operate the virtual keyboard o
 <li>Switch EMU71 off and close the program.</li>
 <li>Close <em>pyILPER</em>.</li>
 </ul>
+
+<h4 class="w3-text-teal">HP-IL over TCP/IP Troubleshooting</h4>
+
+<p>See the <a class="w3-hover-black" href="troubleshooting.html#tcp-ip-interface"><em>Troubleshooting section for the HP-IL over TCP/IP Interface</em></a>.</p>
 
 
 <h3 class="w3-text-teal" id="tcp-ip-socket-interface">TCP/IP Socket Interface</h3>

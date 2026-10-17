@@ -24,6 +24,6 @@
 #
 # __init__.py: Add constants to package namespace
 
-__version__ = "2.0.0"  # single source for pyILPER version
+__version__ = "2.0.0b1"  # single source for pyILPER version
 __isProduction__ = False  # set to True, if production version
 from .pyilpermain import main

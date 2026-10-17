@@ -35,7 +35,7 @@ from PySide6 import QtCore, QtWidgets, QtGui
 from .pilconfig import PILCONFIG
 from .pilcharconv import charconv, CHARSET_HP41, CHARSET_ROMAN8
 from .pildevbase import cls_pildevbase
-from .pilwidgets import cls_tabgeneric, T_INTEGER, O_DEFAULT
+from .pilwidgets import cls_tabgeneric, T_INTEGER, T_STRING, O_DEFAULT
 from .pilpdf import cls_pdfprinter
 from .pilcore import cls_Tab_Spec
 
@@ -117,6 +117,11 @@ REMOTECMD_LOG = 2
 #
 CHARSET_ASCII = 0
 CHARSET_ALTERNATE = 1
+
+HP82162A_COLOR_BLACK = 0
+HP82162A_COLOR_BLUE = 1
+HP82162A_COLOR_NAMES = ["black", "blue"]
+HP82162A_COLORS = [QtCore.Qt.black, QtCore.Qt.blue]
 #
 # hp82162a character generator -------------------------------------------------
 # character codes taken from the nonpareil calculator simulator
@@ -426,6 +431,11 @@ class cls_tabhp82162a(cls_tabgeneric):
         #
         self.pixelsize = PILCONFIG.get(self.name, "hp82162a_pixelsize", -1)
         #
+
+        self.printcolor = PILCONFIG.get(
+            self.name, "hp82162a_printcolor", HP82162A_COLOR_BLACK
+        )
+        #
         #     create Printer GUI object
         #
         self.guiobject = cls_HP82162AWidget(self, self.name, self.papersize)
@@ -442,6 +452,9 @@ class cls_tabhp82162a(cls_tabgeneric):
         #
         self.cBut.add_option(
             "Pixel size", "hp82162a_pixelsize", T_INTEGER, [O_DEFAULT, 1, 2]
+        )
+        self.cBut.add_option(
+            "Print color", "hp82162a_printcolor", T_STRING, HP82162A_COLOR_NAMES
         )
         #
         #     add logging control widget
@@ -913,6 +926,7 @@ class cls_HP82162aView(QtWidgets.QGraphicsView):
         self.rows = 0
         self.linebuffersize = linebuffersize
         self.papersize = papersize
+        self.printcolor = QtCore.Qt.black
         #
         #     background is always white
         #
@@ -937,12 +951,14 @@ class cls_HP82162aView(QtWidgets.QGraphicsView):
     #     configure/reconfigure the printview widget, scene and its content
     #
     def reconfigure(self):
-        tmp = PILCONFIG.get_dual(self.name, "hp82162a_pixelsize")
+        tmpPixelsize = PILCONFIG.get_dual(self.name, "hp82162a_pixelsize")
+        tmpPrintcolor = PILCONFIG.get(self.name, "hp82162a_printcolor")
         #
         #     re/configure the printview widget
         #
-        if tmp != self.pixelsize:
-            self.pixelsize = tmp
+        if tmpPixelsize != self.pixelsize or tmpPrintcolor != self.printcolor:
+            self.pixelsize = tmpPixelsize
+            self.printcolor = tmpPrintcolor
             self.w = (
                 PRINTER_WIDTH_CHARS * PRINTER_CHARACTER_WIDTH_PIXELS * self.pixelsize
             )
@@ -965,7 +981,7 @@ class cls_HP82162aView(QtWidgets.QGraphicsView):
                 self.printscene.reconfigure(self.pixelsize)
                 for i in range(0, self.linebuffersize):
                     if self.lb[i] is not None:
-                        self.lb[i].reconfigure(self.pixelsize)
+                        self.lb[i].reconfigure(self.pixelsize, self.printcolor)
                 self.do_resize()
         #
         #       now shrink all parent windows to minimum size
@@ -1046,6 +1062,7 @@ class cls_HP82162aView(QtWidgets.QGraphicsView):
                 line,
                 col_idx,
                 self.pixelsize,
+                self.printcolor,
             )
         else:
             self.lb = self.lb[1:] + self.lb[:1]
@@ -1053,6 +1070,7 @@ class cls_HP82162aView(QtWidgets.QGraphicsView):
                 line,
                 col_idx,
                 self.pixelsize,
+                self.printcolor,
             )
         self.lb_position = self.lb_current - self.rows + 1
         if self.lb_position < 0:
@@ -1106,7 +1124,7 @@ class cls_HP82162aView(QtWidgets.QGraphicsView):
 #
 class cls_hp82162a_line(QtWidgets.QGraphicsItem):
 
-    def __init__(self, line, col_idx, pixelsize):
+    def __init__(self, line, col_idx, pixelsize, printcolor):
         super().__init__()
         self.pixelsize = -1
         self.w = -1
@@ -1114,10 +1132,12 @@ class cls_hp82162a_line(QtWidgets.QGraphicsItem):
         self.rect = QtCore.QRectF(0, 0, 1, 1)
         self.col_idx = col_idx
         self.line = bytes(line[:col_idx])
-        self.reconfigure(pixelsize)
+        self.charColor = HP82162A_COLORS[printcolor]
+        self.reconfigure(pixelsize, printcolor)
 
-    def reconfigure(self, pixelsize):
+    def reconfigure(self, pixelsize, printcolor):
         self.pixelsize = pixelsize
+        self.charColor = HP82162A_COLORS[printcolor]
         self.w = PRINTER_WIDTH_CHARS * PRINTER_CHARACTER_WIDTH_PIXELS * pixelsize
         self.h = PRINTER_CHARACTER_HEIGHT_PIXELS * pixelsize
         self.rect = QtCore.QRectF(0, 0, self.w, self.h)
@@ -1139,7 +1159,7 @@ class cls_hp82162a_line(QtWidgets.QGraphicsItem):
             for i in range(0, 8):
                 if b & 0x01:
                     painter.fillRect(
-                        posx, posy, self.pixelsize, self.pixelsize, QtCore.Qt.black
+                        posx, posy, self.pixelsize, self.pixelsize, self.charColor
                     )
                 b = b >> 1
                 posy += self.pixelsize

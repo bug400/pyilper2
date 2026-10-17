@@ -221,7 +221,6 @@ class cls_RawDriveWidget(QtWidgets.QWidget):
         self.lbltxt2 = QtWidgets.QLabel("Medium type ")
         self.grid.addWidget(self.lbltxt2, 0, 0)
         self.comboMedium = QtWidgets.QComboBox()
-        print(self.medium)
         for i in DRIVEGLOBALS.mediainfo.keys():
             txt = DRIVEGLOBALS.mediainfo[i][0]
             if i != DRIVEGLOBALS.MEDIUM_UNKNOWN:
@@ -430,18 +429,18 @@ class cls_DriveWidget(QtWidgets.QWidget):
         #
         self.butPack = QtWidgets.QPushButton("Pack")
         self.butPack.setEnabled(False)
-        #       self.butPack.setAutoDefault(False)
+        self.butPack.setAutoDefault(False)
         self.vbox3.addWidget(self.butPack)
         self.butImport = QtWidgets.QPushButton("Import")
-        #       self.butImport.setEnabled(False)
+        self.butImport.setEnabled(False)
         self.butImport.setAutoDefault(False)
         self.vbox3.addWidget(self.butImport)
         self.butLabel = QtWidgets.QPushButton("Label")
-        #       self.butLabel.setEnabled(False)
+        self.butLabel.setEnabled(False)
         self.butLabel.setAutoDefault(False)
         self.vbox3.addWidget(self.butLabel)
         self.butDirList = QtWidgets.QPushButton("Directory Listing")
-        #       self.butDirList.setEnabled(False)
+        self.butDirList.setEnabled(False)
         self.butDirList.setAutoDefault(False)
         self.vbox3.addWidget(self.butDirList)
         self.vbox3.addStretch(1)

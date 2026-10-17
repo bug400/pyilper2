@@ -1,3 +1,9 @@
+pyilper2 (2.0.0~beta1) trixie; urgency=medium
+
+  * first beta 
+
+ -- trixie <achim@trillian>  Fri, 16 Oct 2026 21:58:58 +0200
+
 pyilper2 (2.0.0~dev1) trixie; urgency=medium
 
   *  new development version

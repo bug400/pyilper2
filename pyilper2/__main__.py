@@ -330,14 +330,14 @@ class ValidateScale(argparse.Action):
 
 def start():
     parser = argparse.ArgumentParser(
-        description="Start pyILPER with command line parameters",
-        usage="python -m pyilper [options]",
+        description="Start pyILPER version 2 with command line parameters",
+        usage="python -m pyilper2 [options]",
     )
     parser.add_argument(
         "--instance",
         "-instance",
         default="",
-        help="Start a pyILPER instance INSTANCE. This instance has an own configuration file.",
+        help="Start a pyILPER instance INSTANCE. This instance has an own set of configuration files.",
     )
     parser.add_argument(
         "--cc",
@@ -353,7 +353,7 @@ def start():
     )
     parser.add_argument(
         "--use-system-browser",
-        "--use-system-browser",
+        "-use-system-browser",
         action="store_true",
         help="Use default system browser for help system",
         dest="useSystemBrowser",
@@ -379,7 +379,7 @@ def start():
     #  show version
     #
     if args.v:
-        print("pyILPER ", PILGLOBALS.Version, end="")
+        print("pyILPER ", PILGLOBALS.Version)
         sys.exit(0)
     #
     #   run -cc and -migrate commands

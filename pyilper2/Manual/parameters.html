@@ -79,38 +79,39 @@ html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif;}
 <h2 class="w3-text-teal">pyILPER command line parameters</h2>
 <h3 class="w3-text-teal">Introduction</h3>
 
-<p><em>pyILPER</em> supports command line parameters to carry out special actions (not for Windows).</p> 
+<p><em>pyILPER</em> supports command line parameters to perform special actions.</p> 
 
-<p>Note: You must start <em>pyILPER</em> from the <b>command line</b> now <bold>as a module</bold> to specify command line parameters.</p>
+<p>Note: You must start <em>pyILPER</em> from the <b>command line as a module</b> to specify command line parameters.</p>
 
 <p>Use the <em>-help</em> parameter to see the available arguments:</p>
 
-<pre>python -m pyilper --help
-Usage: python -m pyilper [options]
+<pre>python -m pyilper2 --help
+Usage: python -m pyilper2 [options]
 
-Start pyILPER with command line parameters
+Start pyILPER version 2 with command line parameters
 
 options:
-  -h, --help             Show this help message and exit
-  -v, --v                Show program version and exit
-  --instance INSTANCE, 
-   -instance INSTANCE    Start a pyILPER instance INSTANCE. This instance has an
-                         own configuration file.
-  --clean, -clean        Start pyILPER with a config file that is reset to defaults.
-  --cc, -cc              Copy configuration from development to production version
-                         and vice versa.
-  --scale FACTOR
-  -scale FACTOR          Force scaling of the pyILPER GUI for use on high-DPI displays
-                         The FACTOR can take values between 1.0 and 4.0.
-  -use-system-browser    Use the system default browser for the help system.
-  --use-system-browser 
-  --migrate, -migrate    Migrate pyILPER configuration from version 1.9
+  -h, --help            show this help message and exit
+  --instance, -instance INSTANCE
+                        Start a pyILPER instance INSTANCE. This instance has an
+                        own set of configuration files.
+  --cc, -cc             Copy configuration from development to production
+                        version and vice versa
+  --clean, -clean       Start pyILPER with a config file which is reset to
+                        defaults
+  --use-system-browser, -use-system-browser
+                        Use default system browser for help system
+  --scale, -scale SCALE
+                        Force scaling for high-DPI displays. 1.0<=SCALE<=4.0
+  --migrate, -migrate   Migrate pyILPER configuration from version 1.9
+  --v, -v               Show pyILPER version
+
 
 </pre>
 
 <h3 class="w3-text-teal">Starting another instance of pyILPER</h3>
 
-<p>The parameter <em>-instance INSTANCE-NAME</em> allows to start multiple independent instances of pyILPER. Each instance has its own configuration file and is identified by <em>INSTANCE-NAME</em>. Only letters or digits are allowed in an <em>INSTANCE-NAME</em>.</p>
+<p>The parameter <em>-instance INSTANCE-NAME</em> allows to start multiple independent instances of pyILPER. Each instance has its own set of configuration files and is identified by <em>INSTANCE-NAME</em>. Only letters or digits are allowed in an <em>INSTANCE-NAME</em>.</p>
 
 <h3 class="w3-text-teal">Reset the pyILPER configuration to default</h3>
 
@@ -126,9 +127,13 @@ options:
 
 <p>Note: You have to confirm the copy action. After completion, you must restart <em>pyILPER</em> without the <em>-cc</em> option.</p>
 
+<h3 class="w3-text-teal">Scaling on High DPI displays</H3>
+
+<p><em>pyILPER</em> usually uses the desktop's display scaling factor. However, you can set this factor individually using the <em>-scale</em> option for <em>pyILPER</em>.</p>
+
 <h3 class="w3-text-teal">Use the system default browser for the help system</h3>
 
-<p>The parameter <em>--use-system-browser</em> disables the loading of the PyQt5 or PySide6 web extension, which could cause compatibility problems. The system default browser is used instead for the help system.</p>
+<p>The parameter <em>--use-system-browser</em> disables the loading of the PySide6 web extension, which could cause compatibility problems with display drivers. The system default browser is used instead for the help system.</p>
 
 <h3 class="w3-text-teal">Migrate configuration from version 1.9</h3>
 
