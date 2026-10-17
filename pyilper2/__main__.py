@@ -90,9 +90,10 @@ def migrateConfig(args):
     #
     count = 0
     for name in ["pyilper", "penconfig", "shortcutconfig"]:
-        from_filename = buildconfigfilename("pyilper", name, "2", args.instance, True)[
-            0
-        ]
+
+        from_filename = buildconfigfilename(
+            PILGLOBALS.OldConfigDir, name, "2", args.instance, True
+        )[0]
         if not os.path.isfile(from_filename):
             continue
         to_filename = buildconfigfilename(

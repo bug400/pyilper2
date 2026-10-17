@@ -291,8 +291,10 @@ class cls_pilglobals:
         #
         if self.isWindows:
             self.StandardConfigDir = self.PackageName + "_config"
+            self.OldConfigDir = "pyilper_config"
         else:
             self.StandardConfigDir = self.PackageName
+            self.OldConfigDir = "pyilper"
         #
         #     Check Python interpreter version
         #
