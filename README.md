@@ -7,9 +7,11 @@ pyILPER version 2.x is the successor of pyILPER 1.x. Version 2.x allows you to u
 
 Version 1.x of pyILPER is no longer being developed; only bug fixes are being made.
 
-Since pyILPER 2 is a beta version, its use is recommended only for people with experience using version 1 of pyILPER.
+Since pyILPER 2 is a beta version, its use is currently recommended only for people with experience using version 1 of pyILPER.
 
-This document provides a concise overview of the changes in pyILPER 2.0 compared to version 1.9. There are only a few, but important, differences from version 1.x
+This document provides a concise overview of the changes in pyILPER 2.0 compared to version 1.9. There are only a few, but important, differences from version 1.x.
+
+For a more detailed description, please consult the pyILPER help system, which has been completely revised.
 
 It is the result of a nearly two-year-long, comprehensive overhaul of the software.
 
@@ -21,9 +23,15 @@ pyILPER2 requires now:
 
 - Python >= 3.11 
 - Pyside6 >= 6.8 
-- pySerial >= 3.5 and LIFUTILS 2.0.1
+- pySerial >= 3.5 
+- LIFUTILS 2.0.1
 
 Qt5 is not supported anymore.
+
+The minimum operating system requirements are:
+- Windows 11
+- Debian Trixie
+- macOS 12
 
 
 pyILPER Loop
@@ -62,23 +70,27 @@ The scope now has a button to clear the display.
 Devices
 -------
 
-New devices are now enabled by default.
+There are a few changes to the virtual drivers:
 
+- New devices are now enabled by default when created
+- The drive is now more strict when mounting LIF image files. The HP82161A drive can now only mount LIF image files of the HP82161A Cassette layout and the HP9114B disk drive can now only mount 
+LIF image files of the HP9114B Double-Sided Disk layout. However, the HDRIVE1 drive type can mount all supported LIF image file layouts.
+- You can now set the print output color for the HP82161A printer to black or blue.
 
 Software Status
 ---------------
 
-This is a development verision that is almost feature complete.
+This is a beta version which has already been used to conduct numerous tests on Windows, macOS, and Linux.
 
 
 Installing and Running the software
 -----------------------------------
 
-- Download the zip file (green Code button)
+Create a Python virtual environment with the software listed above
 
-- Create a Python virtual environment with the software listed above
+Install the pyILPER2 package from PyPi, this will also install the required dependencies:
 
-- Unpack the zip file and go to the top-level directory of the unpacked package
+     python -m pip install pyilper2
 
 Now run from the command line: 
 
@@ -96,6 +108,18 @@ Now run the program:
 
 If you did not have a pyilper 2.0 configuration before, a default configuration with one interface of type PIL-Box is created. pyILPER will show some quick start information about how to configure the program for first-time use. Follow the installation steps as described and start the loop from the file menu.
 
+Installing and running development versions
+-------------------------------------------
+
+Download the zip file (green Code button)
+
+Create a Python virtual environment with the software listed above
+
+Unpack the zip file and go to the top-level directory of the unpacked package
+
+Now run from the command line:
+
+     python start.py <parameters>
 
 Configuration with Multiple Interfaces
 --------------------------------------
