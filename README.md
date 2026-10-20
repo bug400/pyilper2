@@ -3,7 +3,9 @@ pyILPER2
 
 Abstract
 --------
-pyILPER version 2.x is the successor of pyILPER 1.x. Version 2.x allows you to use multiple interfaces (PIL-Box, TCP/IP, Socket) and includes a more flexible version of the scope.
+pyILPER version 2.x is the successor of pyILPER 1.x. Version 2.x allows you to use multiple interfaces (PIL-Box, TCP/IP, Socket) at the same time for complex virtual loop configurations (see image below)  and includes a more flexible version of the scope.
+
+![pyilper2](pyilper2/Manual/images/complex.svg)
 
 Version 1.x of pyILPER is no longer being developed; only bug fixes are being made.
 
