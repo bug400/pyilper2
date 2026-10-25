@@ -28,10 +28,10 @@
 #
 
 import time
+import threading
+from PySide6 import QtWidgets
 
 from .pilglobals import PILGLOBALS
-
-from PySide6 import QtCore, QtGui, QtWidgets
 from .serialio import cls_serialIO
 from .pilcore import cls_Interface_Spec, AppException
 from .pilconfig import PILCONFIG
@@ -62,16 +62,10 @@ class cls_pilbox(cls_IOThread):
         self.__ttyDevice__ = PILCONFIG.get(self.__configName__, "device")
         self.__baudrate__ = PILCONFIG.get(self.__configName__, "baudrate")
         self.__idyframe__ = PILCONFIG.get(self.__configName__, "idyframe")
-        self.__controllerIsConnected__ = PILCONFIG.get(
-            self.__configName__, "controllerconnected"
-        )
+        self.__noIO__ = True
+        self.__lockReader__ = threading.Lock()
         self.__ioDevice__ = cls_serialIO(self.__ttyDevice__)  # serial device object
         self.__lasth__ = 0
-        if self.__controllerIsConnected__:
-            print(self.__name__ + ": controller off mode")
-        else:
-            print(self.__name__ + ": controller on mode")
-
     #
     #  get connection speed
     #
@@ -84,7 +78,6 @@ class cls_pilbox(cls_IOThread):
     def open(self):
 
         cmd = PILGLOBALS.Pilbox_Command_TDIS
-        msg = ""
         #
         #     open serial device, no autobaud mode
         #
@@ -100,7 +93,6 @@ class cls_pilbox(cls_IOThread):
             # open serial device, detect baud rate, use predefined baudrates in
             # PILGLOBALS.Baudrates list in reverse order
             #
-            errmsg = ""
             for i, b in reversed(list(enumerate(PILGLOBALS.Baudrates))):
                 baudrate = b[1]
                 if baudrate == 0:
@@ -134,21 +126,19 @@ class cls_pilbox(cls_IOThread):
     def close(self):
         try:
             self.sendCmd(PILGLOBALS.Pilbox_Command_TDIS, PILGLOBALS.Tmout_Frm)
-        except:
+        except Exception:
             pass
         self.__ioDevice__.close()
 
     #
-    #  Init Box, send either CON, COFI or COFF
+    #  Init Box in conroller off mode (default)
     #
     def initBox(self):
-        if not self.__controllerIsConnected__:
-            cmd = PILGLOBALS.Pilbox_Command_CON
+
+        if self.__idyframe__:
+            cmd = PILGLOBALS.Pilbox_Command_COFI
         else:
-            if self.__idyframe__:
-                cmd = PILGLOBALS.Pilbox_Command_COFI
-            else:
-                cmd = PILGLOBALS.Pilbox_Command_COFF
+            cmd = PILGLOBALS.Pilbox_Command_COFF
         try:
             self.sendCmd(cmd, PILGLOBALS.Tmout_Frm)
         except Exception as e:
@@ -211,10 +201,22 @@ class cls_pilbox(cls_IOThread):
                     if self.__stopEvent__.is_set():
                         break
                     #
+                    # check, if the reader thread is locked by the writer thread to init the Box in controller on mode
+                    #
+                    while True:
+                        if not self.__lockReader__.locked():
+                            break
+                        time.sleep(0.5)
+                    #
                     # read byte from PIL-Box. On error wait and check if device was unplugged
+                    # if we did not receive data so far (self.__noIO__ true), use short timeouts to
+                    # let the writer lock the reader quickly
                     #
                     try:
-                        ret = self.__ioDevice__.readByte()
+                        if self.__noIO__:
+                            ret = self.__ioDevice__.readByte(0.1)
+                        else:
+                            ret = self.__ioDevice__.readByte()
                     except Exception as e:
                         time.sleep(PILGLOBALS.SerialDevicePlugDelay)
                         if self.__ioDevice__.checkDeviceExists():
@@ -229,9 +231,13 @@ class cls_pilbox(cls_IOThread):
                     #
                     if ret == b"":
                         continue
+                    #
+                    # byte read, set self.__noIO__ to false
+                    #
+                    self.__noIO__ = False
                     byt = ord(ret)
                     #
-                    # process byte read from the PIL-Box, is not a low byte
+                    # process byte, is it a low byte?
                     #
                     if (byt & 0xC0) == 0x00:
                         #
@@ -287,6 +293,23 @@ class cls_pilbox(cls_IOThread):
     #  frame writer. Note: this method is called from the controller thread
     #
     def writer(self, frame):
+        #
+        # check if we have a write before read then init as CON
+        #
+        if self.__noIO__:
+            self.__lockReader__.acquire()
+            self.__noIO__ = False
+            time.sleep(0.1)
+            try:
+                self.sendCmd(PILGLOBALS.Pilbox_Command_CON, PILGLOBALS.Tmout_Frm)
+            except Exception as e:
+                e.add_note(self.__name__ + ": cannot initialize PIL-Box")
+                raise e from e
+            finally:
+                try:
+                    self.__lockReader__.release()
+                except Exception:
+                    pass
         #
         #     if we are not connected, do not output frame
         #
@@ -379,22 +402,10 @@ class cls_pilboxConfig(cls_ConfigInterfaceGeneric):
         self.cbIdyFrame.setEnabled(True)
         self.cbIdyFrame.stateChanged.connect(self.do_cbIdyFrame)
         self.vb.addWidget(self.cbIdyFrame)
-        #
-        # controller mode
-        #
-        self.cbCtrlMode = QtWidgets.QCheckBox("HP-IL Controller connected to PIL-Box")
-        self.cbCtrlMode.setChecked(self.controllermode)
-        self.cbCtrlMode.setEnabled(True)
-        self.cbCtrlMode.stateChanged.connect(self.do_cbCtrlMode)
-        self.vb.addWidget(self.cbCtrlMode)
 
     def do_cbIdyFrame(self):
         self.idyframe = self.cbIdyFrame.isChecked()
         PILCONFIG.put(self.configName, "idyframe", self.idyframe)
-
-    def do_cbCtrlMode(self):
-        self.controllermode = self.cbCtrlMode.isChecked()
-        PILCONFIG.put(self.configName, "controllerconnected", self.controllermode)
 
     def do_config_interface(self):
         interface = cls_TtyWindow.getTtyDevice(self.tty)
@@ -415,7 +426,6 @@ class cls_pilboxConfig(cls_ConfigInterfaceGeneric):
         self.butTty.setEnabled(flag)
         self.cbIdyFrame.setEnabled(flag)
         self.comboBaud.setEnabled(flag)
-        self.cbCtrlMode.setEnabled(flag)
         self.radBut.setChecked(flag)
 
 

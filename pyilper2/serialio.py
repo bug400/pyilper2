@@ -44,6 +44,7 @@ class cls_serialIO:
         """
         self.__isOpen__ = False
         self.__timeout__ = 0
+        self.__ser__ = None
 
     #
     #  Windows needs much time to reconfigure the timeout value of the serial
@@ -87,7 +88,7 @@ class cls_serialIO:
             self.__ser__.close()
             self.__ser__ = None
             self.__isOpen__ = False
-        except:
+        except Exception:
             pass
 
     def snd(self, buf):

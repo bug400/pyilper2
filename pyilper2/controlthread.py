@@ -67,9 +67,9 @@
 import threading
 import queue
 from dataclasses import dataclass
-from .pilglobals import PILGLOBALS
-
 from PySide6 import QtCore, QtGui, QtWidgets
+
+from .pilglobals import PILGLOBALS
 from .pilconfig import PILCONFIG
 from .iothread import cls_IOThread
 from .pildevbase import cls_pildevbase
@@ -110,6 +110,8 @@ class cls_controller(threading.Thread):
         self.sig_UpdateStatus = sig_UpdateStatus
         self.sig_ControllerTerminated = sig_ControllerTerminated
         self.status = self.STAT_STOP
+        self.deviceInfoList = None
+        self.e = None
 
     #
     #   create the controllerItems data structure to control interface and device processing
@@ -137,8 +139,6 @@ class cls_controller(threading.Thread):
                 )
 
                 if not isDisabled:
-                    if interfaceIndex == 0:
-                        firstInterfaceIndex = tabIndex
                     activeInterfaces += 1
 
                     interfaceClass = interfaceSpecifications[
@@ -245,7 +245,6 @@ class cls_controller(threading.Thread):
 
         self.status = self.STAT_RUN
         self.e = None
-        connected = False
         print("controller: start run")
         self.status = self.STAT_RUN
         for i in self.controllerItems.keys():

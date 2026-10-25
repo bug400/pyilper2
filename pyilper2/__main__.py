@@ -186,7 +186,6 @@ def migrateConfig(args):
         baudrate = PILCONFIG.get("Interface1", "if_pilbox_baudrate", 115200)
         if baudrate == 9600:
             PILCONFIG.put("Interface1", "if_pilbox_baudrate", 115200)
-        PILCONFIG.put("Interface1", "if_pilbox_controllermode", False)
         PILCONFIG.put("Interface1", "active", True)
         interfaceid = PILCONFIG.get(oldName, "mode", 0)
         PILCONFIG.put("Interface1", "interface_id", interfaceid)

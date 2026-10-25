@@ -329,7 +329,7 @@ class cls_pilglobals:
             from PySide6 import QtWebEngineWidgets
 
             self.Has_Webengine = True
-        except:
+        except Exception:
             pass
 
         #
@@ -362,7 +362,6 @@ class cls_pilglobals:
             self.Instance = args.instance
         self.Clean = args.clean
         if args.useSystemBrowser:
-            self.Has_Webkit = False
             self.Has_Webengine = False
         self.Diagnostics = args.diag
 

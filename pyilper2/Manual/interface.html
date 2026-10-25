@@ -100,8 +100,6 @@ html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif;}
 <p>The "Enable IDY frames" option enables the PIL-Box to transmit the IDY frames to <em>pyILPER</em>. This causes an increase of traffic on the serial USB device.
 This option is enabled by default and required to operate the virtual keyboard of the terminal emulator with the HP-71B or the thermal printer HP-82162A with the HP-41C. It is recommended that you leave the setting set to “enabled.” </p>
 
-<p>The "HP-IL controller connected to PIL-Box" option is essential to put the PIL-Box into the correct mode of operations. If the option is not set correctly, you will get HP-IL errors on the HP-IL controller. Thus, check this option if an HP-71, HP-75, or HP-41 is present in the HP-IL loop connected to the PIL-Box.</p>
-
 <p><b>Note:</b> If no tty device is specified, the start of the <em>pyILPER</em> loop will fail.</p>
 
 <h4 class="w3-text-teal">PIL-Box Interface Application Information</h4>
@@ -118,6 +116,8 @@ This option is enabled by default and required to operate the virtual keyboard o
 <li>If the device connected to the serial interface is not a PIL-Box, the pyILPER loop terminates with a connection error.</li>
 <li>It is possible to disconnect the PIL-Box while the pyILPER loop is running. The pyILPER loop then transitions from the “Loop running...” state to the “Waiting for connection(s)...” state. This simplifies the development of PIL-Box-compatible devices. However, a period of several seconds must elapse between disconnecting and reconnecting the USB connection, as there is a delay between when the serial device becomes visible for the operating system and when it is ready for operation.</li>
 </ul>
+
+<p>The PIL-Box interface automatically determines during the first data transfer of the <em>pyILPER</em> virtual loop whether the PIL-Box must operate in controller on or controller off mode. This depends on whether (controller off mode) or not an HP-IL controller is connected to the PIL-Box (controller on mode). Note: This check takes place only after the loop has started. If the PIL-Box's operating mode needs to be changed, the Pyilper virtual loop must be restarted.</p>
 
 <h4 class="w3-text-teal">PIL-Box Troubleshooting</h4>
 

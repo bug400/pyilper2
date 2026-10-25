@@ -45,7 +45,7 @@ pyILPER creates a virtual loop of emulated HP-IL devices, interfaces, and two sc
 Interfaces
 ----------
 
-Interfaces can be configured at an arbitrary position in the loop in the "Virtual HP-IL devices configuration" window. Each interface has its own tab, where it is configured. Please note that each additional interface will slow down the throughput of the loop considerably. As before, the interface types PIL-Box. TCP/IP and socket are available. The PIL-Box interface has an additional configuration option that tells the PIL-Box whether to operate in controller-on or controller-off mode.
+Interfaces can be configured at an arbitrary position in the loop in the "Virtual HP-IL devices configuration" window. Each interface has its own tab, where it is configured. Please note that each additional interface will slow down the throughput of the loop considerably. As before, the interface types PIL-Box. TCP/IP and socket are available. The PIL-Box interface checks automatically whether the PIL-Box must operate in controller-on or controller-off mode.
 
 The PIL-Box tty speed of 9600 baud and its special protocol used at this baudrate are not supported any more.
 

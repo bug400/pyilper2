@@ -54,7 +54,6 @@
 #
 
 import threading
-from .pilglobals import PILGLOBALS
 from .pilcore import AppException
 
 
@@ -90,6 +89,8 @@ class cls_IOThread(threading.Thread):
         self.USE_8BITS = True
         self.__ioDevice__ = None
         self.__deviceRemoved__ = True
+        self.__deviceProcessors__ = None
+        self.__writer__ = None
 
     def addInfo(self, deviceProcessors, writer):
         self.__deviceProcessors__ = deviceProcessors
@@ -147,10 +148,12 @@ class cls_IOThread(threading.Thread):
             raise AppException(self.__name__ + ": timeout getting response of command")
         try:
             tst = ord(bytrx)
-        except (ValueError, TypeError):
+        except (ValueError, TypeError) as exc:
             if closeOnError:
                 self.__ioDevice__.close()
-            raise AppException(self.__name__ + ": illegal return value for command")
+            raise AppException(
+                self.__name__ + ": illegal return value for command"
+            ) from exc
         if tst != lbyt:
             print("sendCmd: return value mismatch %x %x" % (tst, lbyt))
             if closeOnError:

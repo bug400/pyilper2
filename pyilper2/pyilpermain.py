@@ -121,6 +121,8 @@ class cls_ui(QtWidgets.QMainWindow):
             PILCONFIG.get(self.name, "position", "")
             PILCONFIG.get(self.name, "version", "0.0.0")
             PILCONFIG.get(self.name, "helpposition", "")
+            PILCONFIG.get(self.name, "devstatusposition", "")
+            PILCONFIG.get(self.name, "devstatusopen", False)
             PILCONFIG.get(self.name, "papersize", 0)
             PILCONFIG.get(self.name, "lifutilspath", "")
             PILCONFIG.get(self.name, "terminalcharsize", 15)
@@ -436,11 +438,7 @@ class cls_ui(QtWidgets.QMainWindow):
             #
             #  move main window to last position
             #
-            position = PILCONFIG.get(self.name, "position")
-            if position != "":
-                self.move(QtCore.QPoint(position[0], position[1]))
-            if len(position) == 4:
-                self.resize(position[2], position[3])
+            self.restoreWindowsPosition(self, "position")
             #
             # go to last active tab (if tabconfig did not change)
             #
@@ -450,6 +448,11 @@ class cls_ui(QtWidgets.QMainWindow):
             #
             self.show()
             self.raise_()
+            #
+            # if Device Status Window was open, reopen it
+            #
+            if PILCONFIG.get(self.name, "devstatusopen"):
+                self.devStatus()
 
         #
         # catch any exception during initialization
@@ -678,6 +681,7 @@ class cls_ui(QtWidgets.QMainWindow):
     def devStatus(self):
         if self.devstatuswin is None:
             self.devstatuswin = cls_DevStatusWindow(self, self.deviceInfoList)
+            self.restoreWindowsPosition(self.devstatuswin, "devstatusposition")
         self.devstatuswin.show()
         self.devstatuswin.raise_()
 
@@ -725,37 +729,37 @@ class cls_ui(QtWidgets.QMainWindow):
     #
     def app_exit(self):
         #
+        # Store position of Device Status Window
+        if self.devstatuswin is not None:
+            self.saveWindowsPosition(self.devstatuswin, "devstatusposition")
+            self.devstatuswin.hide()
+            self.devstatuswin.close()
+            PILCONFIG.put(self.name, "devstatusopen", True)
+        else:
+            PILCONFIG.put(self.name, "devstatusopen", False)
+        #
         # Shut down controller
         #
         self.controller_stop()
+
         #
         # Store position of main window
         #
-        pos_x = self.pos().x()
-        pos_y = self.pos().y()
-        if pos_x < 50:
-            pos_x = 50
-        if pos_y < 50:
-            pos_y = 50
-        width = self.width()
-        height = self.height()
-        position = [pos_x, pos_y, width, height]
-        PILCONFIG.put(self.name, "position", position)
+        self.saveWindowsPosition(self, "position")
+
         #
         # Store position of help window
         #
         if self.helpwin is not None:
-            helpposition = [
-                self.helpwin.pos().x(),
-                self.helpwin.pos().y(),
-                self.helpwin.width(),
-                self.helpwin.height(),
-            ]
-            PILCONFIG.put(self.name, "helpposition", helpposition)
+            self.saveWindowsPosition(self.helpwin, "helpposition")
+            self.helpwin.hide()
+            self.helpwin.close()
+
         #
         # close all floating windows and store their positions
         #
         self.tabWidget.closeFloatingWindows()
+
         #
         # store configuration
         #
@@ -767,6 +771,34 @@ class cls_ui(QtWidgets.QMainWindow):
             )
             self.showRuntimeError(None, e)
         QtWidgets.QApplication.quit()
+
+    #
+    # store position of a window
+    #
+    def saveWindowsPosition(self, win, key):
+        pos_x = win.pos().x()
+        pos_y = win.pos().y()
+        if pos_x < 50:
+            pos_x = 50
+        if pos_y < 50:
+            pos_y = 50
+        width = win.width()
+        height = win.height()
+        position = [pos_x, pos_y, width, height]
+        PILCONFIG.put(self.name, key, position)
+
+    #
+    # restore position of a window
+    #
+    def restoreWindowsPosition(self, win, key, size=None):
+        winposition = PILCONFIG.get(self.name, key)
+        if winposition != "":
+            win.move(QtCore.QPoint(winposition[0], winposition[1]))
+            if len(winposition) == 4:
+                win.resize(winposition[2], winposition[3])
+        else:
+            if size is not None:
+                win.resize(size[0], size[1])
 
     #
     # change working directory, if changed
@@ -935,13 +967,15 @@ class cls_ui(QtWidgets.QMainWindow):
                     e.add_note(f"Cannot load help page {docPath}")
                     self.showException(e)
                     return
-
+                self.restoreWindowsPosition(self.helpwin, "helpposition", [720, 700])
+                """
                 helpposition = PILCONFIG.get(self.name, "helpposition")
                 if helpposition != "":
                     self.helpwin.move(QtCore.QPoint(helpposition[0], helpposition[1]))
                     self.helpwin.resize(helpposition[2], helpposition[3])
                 else:
                     self.helpwin.resize(720, 700)
+                """
             self.helpwin.loadDocument(docPath)
             self.helpwin.show()
             self.helpwin.raise_()
