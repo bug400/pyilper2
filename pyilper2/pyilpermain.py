@@ -968,14 +968,6 @@ class cls_ui(QtWidgets.QMainWindow):
                     self.showException(e)
                     return
                 self.restoreWindowsPosition(self.helpwin, "helpposition", [720, 700])
-                """
-                helpposition = PILCONFIG.get(self.name, "helpposition")
-                if helpposition != "":
-                    self.helpwin.move(QtCore.QPoint(helpposition[0], helpposition[1]))
-                    self.helpwin.resize(helpposition[2], helpposition[3])
-                else:
-                    self.helpwin.resize(720, 700)
-                """
             self.helpwin.loadDocument(docPath)
             self.helpwin.show()
             self.helpwin.raise_()
