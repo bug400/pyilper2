@@ -51,7 +51,7 @@ from .pilglobals import PILGLOBALS
 from .pilconfig import PILCONFIG
 from .shortcutconfig import SHORTCUTCONFIG, cls_ShortcutConfigWindow
 from .penconfig import PENCONFIG, cls_PenConfigWindow
-from .controlthread import cls_controller, controllerItem, cls_IndicatorWidget
+from .controlthread import cls_controller, cls_IndicatorWidget
 from .pilcore import AppException, decode_pyILPERVersion
 from .pildevbase import cls_pilqueue
 from .iothread import cls_IOThread
@@ -89,6 +89,7 @@ class cls_ui(QtWidgets.QMainWindow):
         self.deviceInfoList = []
         self.validConfigNameList = []
         self.scopeQueue = cls_pilqueue()
+        self.appIsShutdown= False
 
         #     absolutely needed: call super().__init__() to make this work!
         self.sig_UpdateStatus.connect(self.updateStatus, QtCore.Qt.QueuedConnection)
@@ -242,7 +243,7 @@ class cls_ui(QtWidgets.QMainWindow):
             self.actionStop.triggered.connect(self.controller_stop)
             self.actionStop.setEnabled(False)
             self.actionExit = self.menuFile.addAction("Exit")
-            self.actionExit.triggered.connect(self.app_exit)
+            self.actionExit.triggered.connect(self.exit_app)
 
             self.menuUtil = self.menubar.addMenu("Utilities")
             self.actionInit = self.menuUtil.addAction("Initialize LIF image file")
@@ -656,8 +657,16 @@ class cls_ui(QtWidgets.QMainWindow):
             self.showException(e)
 
     #
-    # callback init LIF data file
+    # callback exit pyILPER. Note: call appShutdown here to get the
+    # status of auxiliary windows
+    #
+    def exit_app(self):
+        self.appShutdown()
+        QtWidgets.QApplication.quit()
 
+    #
+    # callback init LIF data file
+    #
     def initLif(self):
         workdir = PILCONFIG.get(self.name, "workdir")
         cls_lifinit.execute(workdir)
@@ -725,18 +734,25 @@ class cls_ui(QtWidgets.QMainWindow):
             self.aboutwin.raise_()
 
     #
-    # Exit Application
+    # Shut down application
     #
-    def app_exit(self):
+    def appShutdown(self):
+        #
+        # if appShutdown was already called, exit
+        #
+        if self.appIsShutdown:
+            return
         #
         # Store position of Device Status Window
+        #
+        devstatusOpen= False
         if self.devstatuswin is not None:
-            self.saveWindowsPosition(self.devstatuswin, "devstatusposition")
-            self.devstatuswin.hide()
+            if self.devstatuswin.isVisible():
+                self.saveWindowsPosition(self.devstatuswin, "devstatusposition")
+                self.devstatuswin.hide()
+                devstatusOpen= True
             self.devstatuswin.close()
-            PILCONFIG.put(self.name, "devstatusopen", True)
-        else:
-            PILCONFIG.put(self.name, "devstatusopen", False)
+        PILCONFIG.put(self.name, "devstatusopen", devstatusOpen)
         #
         # Shut down controller
         #
@@ -770,7 +786,9 @@ class cls_ui(QtWidgets.QMainWindow):
                 "Error during application shutdown. Configuration will not be saved."
             )
             self.showRuntimeError(None, e)
-        QtWidgets.QApplication.quit()
+        finally:
+            self.appIsShutdown= True
+ 
 
     #
     # store position of a window
@@ -817,9 +835,8 @@ class cls_ui(QtWidgets.QMainWindow):
     # this catches the window close event
     #
     def closeEvent(self, event):
+        self.appShutdown()
         event.accept()
-        self.hide()
-        self.app_exit()
 
     #
     #  controller terminated signal handler, show detailed error messages and disable devices

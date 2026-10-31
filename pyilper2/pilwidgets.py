@@ -1442,8 +1442,6 @@ class cls_DeviceConfigWindow(QtWidgets.QDialog):
         #
         delRow = row
         self.devList.setCurrentRow(delRow - 1)
-        item = self.devList.takeItem(delRow)
-        item = None
         self.checkOperations(delRow - 1)
         self.isModified = True
 
@@ -1478,9 +1476,9 @@ class cls_DeviceConfigWindow(QtWidgets.QDialog):
 class cls_Device_validator(QtGui.QValidator):
 
     def validate(self, string, pos):
-        self.regexp = QtCore.QRegularExpression("[A-Za-z][A-Za-z0-9]*")
-        self.validator = QtGui.QRegularExpressionValidator(self.regexp)
-        result = self.validator.validate(string, pos)
+        regExpression = QtCore.QRegularExpression("[A-Za-z][A-Za-z0-9]*")
+        devValidator = QtGui.QRegularExpressionValidator(regExpression)
+        result = devValidator.validate(string, pos)
         return result[0], result[1], result[2]
 
 
@@ -1643,7 +1641,7 @@ class cls_DevStatusWindow(QtWidgets.QDialog):
 
         self.__table__.resizeRowsToContents()
         self.vlayout.addWidget(self.__table__)
-        self.button = QtWidgets.QPushButton("OK")
+        self.button = QtWidgets.QPushButton("Exit")
         self.button.setFixedWidth(60)
         self.button.clicked.connect(self.do_exit)
         self.hlayout = QtWidgets.QHBoxLayout()
@@ -1654,12 +1652,18 @@ class cls_DevStatusWindow(QtWidgets.QDialog):
 
     def hideEvent(self, event):
         self.__timer__.stop()
+        event.accept()
+
+    def closeEvent(self,event):
+        self.__timer__.stop()
+        event.accept()
 
     def showEvent(self, event):
         self.__timer__.start(500)
+        event.accept()
 
     def do_exit(self):
-        super().accept()
+        self.hide()
 
     def do_refresh(self):
 
