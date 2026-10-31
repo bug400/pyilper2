@@ -106,7 +106,7 @@ The configuration of pyILPER2 is entirely separated from the configuration of ve
 
 Now run the program:
 
-     pyilper -m pyilper2
+     python -m pyilper2
 
 If you did not have a pyilper 2.0 configuration before, a default configuration with one interface of type PIL-Box is created. pyILPER will show some quick start information about how to configure the program for first-time use. Follow the installation steps as described and start the loop from the file menu.
 
