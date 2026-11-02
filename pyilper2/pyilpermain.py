@@ -1002,6 +1002,10 @@ class cls_ui(QtWidgets.QMainWindow):
 
 
 def main():
+    #
+    # disable GPU for Pyside6 web extension
+    #
+    os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--disable-gpu"
     app = QtWidgets.QApplication(sys.argv)
     prog = cls_ui(app)
     app.exec()
