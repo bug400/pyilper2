@@ -1,3 +1,9 @@
+pyilper2 (2.0.0) trixie; urgency=medium
+
+  * release 
+
+ -- trixie <achim@trillian>  Fri, 13 Nov 2026 10:40:42 +0100
+
 pyilper2 (2.0.0~beta3) trixie; urgency=medium
 
   * third beta 
