@@ -37,12 +37,11 @@ import os
 import shutil
 import argparse
 import warnings
-from json import JSONDecodeError
 from pathlib import Path
 from .pyilpermain import main
 from .pilglobals import PILGLOBALS
 from .pilconfig import cls_pilconfig, PILCONFIG
-from .pilcore import buildconfigfilename, decode_pyILPERVersion
+from .pilcore import buildconfigfilename, decode_pyILPERVersion, AppException
 
 # from pyilper2 import __version__, __isProduction__
 
@@ -106,7 +105,7 @@ def migrateConfig(args):
 
         try:
             shutil.copy(from_filename, to_filename)
-        except shutil.SameFileError as e:
+        except shutil.SameFileError:
             print(
                 "Error copying file "
                 + from_filename
@@ -142,11 +141,9 @@ def migrateConfig(args):
         #
         oldversion = decode_pyILPERVersion(PILCONFIG.get("pyilper", "version", "0.0.0"))
         if oldversion == 0:
-            print("no valid configuration files found for version 1.9.0")
-            return
+            raise AppException("no valid configuration files found for version 1.9.0")
         if oldversion < 10900:
-            print("cannot migrate pyilper configuration from versions < 1.9.0")
-            return
+            raise AppException("cannot migrate pyilper configuration from versions < 1.9.0")
 
         PILCONFIG.put(newName, "version", PILGLOBALS.Version)
         #
@@ -154,8 +151,7 @@ def migrateConfig(args):
         #
         tabconfig = PILCONFIG.get(oldName, "tabconfig", "")
         if tabconfig == "":
-            print("no valid configuration files found for version 1.9.0")
-            return
+            raise AppException("no valid configuration files found for version 1.9.0")
         newTabconfig = [[0, "Scope"], [1, "Interface1"], [9, "Probe1"]]
         for t in tabconfig:
             tabid = t[0]
