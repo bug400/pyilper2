@@ -29,7 +29,7 @@ pyILPER version 2 offers a range of emulated HP-IL peripheral devices and is cap
 multiple interfaces simultaneously, allowing for complex HP-IL configurations that may consist of the following components:
 - Software emulated controllers/devices on the PC (EMUXX, pyILPER devices, Virtual HP-IL over TCP/IP devices)
 - Good old "real" HP-IL hardware 
-- The new microcontroller based devices like [TULIP4041](https://github.com/mjakuipers/TULIP-DevBoard), JCILD or [HIPI-Board](https://github.com/ecsfang/HIPI-Board) that support the HP-IL protocol
+- The new microcontroller based devices like [TULIP4041](https://github.com/mjakuipers/TULIP-DevBoard), [JCILD](https://sites.google.com/view/jcild/home)  or [HIPI-Board](https://github.com/ecsfang/HIPI-Board) that support the HP-IL protocol
 
 pyILPER version 2 is the successor to [pyILPER 1.x](https://github.com/bug400/pyilper/). Version 1.x is no longer being developed.
 
