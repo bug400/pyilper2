@@ -1,34 +1,68 @@
-pyILPER2
-========
+pyILPER2 (Virtual HP-IL Devices)
+================================
 
-Abstract
+![pyilper](img/pyilper_drive.png)
+
+Index
+-----
+
+* [Description](#description)
+* [Features](#features)
+* [Compatibility](#compatibility)
+* [Installation](#installation)
+* [License](#license)
+* [Acknowledgements](#acknowledgements)
+
+Description
+-----------
+HP-IL (Hewlett Packard Interface Loop) is a serial interconnection bus 
+introduced by Hewlett-Packard in the early 1980s. It enabled the communication 
+between peripheral devices such as printers, floppy disk drives, etc. 
+with programmable calculators such as the HP-41C, HP71B, and HP-75C/D.
+
+Although these devices have not been manufactured for a long time, there are still many enthusiasts who want to work with them.
+
+Software emulations of HP-IL controllers and peripheral devices that run on a PC have been available for quite some time. More recently, 
+emulations of HP-IL peripheral devices based on microcontrollers have been added. 
+
+pyILPER version 2 offers a range of emulated HP-IL peripheral devices and is capable of running
+multiple interfaces simultaneously, allowing for complex HP-IL configurations that may consist of the following components:
+- Software emulated controllers/devices on the PC (EMUXX, pyILPER devices, Virtual HP-IL over TCP/IP devices)
+- Good old "real" HP-IL hardware 
+- The new microcontroller based devices like [TULIP4041](https://github.com/mjakuipers/TULIP-DevBoard), JCILD or [HIPI-Board](https://github.com/ecsfang/HIPI-Board) that support the HP-IL protocol
+
+pyILPER version 2 is the successor to [pyILPER 1.x](https://github.com/bug400/pyilper/). Version 1.x is no longer being developed.
+
+For users of Pyilper version 1.x, this [upgrade documentation](UPGRADE.md) provides a concise overview of changes.
+
+
+
+Features
 --------
-pyILPER version 2.x is the successor of pyILPER 1.x. Version 2.x allows you to use multiple interfaces (PIL-Box, TCP/IP, Socket) at the same time for complex virtual loop configurations (see image below)  and includes a more flexible version of the scope.
 
-![pyilper2](pyilper2/Manual/images/complex.svg)
+* Entirely written in Python3 using the Qt GUI framework (Pyside6)
+* Virtual mass storage drive with integrated directory list, file management  (import, export, rename, purge, view) and disk management functions (label, pack, initialize)
+* Virtual generic printer emulating the HP-71B, HP-41C, HP-75 and ROMAN-8 character sets
+* Terminal emulator with keyboard support for HP-71B and HP-75.
+* Virtual plotter emulating the HP-7470A HP-IL plotter
+* Virtual printer emulating the HP-82162A thermal printer
+* Virtual printer emulating the ThinkJet HP-2225B printer
+* HP-IL scope
+* The number of virtual devices is configurable,
+* The virtual devices can be either organized in a compact tabbed view or in independent floating windows
+* The output of the scope or the virtual printer(s) is logged to file(s)
+* Monitoring the status of the virtual HP-IL devices
+* Run multiple interfaces of the following types simultaneously:
+  * [PIL-Box](http://www.jeffcalc.hp41.eu/hpil/) via serial-over-USB interface
+  * [Virtual HP-IL over TCP/IP](http://hp.giesselink.com/hpil.htm) (dual TCP/IP V4/V6 stack)
+  * DOSBox emulated controllers [EMU41, EMU71 and EMU75](http://www.jeffcalc.hp41.eu/index.html).
 
-Version 1.x of pyILPER is no longer being developed; only bug fixes are being made.
-
-Since pyILPER 2 is a beta version, its use is currently recommended only for people with experience using version 1 of pyILPER.
-
-This document provides a concise overview of the changes in pyILPER 2.0 compared to version 1.9. There are only a few but important differences from version 1.x.
-
-For a more detailed description, please consult the pyILPER help system, which has been completely revised.
-
-It is the result of a nearly two-year-long, comprehensive overhaul of the software.
+See the [pyILPER virtual devices gallery](GALLERY.md) for details.
 
 
-Changes in Operating Requirements
----------------------------------
 
-pyILPER2 requires now:
-
-- Python >= 3.11 
-- Pyside6 >= 6.8 
-- pySerial >= 3.5 
-- LIFUTILS 2.0.1
-
-Qt5 is not supported anymore.
+Compatibility
+-------------
 
 The minimum operating system requirements are:
 - Windows 11
@@ -36,115 +70,24 @@ The minimum operating system requirements are:
 - macOS 12
 
 
-pyILPER Loop
+Installation
 ------------
 
-pyILPER creates a virtual loop of emulated HP-IL devices, interfaces, and two scope probes. The loop can be started or stopped from the file menu. The loop has either the state "stopped", or "waiting for connections" or "running". In the pyILPER configuration window, you can configure the loop to start automatically,
+pyILPER version 2 requires the Python interpreter, Pyside6, and the pySerial package installed. 
+
+See the [installation Instructions](INSTALL.md) for details.
+
+In order to use the file and disk management functions and the virtual HP7470A plotter, 
+an up-to-date version of the [LIFUTILS](https://github.com/bug400/lifutils/releases) 
+is required as well.
 
 
-Interfaces
-----------
-
-Interfaces can be configured at an arbitrary position in the loop in the "Virtual HP-IL devices configuration" window. Each interface has its own tab, where it is configured. Please note that each additional interface will slow down the throughput of the loop considerably. As before, the interface types PIL-Box. TCP/IP and socket are available. The PIL-Box interface checks automatically whether the PIL-Box must operate in controller-on or controller-off mode.
-
-The PIL-Box tty speed of 9600 baud and its special protocol used at this baudrate are not supported any more.
-
-Interfaces have four states that are indicated by a status light in the status bar: "inactive" (black), "disconnected" (red), "waiting for connection" (yellow) and "connected" (green). The loop goes only into "running" state if all interfaces are connected.
-
-After the loop has started, each active interface goes into the "waiting for connection" state. It goes to the "connected" state if either a read and write network connection (TCP/IP, Socket interface) was established or a PIL-Box serial device was found and initialized successfully.
-
-A PIL-Box interface operates only in "autoreconnect" mode, which was introduced with pyILPER 1.9. 
-
-A TCP/IP interface is connected only after the first frame has been sent to the remote host. Therefore, you should generate some traffic on the loop (e.g., RESTORE IO on the HP-71 or powering the HP-41 on and off) to bring the TCP/IP interfaces to the “connected” state.
-
-An interface can be deactivated (bridged) if the loop is stopped.
-
-
-Scope and Probes
-----------------
-
-As before, the scope is always the first tab that cannot be moved or deleted. By default, there are two probe devices, "Probe1" and "Probe2" which have no tab. The probes can be seen either in the "Virtual HP-IL device status" window or the "Virtual HP-IL device configuration". The position of the probes can be moved, but they cannot be deleted. The probes are activated in the scope tab. Frames captured by "Probe1" are shown in uppercase letters, and frames captured by "Probe2" are shown in lowercase letters.
-
-In pyILPER 1.x the probes were always at a fixed position (after the interface and after the last device).
-
-The scope now has a button to clear the display.
-
-Devices
+License
 -------
 
-There are a few changes to the virtual drivers:
+pyILPER version 2 is published under the GNU General Public License v2.0 License 
+(see the LICENSE file).
 
-- New devices are now enabled by default when created
-- The drive is now more strict when mounting LIF image files. The HP82161A drive can now only mount LIF image files of the HP82161A Cassette layout, and the HP9114B disk drive can now only mount 
-LIF image files of the HP9114B double-sided disk layout. However, the HDRIVE1 drive type can mount all supported LIF image file layouts.
-- You can now set the print output color for the HP82161A printer to black or blue.
-
-Software Status
----------------
-
-This is a beta version that has already been used to conduct numerous tests on Windows, macOS, and Linux.
-
-
-Installing and Running the software
------------------------------------
-
-Create a Python virtual environment with the software listed above
-
-Install the pyILPER2 package from PyPi, this will also install the required dependencies:
-
-     python -m pip install pyilper2
-
-Now run from the command line: 
-
-     python -m pyilper2 -v
-
-This shows the program version.
-
-The configuration of pyILPER2 is entirely separated from the configuration of version 1.x. You can migrate the configuration of your pyILPER 1.9 production version into a pyILPER 2.0 compatible format:
-
-     python -m pyilper2 --migrate
-
-Now run the program:
-
-     python -m pyilper2
-
-If you did not have a pyilper 2.0 configuration before, a default configuration with one interface of type PIL-Box is created. pyILPER will show some quick start information about how to configure the program for first-time use. Follow the installation steps as described and start the loop from the file menu.
-
-Installing and running development versions
--------------------------------------------
-
-Download the zip file (green Code button)
-
-Create a Python virtual environment with the software listed above
-
-Unpack the zip file and go to the top-level directory of the unpacked package
-
-Now run from the command line:
-
-     python start.py <parameters>
-
-Configuration with Multiple Interfaces
---------------------------------------
-
-If your pyILPER configuration contains several interfaces, there are a few things to keep in mind. It is recommended that you activate the pyILPER virtual loop in the following order:
-
-- Connect all USB devices
-
-- Start the loop. Check whether all USB devices connect. If their status stays "connecting" then the serial device in the interface configuration does not exist.
-
-- Start any programs for  virtual HP-IL over TCP/IP devices (e.g. IlVideo80.exe) and press their START button.
-
-- Start the HP-IL controller last! Please follow the instructions above regarding TCP/IP connections.
-
-
-Performance
------------
-
-The loop throughput of the pyILPER virtual loop of version 2 is the same as that of version 1 with an identical interface/devices configuration.
-
-Each additional interface significantly slows down the virtual loop. Every frame sent by an interface takes a certain amount of time (travel time) to be fully received. This travel time adds up for each interface.  For example, if the throughput of a PIL-Box device is 2,000 frames/s, the travel time for each frame is 0.5 ms. If you have 4 interfaces of this type, the travel time sums up to 2 ms. This will reduce the maximum speed of the pyILPER virtual loop to approximately 500 frames/s, assuming all other overhead is negligible.
-
-This is different from the (real) HP-IL loop. Here, the HP-IL chip built into each device in the loop can determine, after receiving just 3 bits of a frame, whether it can begin forwarding the frame to the next device. This reduces the time lag introduced by devices in the loop considerably.
 
 Acknowledgements
 ----------------
@@ -154,4 +97,3 @@ J-F Garnier, Visual C++ version by Christoph Gießelink 2016).
 The terminal emulator code was taken from the pyqterm console widget written
 by Henning Schroeder. The virtual TCP/IP support of pyILPER was significantly
 improved by Christoph Gießelink who also provided many other improvements. The virtual HP7470A plotter engine was derived from the HP2XX software (Heinz W. Werntges, Martin Kroeker). Parts of the HP82162A printer emulation were taken from Eric Smith's Nonpareil emulator.
-
