@@ -220,7 +220,7 @@ You can launch pyILPER version 2.x without activating the Python environment:
 
      (Virtual environment directory)/bin/python -m pyilper2 <optional command line parameters> (Linux, macOS)
      
-     (Virtual environment directory)/scripts/python -m pyilper2 <optional command line parameters> (Windows)
+     (Virtual environment directory)/scripts/pythonw -m pyilper2 <optional command line parameters> (Windows)
 
 Use this command to create desktop shortcuts.
 
