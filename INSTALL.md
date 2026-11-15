@@ -43,7 +43,7 @@ The installation of pyILPER version 2.x and the required runtime software from P
 
 ### Get a Python interpreter for your system:
 
-* Windows: download and install the [Python Install Manager](WINDOWS_INSTALL_MANAGER.md) from the Microsoft Store 
+* Windows: download and install the [Python Install Manager](PYTHON_INSTALL_MANAGER.md) from the Microsoft Store 
 * macOS: download and install the universal installer from the [www.python.org](https://www.python.org) website
 * Linux: install it from system repositories if not already installed on your system
 
